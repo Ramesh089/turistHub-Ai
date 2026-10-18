@@ -1,5 +1,5 @@
 const express = require('express');
-const cors = require('cors');
+// const cors = require('cors');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 
@@ -31,32 +31,36 @@ const allowedOrigins = [
 
 
 const cors = require("cors");
-
+After const app = express();, use one CORS configuration like this:
 const allowedOrigins = [
   "https://turisthub-ai.onrender.com",
 ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
 
-    if (
-      allowedOrigins.includes(origin) ||
-      process.env.NODE_ENV !== "production"
-    ) {
-      return callback(null, true);
-    }
+      if (
+        allowedOrigins.includes(origin) ||
+        process.env.NODE_ENV !== "production"
+      ) {
+        return callback(null, true);
+      }
 
-    return callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With"
-  ]
-}));
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+    ],
+  })
+);
+
+app.use(express.json());
 
 // Cookie & Body Parsers
 app.use(cookieParser());
