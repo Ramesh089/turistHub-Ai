@@ -1,0 +1,22 @@
+{
+  "name": "touristhub-backend",
+  "version": "1.0.0",
+  "description": "Tourist AI Hub Backend REST API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node config/seed.js",
+    "seed:auth": "node config/seed_auth.js",
+    "test:auth": "node test_auth_full.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.7"
+  }
+}
