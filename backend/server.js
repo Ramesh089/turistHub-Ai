@@ -1,73 +1,73 @@
+
 const express = require('express');
-// const cors = require('cors');
+const cors = require('cors');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 
 dotenv.config();
 
 const app = express();
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Tourist Hub AI API is running"
-  });
-});
+const PORT = process.env.PORT || 10000;
 
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: "API is healthy"
-  });
-});
-const PORT = process.env.PORT || 3001;
-
-// CORS configuration supporting credentials and cookies
+// Allowed frontend origins
 const allowedOrigins = [
+  'https://turisthub-ai.onrender.com',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:3000',
   process.env.CLIENT_URL
 ].filter(Boolean);
 
-
-const cors = require("cors");
-After const app = express();, use one CORS configuration like this:
-const allowedOrigins = [
-  "https://turisthub-ai.onrender.com",
-];
-
+// CORS configuration
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
+      // Allow requests without an Origin header, such as server-to-server requests
+      if (!origin) {
+        return callback(null, true);
+      }
 
       if (
         allowedOrigins.includes(origin) ||
-        process.env.NODE_ENV !== "production"
+        process.env.NODE_ENV !== 'production'
       ) {
         return callback(null, true);
       }
 
-      return callback(new Error("Not allowed by CORS"));
+      return callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Requested-With",
-    ],
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With'
+    ]
   })
 );
 
-app.use(express.json());
-
-// Cookie & Body Parsers
-app.use(cookieParser());
+// Body and cookie parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// Health Check
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Tourist Hub AI API is running'
+  });
+});
+
+// Health check
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'API is healthy'
+  });
+});
+
+// API health check
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'online',
@@ -77,7 +77,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Mount Routes
+// Mount routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/states', require('./routes/states'));
@@ -92,20 +92,32 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/stats', require('./routes/stats'));
 
-// 404 Route handler
+// 404 handler
 app.use((req, res) => {
-  res.status(404).json({ success: false, message: `API route not found: ${req.method} ${req.url}` });
-});
-
-// Global Error Handler
-app.use((err, req, res, next) => {
-  console.error('Unhandled Server Error:', err);
-  res.status(500).json({
+  res.status(404).json({
     success: false,
-    message: err.message || 'Internal server error occurred.'
+    message: `API route not found: ${req.method} ${req.url}`
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Tourist Hub API is listening on http://localhost:${PORT}`);
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Unhandled Server Error:', err);
+
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({
+      success: false,
+      message: 'Origin not allowed by CORS'
+    });
+  }
+
+  res.status(500).json({
+    success: false,
+    message: 'Internal server error occurred.'
+  });
+});
+
+// Start server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Tourist Hub API listening on port ${PORT}`);
 });
