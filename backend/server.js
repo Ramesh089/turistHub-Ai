@@ -6,6 +6,19 @@ const cookieParser = require('cookie-parser');
 dotenv.config();
 
 const app = express();
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Tourist Hub AI API is running"
+  });
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "API is healthy"
+  });
+});
 const PORT = process.env.PORT || 3001;
 
 // CORS configuration supporting credentials and cookies
