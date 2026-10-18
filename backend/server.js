@@ -29,17 +29,33 @@ const allowedOrigins = [
   process.env.CLIENT_URL
 ].filter(Boolean);
 
+
+const cors = require("cors");
+
+const allowedOrigins = [
+  "https://turisthub-ai.onrender.com",
+];
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+
+    if (
+      allowedOrigins.includes(origin) ||
+      process.env.NODE_ENV !== "production"
+    ) {
       return callback(null, true);
     }
-    return callback(null, false);
+
+    return callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With"
+  ]
 }));
 
 // Cookie & Body Parsers
