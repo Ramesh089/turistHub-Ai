@@ -203,6 +203,30 @@ async function seed() {
         longitude: 75.8069
       },
       {
+        state_code: 'KA',
+        name: 'Yadgir',
+        location: 'Yadgir District, Karnataka',
+        category: 'Heritage',
+        image_url: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=1200&q=80',
+        gallery_urls: JSON.stringify([
+          'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=1000&q=80'
+        ]),
+        description: 'Yadgir, known as the "World of Boulders" (Yadavagiri), is a historic district in northeastern Karnataka renowned for its formidable hilltop fortress, ancient monuments, Krishna and Bhima river valleys, and serene rural landscapes.',
+        history: 'Historically known as Yadavagiri, Yadgir was founded by the Yadava dynasty of Devagiri in the 10th-11th century. It later came under the rule of the Western Chalukyas, the Bahmani Sultanate, the Bijapur Adil Shahis, and the Nizam of Hyderabad before joining the Indian Union in 1948.',
+        culture_info: 'Deeply rooted in North Karnataka traditions with vibrant Lambani embroidery, ancient Sufi and Dattatreya spiritual syncretism, and the grand annual Mailapur Mailaralingeshwara Jathra.',
+        best_time_to_visit: 'October to March',
+        major_attractions: JSON.stringify(['Yadgir Fort (Hilltop Citadel & Cannons)', 'Hattikuni Dam & Reservoir', 'Bonal Bird Sanctuary', 'Vanadurga Fort (Wankanagere Forest Fortress)', 'Sleeping Buddha Hill (Shahapur Rock Formation)', 'Chhaya Bhagavathi Temple (Krishna River Waterfall)']),
+        activities: JSON.stringify(['Trek to Yadgir Hill Fort for 360-degree panoramic views', 'Bird watching at Bonal Sanctuary (migratory waterfowls)', 'Boating and sunset viewing at Hattikuni Reservoir', 'Heritage walk through historic Bahmani fortifications', 'Geological photography of Sleeping Buddha in Shahapur']),
+        local_food: JSON.stringify(['North Karnataka Jowar Roti Oota with Yennegai (Stuffed Brinjal)', 'Shenga (Peanut) Chutney Pudi', 'Spicy Mirchi Bajji with Mandakki/Churmuri', 'Sajje Roti with Butter & Jaggery', 'Traditional Hurakalu Kadabu']),
+        local_transport: JSON.stringify(['Auto Rickshaws for city & fort hops', 'KSRTC District & Rural Buses', 'Rental Taxis for Shahapur and Hattikuni excursions']),
+        estimated_cost_per_day: 1800.00,
+        recommended_duration_days: 2,
+        rating: 4.7,
+        reviews_count: 195,
+        latitude: 16.7644,
+        longitude: 77.1378
+      },
+      {
         state_code: 'KL',
         name: 'Munnar',
         location: 'Idukki District, Kerala',

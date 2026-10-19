@@ -151,9 +151,9 @@ export default function AIPlanner() {
   const navigate = useNavigate();
   const chatEndRef = useRef(null);
 
-  const initialDestination = searchParams.get('dest') || 'Mysore (Mysuru)';
+  const initialDestination = searchParams.get('dest') || '';
   const initialOrigin = searchParams.get('origin') || 'Bengaluru';
-  const initialDays = parseInt(searchParams.get('days')) || 3;
+  const initialDays = parseInt(searchParams.get('days')) || 2;
   const initialBudget = searchParams.get('budget') ? parseInt(searchParams.get('budget')) : null;
 
   const [inputMessage, setInputMessage] = useState('');
@@ -188,11 +188,11 @@ export default function AIPlanner() {
 
   // Dynamic suggested prompts
   const [suggestedPrompts, setSuggestedPrompts] = useState([
-    'Tell me about Mysore',
-    'What are the best places to visit in Mysore?',
-    'What food is Mysore famous for?',
-    'Plan a 2-day trip to Mysore within ₹6,000',
-    'How can I reach Mysore from Bengaluru?'
+    'I want to visit Yadgir',
+    'What are the best places to visit in Yadgir?',
+    'Tell me about Hampi',
+    'Plan a 2-day trip to Coorg within ₹6,000',
+    'What food is Mysore famous for?'
   ]);
 
   // Conversational message history
@@ -203,13 +203,20 @@ export default function AIPlanner() {
 
 I am your intelligent India travel companion and itinerary planner. You can ask me any travel questions naturally:
 
-• **Destination Insights:** *"Tell me about Mysore"*, *"Why is Hampi famous?"*  
-• **Sightseeing & Attractions:** *"What are the best places to visit in Mysore?"*  
-• **Food & Dining:** *"What food is Mysore famous for?"*, *"Best places to eat"*  
-• **Transportation:** *"How can I reach Mysore from Bengaluru?"*  
-• **Customized Itineraries:** *"Plan a 2-day Mysore trip within ₹6,000 for 2 people"*  
+• **Destination Discovery:** *"I want to visit Yadgir"*, *"Tell me about Hampi"*  
+• **Sightseeing & Attractions:** *"What are the best places to visit in Yadgir?"*  
+• **Photography Spots:** *"Which place is best for photography?"*  
+• **Food & Dining:** *"What food is famous in North Karnataka?"*  
+• **Transportation:** *"How can I reach Yadgir from Bengaluru?"*  
+• **Customized Itineraries:** *"Plan a 2-day trip to Mysore within ₹6,000"*  
 
-How can I help you plan your journey today?`,
+Where would you like to travel today?`,
+      options: [
+        { label: 'Explore Yadgir', value: 'I want to visit Yadgir' },
+        { label: 'Discover Hampi', value: 'Tell me about Hampi' },
+        { label: 'Explore Coorg', value: 'I want to visit Coorg' },
+        { label: 'Visit Mysore', value: 'Tell me about Mysore' }
+      ],
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -255,18 +262,18 @@ How can I help you plan your journey today?`,
         const assistantMsg = {
           role: 'assistant',
           text: res.data.response_text,
+          options: Array.isArray(res.data.options) ? res.data.options : [],
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
         setChatMessages((prev) => [...prev, assistantMsg]);
 
         // If an itinerary was generated or modified, update right-hand plan canvas
-        if (res.data.plan) {
+        if (res.data.is_destination_change || (res.data.destination && travelContext.activeDestination && res.data.destination.toLowerCase() !== travelContext.activeDestination.toLowerCase())) {
+          setPlanResult(null);
+        } else if (res.data.plan) {
           setPlanResult(res.data.plan);
           setSavedSuccess(false);
-        } else if (res.data.destination && res.data.destination !== travelContext.activeDestination) {
-          // If asking a general question about a new destination, clear the previous destination's plan card
-          setPlanResult(null);
         }
 
         // Update dynamic suggested follow-up prompts
@@ -276,11 +283,12 @@ How can I help you plan your journey today?`,
 
         // Update active travel context
         if (res.data.context_updates) {
+          const isDestChange = res.data.is_destination_change || (res.data.destination && travelContext.activeDestination && res.data.destination.toLowerCase() !== travelContext.activeDestination.toLowerCase());
           setTravelContext((prev) => ({
             ...prev,
             ...res.data.context_updates,
             activeDestination: res.data.destination || res.data.context_updates.activeDestination || prev.activeDestination,
-            currentPlan: res.data.plan || (res.data.destination && res.data.destination !== prev.activeDestination ? null : prev.currentPlan)
+            currentPlan: isDestChange ? null : (res.data.plan || prev.currentPlan)
           }));
         }
       } else {
@@ -309,16 +317,28 @@ How can I help you plan your journey today?`,
         role: 'assistant',
         text: `### 🔄 Chat Reset
 
-I'm ready for a fresh travel conversation! Ask me anything about Indian tourist destinations, local food, heritage, or customized itinerary planning.`,
+I'm ready for a fresh travel conversation! Ask me anything about Indian tourist destinations, local food, heritage, or pick a place to explore:`,
+        options: [
+          { label: 'Explore Yadgir', value: 'I want to visit Yadgir' },
+          { label: 'Discover Hampi', value: 'Tell me about Hampi' },
+          { label: 'Explore Coorg', value: 'I want to visit Coorg' },
+          { label: 'Visit Mysore', value: 'Tell me about Mysore' }
+        ],
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
     ]);
     setSuggestedPrompts([
-      'Tell me about Mysore',
-      'What are the best places to visit in Mysore?',
-      'Plan a 3-day Mysore trip within ₹6,000',
-      'How can I reach Mysore from Bengaluru?'
+      'I want to visit Yadgir',
+      'What are the best places to visit in Yadgir?',
+      'Tell me about Hampi',
+      'Plan a 2-day trip to Coorg within ₹6,000'
     ]);
+    setPlanResult(null);
+    setTravelContext((prev) => ({
+      ...prev,
+      activeDestination: '',
+      currentPlan: null
+    }));
     setErrorMsg(null);
   };
 
@@ -445,7 +465,7 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                     </span>
                   </div>
                   <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                    Active Topic: <strong style={{ color: '#0284c7' }}>{travelContext.activeDestination}</strong>
+                    Active Topic: <strong style={{ color: '#0284c7' }}>{travelContext.activeDestination || 'Select Destination'}</strong>
                   </span>
                 </div>
               </div>
@@ -539,7 +559,52 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                             {message.text}
                           </div>
                         ) : (
-                          <FormattedMessage text={message.text} />
+                          <div>
+                            <FormattedMessage text={message.text} />
+                            {Array.isArray(message.options) && message.options.length > 0 && (
+                              <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px dashed #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                {message.options.map((opt, oIdx) => (
+                                  <button
+                                    key={oIdx}
+                                    type="button"
+                                    onClick={() => handleSendMessage(opt.value || opt.label)}
+                                    disabled={generating}
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: opt.subtext ? 'column' : 'row',
+                                      alignItems: opt.subtext ? 'flex-start' : 'center',
+                                      gap: '2px',
+                                      padding: '8px 14px',
+                                      background: '#f0f9ff',
+                                      border: '1.5px solid #0284c7',
+                                      borderRadius: '10px',
+                                      color: '#0369a1',
+                                      fontWeight: '600',
+                                      fontSize: '0.84rem',
+                                      cursor: generating ? 'not-allowed' : 'pointer',
+                                      transition: 'all 0.15s ease',
+                                      textAlign: 'left'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = '#0284c7';
+                                      e.currentTarget.style.color = '#ffffff';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background = '#f0f9ff';
+                                      e.currentTarget.style.color = '#0369a1';
+                                    }}
+                                  >
+                                    <span>{opt.label}</span>
+                                    {opt.subtext && (
+                                      <span style={{ fontSize: '0.72rem', opacity: 0.85, fontWeight: '400' }}>
+                                        {opt.subtext}
+                                      </span>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
@@ -940,13 +1005,17 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                 </h3>
 
                 <p style={{ margin: '0 auto 24px auto', color: '#64748b', maxWidth: '560px', fontSize: '0.92rem', lineHeight: 1.6 }}>
-                  You are exploring <strong>{travelContext.activeDestination}</strong>. You can ask general questions on the left, or click a shortcut below to generate an itinerary and itemized budget.
+                  {travelContext.activeDestination ? (
+                    <>You are exploring <strong>{travelContext.activeDestination}</strong>. Ask questions in chat or pick a trip planning shortcut below to generate an itinerary and itemized budget.</>
+                  ) : (
+                    <>Ask questions about any Indian tourist destination, or click a shortcut below to start planning.</>
+                  )}
                 </p>
 
                 {/* Quick Planning Shortcut Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', textAlign: 'left', marginBottom: '24px' }}>
                   <div
-                    onClick={() => handleSendMessage(`Plan a 2-day weekend trip to ${travelContext.activeDestination} within ₹6,000`)}
+                    onClick={() => handleSendMessage(`Plan a 2-day weekend trip to ${travelContext.activeDestination || 'Yadgir'} within ₹6,000`)}
                     style={{
                       background: '#f8fafc',
                       borderRadius: '12px',
@@ -960,12 +1029,12 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                   >
                     <div style={{ fontSize: '1.2rem', marginBottom: '6px' }}>⚡ 2-Day Weekend Plan</div>
                     <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                      Fast-paced weekend getaway covering major royal landmarks and signature dining.
+                      Fast-paced weekend getaway covering major iconic landmarks and signature dining.
                     </div>
                   </div>
 
                   <div
-                    onClick={() => handleSendMessage(`Plan a 3-day trip to ${travelContext.activeDestination} with heritage and food`)}
+                    onClick={() => handleSendMessage(`Plan a 3-day trip to ${travelContext.activeDestination || 'Hampi'} with heritage and food`)}
                     style={{
                       background: '#f8fafc',
                       borderRadius: '12px',
@@ -984,7 +1053,7 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                   </div>
 
                   <div
-                    onClick={() => handleSendMessage(`How much will a 2-day trip to ${travelContext.activeDestination} cost?`)}
+                    onClick={() => handleSendMessage(`How much will a 2-day trip to ${travelContext.activeDestination || 'Yadgir'} cost?`)}
                     style={{
                       background: '#f8fafc',
                       borderRadius: '12px',

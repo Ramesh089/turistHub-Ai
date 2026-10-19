@@ -138,6 +138,110 @@ const DESTINATION_KNOWLEDGE = {
     safety_tips: 'Mysore is one of India\'s cleanest and safest cities. Always hire licensed guides inside the Palace holding official tourism department badges. Moderate clothing is appreciated at Chamundeshwari Temple.'
   },
 
+  'yadgir': {
+    name: 'Yadgir',
+    state: 'Karnataka',
+    nickname: 'World of Boulders (Yadavagiri) / Historic Hill Fort Citadel',
+    overview: 'Yadgir, historically known as Yadavagiri, is an ancient district in northeastern Karnataka celebrated for its colossal hill fort perched on a giant monolithic boulder, Krishna and Bhima river valleys, scenic dams, and rich rural heritage.',
+    history: 'Founded by the Yadava dynasty of Devagiri in the 10th-11th century, Yadgir was later fortified by the Western Chalukyas, the Bahmani Sultanate, the Bijapur Adil Shahis, and the Nizam of Hyderabad. The town is famous for its massive rock-cut hill fort with ancient defense bastions and cannons.',
+    best_time: 'October to March (Winter temperature 18°C - 30°C). Avoid peak summer (April-May) as rocky terrain gets hot.',
+    ideal_duration: '2 Days',
+    attractions: [
+      {
+        name: 'Yadgir Fort (Hilltop Citadel & Cannons)',
+        category: 'Heritage & Hill Fortress',
+        timings: '8:00 AM - 6:00 PM (Daily)',
+        entry_fee: 'Free Entry',
+        est_time: '2 - 3 hours',
+        highlight: 'Formidable hilltop fortress built across three tiers with ancient defense gateways, historic cannons, and 360-degree panoramic views of Yadgir town.'
+      },
+      {
+        name: 'Hattikuni Dam & Lake',
+        category: 'Nature & Sunset Viewpoint',
+        timings: '6:00 AM - 6:30 PM',
+        entry_fee: 'Free Entry',
+        est_time: '2 hours',
+        highlight: 'Picturesque irrigation reservoir nestled between green boulder hills, perfect for peaceful evening walks, picnics, and waterside photography.'
+      },
+      {
+        name: 'Bonal Bird Sanctuary',
+        category: 'Wildlife & Birdwatching',
+        timings: '6:00 AM - 5:30 PM',
+        entry_fee: 'Free Entry',
+        est_time: '2 - 3 hours',
+        highlight: 'Second largest bird sanctuary in Karnataka, hosting over 21 species of migratory waterfowls, purple herons, and white ibises during winter.'
+      },
+      {
+        name: 'Vanadurga Fort (Wankanagere Forest Fortress)',
+        category: 'Ancient Heritage',
+        timings: '9:00 AM - 5:00 PM',
+        entry_fee: 'Free Entry',
+        est_time: '1.5 hours',
+        highlight: 'Unique forest fortress built by the Surpur Nayakas, surrounded by water canals and dense greenery in Shorapur taluk.'
+      },
+      {
+        name: 'Sleeping Buddha Hill (Shahapur Rock Formation)',
+        category: 'Geological Marvel & Photography',
+        timings: 'Open daylight hours',
+        entry_fee: 'Free',
+        est_time: '1.5 hours',
+        highlight: 'Remarkable natural hilltop formation in Shahapur that dramatically resembles a colossal reclining Buddha against the horizon.'
+      },
+      {
+        name: 'Chhaya Bhagavathi Temple (Krishna River)',
+        category: 'Spiritual Shrine & River Gorge',
+        timings: '6:00 AM - 7:00 PM',
+        entry_fee: 'Free Entry',
+        est_time: '2 hours',
+        highlight: 'Ancient temple situated by a scenic waterfall on the Krishna river where sunlight magically does not fall directly on the deity.'
+      }
+    ],
+    food: [
+      {
+        name: 'North Karnataka Jowar Roti Oota with Yennegai',
+        description: 'Warm crispy sorghum flatbreads served with spiced stuffed baby brinjals, thick curd, and fresh salad.',
+        where: 'Traditional Khanavali Messes near Yadgir Station and Chittapur Road'
+      },
+      {
+        name: 'Shenga (Peanut) Chutney Pudi & Sajje Roti',
+        description: 'Nutty spiced roasted peanut powder mixed with fresh curd or ghee, paired with pearl millet rotis.',
+        where: 'Local eateries and home-style messes across Yadgir'
+      },
+      {
+        name: 'Spicy Mirchi Bajji with Mandakki/Churmuri',
+        description: 'Crispy gram-flour battered green chilli fritters served with seasoned puffed rice and chopped onions.',
+        where: 'Evening bazaar stalls near Gandhi Chowk'
+      }
+    ],
+    transport: {
+      from_bengaluru: [
+        {
+          mode: 'Direct Trains (Udyan, Karnataka, Basava Express)',
+          duration: '8 to 9 hours',
+          cost: '₹280 (SL) / ₹750 (3AC)',
+          frequency: 'Multiple daily direct express trains from KSR Bengaluru & Yesvantpur',
+          details: 'Yadgir Railway Station (YG) is a major junction on the Bengaluru-Mumbai line.'
+        },
+        {
+          mode: 'KSRTC Non-AC & AC Sleeper Buses',
+          duration: '9 to 10 hours',
+          cost: '₹600 - ₹1,050',
+          frequency: 'Daily evening and night departures from Majestic (Kempegowda Bus Station)',
+          details: 'Direct overnight route via Anantapur and Raichur.'
+        },
+        {
+          mode: 'Self Drive / Private Cab (NH-44 & NH-150)',
+          duration: '8.5 hours (490 km)',
+          cost: '₹6,000 - ₹8,000',
+          frequency: 'On demand',
+          details: 'Bengaluru → Anantapur → Guntakal → Raichur → Yadgir.'
+        }
+      ],
+      local: 'Auto Rickshaws for city hops, KSRTC district buses for Shahapur/Shorapur, and pre-arranged local taxis for dam & sanctuary trips.'
+    },
+    safety_tips: 'Yadgir is quiet, welcoming, and safe. Carry adequate drinking water and sun protection when trekking up Yadgir Fort stairs. Best photographed during golden hour mornings.'
+  },
+
   'hampi': {
     name: 'Hampi',
     state: 'Karnataka',
@@ -432,21 +536,75 @@ const DESTINATION_KNOWLEDGE = {
 };
 
 /**
+ * Clean and validate extracted destination names
+ */
+function cleanExtractedDestination(raw) {
+  if (!raw) return null;
+  let clean = raw.trim()
+    .replace(/[?!.,;:]+$/, '')
+    .replace(/\b(?:please|can you|explain|for|within|under|inr|rupees|budget|with|from|instead)\b.*$/i, '')
+    .trim();
+
+  const stopWords = [
+    'you', 'this', 'that', 'there', 'here', 'it', 'more', 'trip', 'place', 'places',
+    'the trip', 'this place', 'that place', 'photography', 'photo', 'photos',
+    'food', 'hotels', 'stay', 'weekend', 'today', 'cheap', 'moderate', 'luxury',
+    'couple', 'family', 'friends', 'solo', 'just me', 'a couple', 'me', 'us'
+  ];
+
+  if (clean.length < 2 || stopWords.includes(clean.toLowerCase())) {
+    return null;
+  }
+  return clean.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+/**
  * 1. Intent Detection
  * Analyzes natural language message and context to classify user intent
  */
-function detectIntent(message, context = {}) {
+function detectIntent(message, context = {}, entities = {}) {
   const text = (message || '').toLowerCase().trim();
 
-  // Explicit planning / itinerary request keywords
+  // 1. Explicit destination change
+  if (entities.isDestinationChange || text.includes('change my destination') || text.includes('switch destination') || text.includes('instead')) {
+    return 'DESTINATION_CHANGE';
+  }
+
+  // 2. Interactive Selection: Travel Type ("Just Me", "A Couple", "Family", "Friends")
+  const isTravelTypeSelection = /^(?:just\s+me|solo|a\s+couple|couple|family|friends|group)$/i.test(text) ||
+    (/\b(?:just\s+me|a\s+couple|couple|family|friends)\b/i.test(text) && !text.includes('plan') && !text.includes('visit') && !text.includes('about') && !text.includes('trip to'));
+  if (isTravelTypeSelection && (context.activeDestination || entities.destinationName)) {
+    return 'TRAVEL_TYPE_SELECTED';
+  }
+
+  // 3. Interactive Selection: Budget Level ("Cheap", "Moderate", "Luxury")
+  const isBudgetSelection = /^(?:cheap|moderate|luxury|backpacker|budget)$/i.test(text) ||
+    (/\b(?:cheap|moderate|luxury)\b/i.test(text) && !text.includes('plan') && !text.includes('visit') && !text.includes('hotel') && !text.includes('food') && !text.includes('trip to'));
+  if (isBudgetSelection && (context.activeDestination || entities.destinationName)) {
+    return 'BUDGET_SELECTED';
+  }
+
+  // 4. Photography Query
+  if (text.includes('photograph') || text.includes('photo') || text.includes('camera') || text.includes('picture') || text.includes('viewpoint')) {
+    return 'PHOTOGRAPHY_QUERY';
+  }
+
+  // 5. Explicit Planning / Itinerary
   const planKeywords = [
     'plan a', 'plan my', 'create a trip', 'plan trip', 'create itinerary',
     'plan itinerary', 'make a plan', 'make an itinerary', 'day plan', 'days plan',
     'day trip', 'days trip', 'weekend trip', 'tour plan', 'holiday plan',
     'suggest an itinerary', 'schedule a trip', 'give me a plan', 'build a plan'
   ];
+  const hasPlanKeyword = planKeywords.some(k => text.includes(k));
+  const hasDayMention = /\b\d+\s*-?\s*days?\b/.test(text) || /\bweekend\b/.test(text);
+  const hasBudgetMention = /(?:₹|rs\.?|inr|budget|within|under)\s*[\d,]+/i.test(text);
 
-  // Check for plan modification
+  if (hasPlanKeyword || (hasDayMention && (hasBudgetMention || text.includes('plan')))) {
+    return 'PLAN_ITINERARY';
+  }
+
+  // 6. Plan Modification
   const isModifyRequested = context.currentPlan && (
     text.includes('cheaper') ||
     text.includes('reduce budget') ||
@@ -461,75 +619,47 @@ function detectIntent(message, context = {}) {
     /\b(?:make\s+it|change\s+to)\s+\d+\s*days?\b/i.test(text) ||
     /\b(?:change\s+to|make\s+it)\s+veg/i.test(text)
   );
-
   if (isModifyRequested) {
     return 'MODIFY_PLAN';
   }
 
-  // Check if user is explicitly asking to plan an itinerary
-  const hasPlanKeyword = planKeywords.some(k => text.includes(k));
-  const hasDayMention = /\b\d+\s*-?\s*days?\b/.test(text) || /\bweekend\b/.test(text);
-  const hasBudgetMention = /(?:₹|rs\.?|inr|budget|within|under)\s*[\d,]+/i.test(text);
+  // 7. Destination Discovery (e.g., "I want to visit Yadgir", "Visit Yadgir", "Explore Hampi")
+  const isDiscovery = (
+    text.startsWith('i want to visit') ||
+    text.startsWith('want to visit') ||
+    text.startsWith('i want to go to') ||
+    text.startsWith('i would like to visit') ||
+    text.startsWith('visit ') ||
+    text.startsWith('explore ') ||
+    text.startsWith('let\'s explore') ||
+    text.startsWith('let\'s visit') ||
+    text.startsWith('trip to ')
+  ) && !text.includes('plan') && !text.includes('day') && !text.includes('budget') && !text.includes('cost');
 
-  if (hasPlanKeyword || (hasDayMention && (hasBudgetMention || text.includes('plan')))) {
-    return 'PLAN_ITINERARY';
+  if (isDiscovery) {
+    return 'DESTINATION_DISCOVERY';
   }
 
-  // Question intents (Conversational Assistant)
-  if (text.includes('why is') && (text.includes('famous') || text.includes('known for'))) {
-    return 'HISTORY_CULTURE';
-  }
+  // 8. Specific Question Categories
+  if (text.includes('why is') && (text.includes('famous') || text.includes('known for'))) return 'HISTORY_CULTURE';
+  if (text.includes('history') || text.includes('heritage') || text.includes('dynasty') || text.includes('who built') || text.includes('architecture of')) return 'HISTORY_CULTURE';
+  if (text.includes('food') || text.includes('dish') || text.includes('eat') || text.includes('cuisine') || text.includes('restaurant') || text.includes('sweet') || text.includes('dosa') || text.includes('delicac')) return 'FOOD_DINING';
+  if (text.includes('how can i reach') || text.includes('how to reach') || text.includes('how to get to') || text.includes('transport') || text.includes('flight') || text.includes('train') || text.includes('bus') || text.includes('expressway') || text.includes('distance from') || text.includes('drive to')) return 'TRANSPORT_DIRECTIONS';
+  if (text.includes('best places') || text.includes('places to visit') || text.includes('attractions') || text.includes('must visit') || text.includes('sightseeing') || text.includes('top spots') || text.includes('things to see') || text.includes('tourist spots')) return 'ATTRACTIONS';
+  if (text.includes('where to stay') || text.includes('hotels in') || text.includes('resorts in') || text.includes('homestay') || text.includes('accommodation') || text.includes('best hotel')) return 'HOTELS_ACCOMMODATION';
+  if (text.includes('best time') || text.includes('when to visit') || text.includes('weather') || text.includes('climate') || text.includes('season') || text.includes('monsoon in')) return 'WEATHER_BEST_TIME';
+  if (text.includes('how much will') || text.includes('approximate cost') || text.includes('is it expensive') || text.includes('trip cost') || text.includes('estimated cost')) return 'BUDGET_ESTIMATION';
+  if (text.includes(' or ') && (text.includes('which is better') || text.includes('compare') || text.includes('vs'))) return 'COMPARISON';
 
-  if (text.includes('history') || text.includes('heritage') || text.includes('dynasty') || text.includes('who built') || text.includes('architecture of')) {
-    return 'HISTORY_CULTURE';
-  }
-
-  if (text.includes('food') || text.includes('dish') || text.includes('eat') || text.includes('cuisine') || text.includes('restaurant') || text.includes('sweet') || text.includes('dosa') || text.includes('delicac')) {
-    return 'FOOD_DINING';
-  }
-
-  if (text.includes('how can i reach') || text.includes('how to reach') || text.includes('how to get to') || text.includes('transport') || text.includes('flight') || text.includes('train') || text.includes('bus') || text.includes('expressway') || text.includes('distance from') || text.includes('drive to')) {
-    return 'TRANSPORT_DIRECTIONS';
-  }
-
-  if (text.includes('best places') || text.includes('places to visit') || text.includes('attractions') || text.includes('must visit') || text.includes('sightseeing') || text.includes('top spots') || text.includes('things to see') || text.includes('tourist spots')) {
-    return 'ATTRACTIONS';
-  }
-
-  if (text.includes('where to stay') || text.includes('hotels in') || text.includes('resorts in') || text.includes('homestay') || text.includes('accommodation') || text.includes('best hotel')) {
-    return 'HOTELS_ACCOMMODATION';
-  }
-
-  if (text.includes('best time') || text.includes('when to visit') || text.includes('weather') || text.includes('climate') || text.includes('season') || text.includes('monsoon in')) {
-    return 'WEATHER_BEST_TIME';
-  }
-
-  if (text.includes('how much will') || text.includes('approximate cost') || text.includes('is it expensive') || text.includes('trip cost') || text.includes('estimated cost')) {
-    return 'BUDGET_ESTIMATION';
-  }
-
-  if (text.includes(' or ') && (text.includes('which is better') || text.includes('compare') || text.includes('vs'))) {
-    return 'COMPARISON';
-  }
-
-  // If greeting mentions ANY question or inquiry, prioritize that
+  // 9. Greetings
   if (text.startsWith('hi') || text.startsWith('hello') || text.startsWith('hey') || text === 'how are you' || text === 'help') {
-    if (
-      text.includes('about') ||
-      text.includes('know') ||
-      text.includes('explain') ||
-      text.includes('trip') ||
-      text.includes('places') ||
-      text.includes('plan') ||
-      text.includes('food') ||
-      text.includes('visit')
-    ) {
+    if (text.includes('about') || text.includes('know') || text.includes('explain') || text.includes('trip') || text.includes('places') || text.includes('visit')) {
       return 'GENERAL_INFO';
     }
     return 'GREETING';
   }
 
-  // General destination inquiry (e.g., "Tell me about Chikmagalur", "What about Coorg?", "Explain about Hampi")
+  // 10. General destination inquiry
   if (text.includes('tell me about') || text.includes('what about') || text.includes('what is') || text.includes('explain') || text.includes('guide to') || text.includes('information on')) {
     return 'GENERAL_INFO';
   }
@@ -554,9 +684,33 @@ function extractEntities(message, context = {}) {
   let destinationKey = null;
   let destinationName = null;
   let isExplicitlyMentioned = false;
+  let isDestinationChange = false;
 
-  // 1. Comprehensive dictionary of Indian and Karnataka travel destinations
+  // 1. Explicit destination change detection
+  const changePatterns = [
+    /(?:change\s+(?:my\s+)?destination\s+(?:from\s+[a-zA-Z\s]+\s+)?to)\s+([a-zA-Z\s]{2,35})/i,
+    /(?:switch\s+(?:my\s+)?(?:destination|trip|plan)?\s*(?:from\s+[a-zA-Z\s]+\s+)?to)\s+([a-zA-Z\s]{2,35})/i,
+    /(?:actually,?\s*(?:i\s+(?:would\s+)?(?:like|want)\s+to)?\s*(?:visit|explore|go\s+to)?)\s+([a-zA-Z\s]{2,35})\s+instead/i,
+    /(?:instead\s+of\s+[a-zA-Z\s]+,?\s*(?:let\'?s\s+visit|i\s+want\s+to\s+visit)?)\s+([a-zA-Z\s]{2,35})/i
+  ];
+
+  for (const cp of changePatterns) {
+    const match = originalText.match(cp);
+    if (match && match[1]) {
+      const clean = cleanExtractedDestination(match[1]);
+      if (clean) {
+        destinationName = clean;
+        destinationKey = clean.toLowerCase().replace(/[^a-z0-9]/g, '');
+        isExplicitlyMentioned = true;
+        isDestinationChange = true;
+        break;
+      }
+    }
+  }
+
+  // 2. Comprehensive dictionary of Indian and Karnataka destinations
   const knownDestinations = [
+    { key: 'yadgir', name: 'Yadgir', names: ['yadgir', 'yadavagiri', 'yadgiri'] },
     { key: 'mysore', name: 'Mysore (Mysuru)', names: ['mysore', 'mysuru', 'mysore palace', 'chamundi'] },
     { key: 'hampi', name: 'Hampi', names: ['hampi', 'vijayanagara', 'virupaksha', 'vittala'] },
     { key: 'coorg', name: 'Coorg (Kodagu)', names: ['coorg', 'kodagu', 'madikeri', 'abbey falls', 'rajas seat'] },
@@ -565,13 +719,30 @@ function extractEntities(message, context = {}) {
     { key: 'gokarna', name: 'Gokarna', names: ['gokarna', 'om beach', 'kudle', 'mahabaleshwar temple'] },
     { key: 'ooty', name: 'Ooty', names: ['ooty', 'udhagamandalam', 'nilgiris', 'doddabetta'] },
     { key: 'goa', name: 'Goa', names: ['goa', 'panaji', 'baga', 'calangute', 'anjuna', 'palolem', 'fort aguada', 'dudhsagar'] },
+    { key: 'bengaluru', name: 'Bengaluru', names: ['bengaluru', 'bangalore', 'lalbagh', 'cubbon park'] },
+    { key: 'kalaburagi', name: 'Kalaburagi (Gulbarga)', names: ['kalaburagi', 'gulbarga'] },
+    { key: 'bidar', name: 'Bidar', names: ['bidar', 'mahmud gawan'] },
+    { key: 'raichur', name: 'Raichur', names: ['raichur'] },
+    { key: 'koppal', name: 'Koppal', names: ['koppal'] },
+    { key: 'ballari', name: 'Ballari (Bellary)', names: ['ballari', 'bellary'] },
+    { key: 'vijayapura', name: 'Vijayapura (Bijapur)', names: ['vijayapura', 'bijapur', 'gol gumbaz'] },
+    { key: 'bagalkot', name: 'Bagalkot', names: ['bagalkot'] },
+    { key: 'belagavi', name: 'Belagavi (Belgaum)', names: ['belagavi', 'belgaum'] },
+    { key: 'dharwad', name: 'Dharwad', names: ['dharwad', 'hubli', 'hubballi'] },
+    { key: 'shivamogga', name: 'Shivamogga (Shimoga)', names: ['shivamogga', 'shimoga', 'jog falls'] },
+    { key: 'udupi', name: 'Udupi', names: ['udupi', 'malpe', 'st mary', 'krishna matha'] },
+    { key: 'mangalore', name: 'Mangaluru (Mangalore)', names: ['mangalore', 'mangaluru', 'panambur'] },
+    { key: 'dandeli', name: 'Dandeli', names: ['dandeli', 'kali river', 'syntheri'] },
+    { key: 'hassan', name: 'Hassan', names: ['hassan', 'shettihalli'] },
+    { key: 'chitradurga', name: 'Chitradurga', names: ['chitradurga', 'kallina kote'] },
+    { key: 'tumakuru', name: 'Tumakuru (Tumkur)', names: ['tumakuru', 'tumkur'] },
+    { key: 'kolar', name: 'Kolar', names: ['kolar', 'kgf'] },
+    { key: 'mandya', name: 'Mandya', names: ['mandya', 'srirangapatna', 'ranganathittu'] },
+    { key: 'chamarajanagar', name: 'Chamarajanagar', names: ['chamarajanagar', 'bandipur', 'br hills'] },
     { key: 'munnar', name: 'Munnar', names: ['munnar', 'idukki', 'eravikulam', 'mattupetty'] },
     { key: 'alleppey', name: 'Alleppey (Alappuzha)', names: ['alleppey', 'alappuzha', 'backwaters', 'kettuvallam'] },
     { key: 'wayanad', name: 'Wayanad', names: ['wayanad', 'chembra', 'banasura', 'edakkal'] },
-    { key: 'dandeli', name: 'Dandeli', names: ['dandeli', 'kali river', 'syntheri'] },
-    { key: 'jogfalls', name: 'Jog Falls', names: ['jog falls', 'gerusoppa'] },
-    { key: 'murudeshwar', name: 'Murudeshwar', names: ['murudeshwar', 'murdeshwar', 'shiva statue'] },
-    { key: 'udupi', name: 'Udupi', names: ['udupi', 'malpe', 'st mary', 'krishna matha'] },
+    { key: 'kochi', name: 'Kochi (Cochin)', names: ['kochi', 'cochin', 'fort kochi'] },
     { key: 'jaipur', name: 'Jaipur', names: ['jaipur', 'pink city', 'amber fort', 'hawa mahal'] },
     { key: 'udaipur', name: 'Udaipur', names: ['udaipur', 'lake pichola', 'city palace udaipur'] },
     { key: 'jodhpur', name: 'Jodhpur', names: ['jodhpur', 'blue city', 'mehrangarh'] },
@@ -579,7 +750,6 @@ function extractEntities(message, context = {}) {
     { key: 'agra', name: 'Agra', names: ['agra', 'taj mahal', 'fatehpur sikri'] },
     { key: 'delhi', name: 'Delhi', names: ['delhi', 'new delhi', 'qutub minar', 'red fort', 'india gate'] },
     { key: 'mumbai', name: 'Mumbai', names: ['mumbai', 'bombay', 'marine drive', 'gateway of india'] },
-    { key: 'bengaluru', name: 'Bengaluru', names: ['bengaluru', 'bangalore', 'lalbagh', 'cubbon park'] },
     { key: 'kerala', name: 'Kerala', names: ['kerala'] },
     { key: 'manali', name: 'Manali', names: ['manali', 'rohtang', 'solang valley'] },
     { key: 'shimla', name: 'Shimla', names: ['shimla', 'kufri', 'mall road shimla'] },
@@ -597,37 +767,37 @@ function extractEntities(message, context = {}) {
     { key: 'tirupati', name: 'Tirupati', names: ['tirupati', 'balaji temple', 'tirumala'] }
   ];
 
-  for (const item of knownDestinations) {
-    if (item.names.some(n => text.includes(n))) {
-      destinationKey = item.key;
-      destinationName = item.name;
-      isExplicitlyMentioned = true;
-      break;
+  if (!destinationName) {
+    for (const item of knownDestinations) {
+      if (item.names.some(n => new RegExp(`\\b${n}\\b`, 'i').test(text))) {
+        destinationKey = item.key;
+        destinationName = item.name;
+        isExplicitlyMentioned = true;
+        break;
+      }
     }
   }
 
-  // 2. Natural Language Pattern Extraction for Custom / Any Other Place
+  // 3. Natural Language Pattern Extraction for Custom / Any Other Place
   if (!destinationName) {
     const placePatterns = [
-      /(?:tell me about|what about|explain about|information on|guide to|know about|about)\s+([a-zA-Z\s]{3,30})/i,
-      /(?:plan (?:a )?(?:\d+[- ]day )?(?:trip|tour|vacation|visit|itinerary) to)\s+([a-zA-Z\s]{3,30})/i,
-      /(?:places to visit in|best places in|attractions in|things to do in|sightseeing in|top spots in)\s+([a-zA-Z\s]{3,30})/i,
-      /(?:how to reach|how can i reach|directions to|route to|distance to)\s+([a-zA-Z\s]{3,30})/i,
-      /(?:food in|famous food in|what to eat in|restaurants in|cuisine of)\s+([a-zA-Z\s]{3,30})/i,
-      /(?:why is|history of|culture of)\s+([a-zA-Z\s]{3,30})/i
+      /(?:i\s+want\s+to\s+visit|want\s+to\s+visit|visiting|visit|let\'?s\s+visit|let\'?s\s+explore|explore|travel\s+to|travelling\s+to|trip\s+to|tour\s+to|head\s+to|going\s+to|go\s+to|vacation\s+in)\s+([a-zA-Z\s]{2,35})/i,
+      /(?:plan\s+(?:a\s+)?(?:\d+[- ]day\s+)?(?:trip|tour|vacation|visit|itinerary|holiday)\s+to)\s+([a-zA-Z\s]{2,35})/i,
+      /(?:tell\s+me\s+about|what\s+about|explain\s+about|information\s+on|guide\s+to|know\s+about|about)\s+([a-zA-Z\s]{2,35})/i,
+      /(?:places\s+to\s+visit\s+in|best\s+places\s+in|attractions\s+in|things\s+to\s+do\s+in|sightseeing\s+in|top\s+spots\s+in)\s+([a-zA-Z\s]{2,35})/i,
+      /(?:how\s+to\s+reach|how\s+can\s+i\s+reach|directions\s+to|route\s+to|distance\s+to)\s+([a-zA-Z\s]{2,35})/i,
+      /(?:food\s+in|famous\s+food\s+in|what\s+to\s+eat\s+in|restaurants\s+in|cuisine\s+of)\s+([a-zA-Z\s]{2,35})/i,
+      /(?:why\s+is|history\s+of|culture\s+of|heritage\s+of)\s+([a-zA-Z\s]{2,35})/i,
+      /(?:best\s+time\s+to\s+visit|weather\s+in|climate\s+in)\s+([a-zA-Z\s]{2,35})/i
     ];
 
     for (const pattern of placePatterns) {
       const match = originalText.match(pattern);
       if (match && match[1]) {
-        let extracted = match[1].trim()
-          .replace(/[?!.,;:]+$/, '')
-          .replace(/\b(?:please|can you|explain|for|within|under|inr|rupees|budget|with)\b.*$/i, '')
-          .trim();
-
-        if (extracted.length >= 3 && !['you', 'this', 'that', 'there', 'it', 'here', 'more', 'trip', 'place', 'places', 'the trip'].includes(extracted.toLowerCase())) {
-          destinationName = extracted.replace(/\b\w/g, c => c.toUpperCase());
-          destinationKey = extracted.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const clean = cleanExtractedDestination(match[1]);
+        if (clean) {
+          destinationName = clean;
+          destinationKey = clean.toLowerCase().replace(/[^a-z0-9]/g, '');
           isExplicitlyMentioned = true;
           break;
         }
@@ -635,13 +805,22 @@ function extractEntities(message, context = {}) {
     }
   }
 
-  // 3. Inherit active destination from context ONLY if none explicitly mentioned
+  // Check if destination explicitly changed from previous context
+  if (isExplicitlyMentioned && context.activeDestination && destinationName) {
+    const prevKey = context.activeDestination.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const currentKey = destinationName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (prevKey && currentKey && prevKey !== currentKey && !currentKey.includes(prevKey) && !prevKey.includes(currentKey)) {
+      isDestinationChange = true;
+    }
+  }
+
+  // 4. Inherit active destination from context ONLY if none explicitly mentioned
   if (!destinationName) {
-    if (context.currentPlan && context.currentPlan.destination) {
-      destinationName = context.currentPlan.destination;
-      destinationKey = destinationName.toLowerCase().replace(/[^a-z0-9]/g, '');
-    } else if (context.activeDestination) {
+    if (context.activeDestination && context.activeDestination !== 'Choose a destination') {
       destinationName = context.activeDestination;
+      destinationKey = destinationName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    } else if (context.currentPlan && context.currentPlan.destination) {
+      destinationName = context.currentPlan.destination;
       destinationKey = destinationName.toLowerCase().replace(/[^a-z0-9]/g, '');
     }
   }
@@ -656,7 +835,7 @@ function extractEntities(message, context = {}) {
   else if (text.includes('from bengaluru') || text.includes('from bangalore')) origin = 'Bengaluru';
 
   // Extract Days
-  let days = (context.currentPlan && context.currentPlan.days) || context.days || 3;
+  let days = (context.currentPlan && context.currentPlan.days) || context.days || 2;
   const matchDays = text.match(/(\d+)\s*-?\s*days?/);
   if (matchDays && matchDays[1]) {
     days = Math.min(Math.max(parseInt(matchDays[1]), 1), 10);
@@ -676,20 +855,30 @@ function extractEntities(message, context = {}) {
     if (parsed > 0) budget = parsed;
   }
 
+  // Extract Budget Level (Cheap, Moderate, Luxury)
+  let budgetLevel = context.budgetLevel || 'Moderate';
+  if (text.includes('cheap') || text.includes('backpacker') || text.includes('low budget') || text.includes('pocket friendly')) {
+    budgetLevel = 'Cheap';
+  } else if (text.includes('moderate') || text.includes('standard') || text.includes('balanced')) {
+    budgetLevel = 'Moderate';
+  } else if (text.includes('luxury') || text.includes('premium') || text.includes('5-star') || text.includes('high end')) {
+    budgetLevel = 'Luxury';
+  }
+
   // Extract People / Traveler Type
   let people = (context.currentPlan && context.currentPlan.people) || context.people || 2;
-  let travellerType = (context.currentPlan && context.currentPlan.traveller_type) || context.travellerType || 'Couple';
-  if (text.includes('family')) {
+  let travellerType = (context.currentPlan && context.currentPlan.traveller_type) || context.travellerType || context.travelType || 'Couple';
+  if (text.includes('family') || text.includes('kids') || text.includes('parents')) {
     travellerType = 'Family';
     people = 4;
-  } else if (text.includes('solo')) {
-    travellerType = 'Solo';
+  } else if (text.includes('just me') || text.includes('solo') || text.includes('alone')) {
+    travellerType = 'Just Me';
     people = 1;
-  } else if (text.includes('friends') || text.includes('group') || text.includes('students')) {
+  } else if (text.includes('friends') || text.includes('group') || text.includes('students') || text.includes('colleagues')) {
     travellerType = 'Friends';
     people = 3;
-  } else if (text.includes('couple')) {
-    travellerType = 'Couple';
+  } else if (text.includes('a couple') || text.includes('couple') || text.includes('romantic') || text.includes('honeymoon')) {
+    travellerType = 'A Couple';
     people = 2;
   }
 
@@ -707,7 +896,7 @@ function extractEntities(message, context = {}) {
   }
 
   // Extract Travel Mode
-  let transport = context.transport || 'Train';
+  let transport = context.transport || 'Express Train';
   if (text.includes('car') || text.includes('drive') || text.includes('cab') || text.includes('road trip')) {
     transport = 'Private Cab / Car';
   } else if (text.includes('bus') || text.includes('ksrtc') || text.includes('volvo')) {
@@ -722,9 +911,11 @@ function extractEntities(message, context = {}) {
     destinationKey,
     destinationName,
     isExplicitlyMentioned,
+    isDestinationChange,
     origin,
     days,
     budget,
+    budgetLevel,
     people,
     travellerType,
     foodPreference,
@@ -736,74 +927,206 @@ function extractEntities(message, context = {}) {
  * 3. Dynamic Prompt Suggestion Generator
  * Generates 4 context-relevant follow-up suggestions for the current conversation
  */
-function generateFollowUpSuggestions(intent, destinationName, hasPlan) {
-  const dName = destinationName.split(' ')[0];
+function generateFollowUpSuggestions(intent, destinationName = '', hasPlan = false) {
+  const dName = (destinationName || '').split(' ')[0] || 'your destination';
 
-  if (intent === 'GENERAL_INFO') {
+  if (intent === 'DESTINATION_DISCOVERY' || intent === 'GENERAL_INFO') {
     return [
       `What are the best places to visit in ${dName}?`,
+      `Which place is best for photography in ${dName}?`,
       `What food is ${dName} famous for?`,
+      `Plan a 2-day trip to ${dName} within ₹6,000`
+    ];
+  }
+
+  if (intent === 'TRAVEL_TYPE_SELECTED') {
+    return [
+      `Moderate budget`,
+      `Cheap budget`,
+      `Luxury trip`,
+      `What are the top attractions in ${dName}?`
+    ];
+  }
+
+  if (intent === 'BUDGET_SELECTED' || intent === 'ATTRACTIONS') {
+    return [
+      `Which place is best for photography in ${dName}?`,
+      `What food is famous in ${dName}?`,
       `How can I reach ${dName} from Bengaluru?`,
       `Plan a 2-day trip to ${dName} within ₹6,000`
     ];
   }
 
-  if (intent === 'ATTRACTIONS') {
+  if (intent === 'PHOTOGRAPHY_QUERY') {
     return [
-      `Explain the history of ${dName}'s royal monuments`,
+      `What are the must-see historical places in ${dName}?`,
+      `What food is famous in ${dName}?`,
       `What is the best time to visit ${dName}?`,
-      `Plan a 3-day sightseeing trip to ${dName}`,
-      `What are the best local food spots in ${dName}?`
+      `Plan a 2-day photography trip to ${dName}`
     ];
   }
 
   if (intent === 'HISTORY_CULTURE') {
     return [
       `What are the must-see historical places in ${dName}?`,
-      `Tell me about ${dName}'s cultural festivals`,
-      `Plan a heritage and culture tour to ${dName}`,
+      `Which place is best for photography in ${dName}?`,
+      `Tell me about local traditions in ${dName}`,
       `What food is famous in ${dName}?`
     ];
   }
 
   if (intent === 'FOOD_DINING') {
     return [
-      `Where can I get the best Mylari Dosa in ${dName}?`,
-      `Plan a 2-day foodie and heritage trip to ${dName}`,
       `What are the top attractions in ${dName}?`,
+      `Which place is best for photography in ${dName}?`,
+      `Plan a 2-day foodie and heritage trip to ${dName}`,
       `How can I reach ${dName} from Bengaluru?`
     ];
   }
 
   if (intent === 'TRANSPORT_DIRECTIONS') {
     return [
-      `What are the best hotels near ${dName} center?`,
-      `Plan a 3-day trip to ${dName}`,
-      `What are the top attractions in ${dName}?`,
-      `What is the best time of year to visit ${dName}?`
+      `What are the best places to visit in ${dName}?`,
+      `What is the best time of year to visit ${dName}?`,
+      `Plan a 2-day trip to ${dName}`,
+      `What food is ${dName} famous for?`
     ];
   }
 
   if (intent === 'PLAN_ITINERARY' || intent === 'MODIFY_PLAN') {
     return [
       `Can you make this ${dName} trip cheaper?`,
-      `What are the best local food dishes to try?`,
-      `How can I reach ${dName} from Bengaluru?`,
-      `Tell me about the history of ${dName} Palace`
+      `Which place is best for photography in ${dName}?`,
+      `What are the best local food dishes to try in ${dName}?`,
+      `How can I reach ${dName} from Bengaluru?`
     ];
   }
 
   return [
-    `Tell me about Mysore`,
-    `Plan a 3-day trip to Mysore within ₹6,000`,
-    `Best tourist places in Hampi`,
-    `Top weekend getaways from Bengaluru`
+    `Tell me about Yadgir`,
+    `What are the best places in Hampi?`,
+    `Plan a 2-day trip to Coorg within ₹6,000`,
+    `Top weekend getaways near Bengaluru`
   ];
 }
 
 /**
  * 4. Conversational Assistant Handlers
  */
+
+// Discovery Flow Handler
+function handleDestinationDiscovery(destData) {
+  const sightsList = (destData.attractions || []).slice(0, 3).map(a => `• **${a.name}**: ${a.highlight || a.description}`).join('\n');
+  const text = `### 🌟 Great choice! Let's explore **${destData.name}** (${destData.state || 'Karnataka'})
+
+${destData.overview}
+
+${sightsList ? `#### 🏛️ Top Highlights in ${destData.name}:\n${sightsList}\n\n` : ''}Are you planning a solo trip, a romantic getaway, a family vacation, or a trip with friends?`;
+
+  const options = [
+    { label: 'Just Me', value: 'Just Me' },
+    { label: 'A Couple', value: 'A Couple' },
+    { label: 'Family', value: 'Family' },
+    { label: 'Friends', value: 'Friends' }
+  ];
+
+  return { text, options };
+}
+
+// Travel Type Selected Handler
+function handleTravelTypeSelected(destData, travellerType) {
+  const text = `### 👥 Wonderful — a trip for **${travellerType}** to **${destData.name}**!
+
+What kind of budget do you have in mind for exploring ${destData.name}?`;
+
+  const options = [
+    { label: 'Cheap', subtext: 'Stay conscious of costs', value: 'Cheap' },
+    { label: 'Moderate', subtext: 'Keep costs balanced', value: 'Moderate' },
+    { label: 'Luxury', subtext: 'Don\'t worry about cost', value: 'Luxury' }
+  ];
+
+  return { text, options };
+}
+
+// Budget Selected Handler
+function handleBudgetSelected(destData, budgetLevel, travellerType) {
+  const sightsFormatted = (destData.attractions || []).map((a, idx) => `
+### ${idx + 1}. ${a.name}
+* **Category:** ${a.category || 'Attraction'}
+* **Why Visit:** ${a.highlight || a.description || `Famous sightseeing point in ${destData.name}`}
+* **Timings:** ${a.timings || '9:00 AM - 6:00 PM'}
+* **Entry Fee:** ${a.entry_fee || 'Standard entry'}
+* **Estimated Time:** ${a.est_time || '1.5 - 2 hours'}
+* **Suggested Activities:** Sightseeing, photography, and exploring local heritage.
+`).join('\n');
+
+  const text = `### 📍 Curated Tourist Attractions in **${destData.name}**
+*(Tailored for **${travellerType || 'Travelers'}** • **${budgetLevel || 'Moderate'}** Budget)*
+
+Here are the top attractions and experiences to explore in and around **${destData.name}**:
+
+${sightsFormatted}
+
+---
+
+#### 🗓️ Practical Visiting Guidance for ${destData.name}:
+• **Best Time to Visit:** ${destData.best_time || 'October to March'}  
+• **Ideal Duration:** ${destData.ideal_duration || '2 Days'}  
+• **Getting Around:** ${destData.transport?.local || `Local auto rickshaws, cabs, and city transport in ${destData.name}.`}  
+• **Travel Advice:** ${destData.safety_tips || 'Start early in the morning for the most pleasant weather and unhurried sightseeing.'}
+
+*Would you like to know the best photography spots, famous local food, or plan a complete day-by-day itinerary?*`;
+
+  return { text, options: [] };
+}
+
+// Photography Handler
+function handlePhotography(destData) {
+  let photoSpots = '';
+  if (destData.attractions && destData.attractions.length > 0) {
+    photoSpots = destData.attractions.slice(0, 4).map((a, idx) => `
+### ${idx + 1}. ${a.name}
+* **Photographic Appeal:** ${a.highlight || a.description}
+* **Best Light / Timing:** Early morning (6:30 AM - 8:30 AM) or golden hour before sunset (5:00 PM - 6:30 PM).
+* **Photo Tip:** Capture elevated landscapes and dramatic shadows on ancient architecture.
+`).join('\n');
+  } else {
+    photoSpots = `• **Panoramic Viewpoints:** 360-degree elevated landscapes of ${destData.name}.\n• **Historic Heritage Sites:** Ancient architecture with dramatic shadows during sunrise and sunset.`;
+  }
+
+  const text = `### 📸 Best Photography Locations in **${destData.name}**
+
+Looking to capture stunning photos in **${destData.name}**? Here are the most photogenic viewpoints and heritage spots:
+
+${photoSpots}
+
+---
+💡 **Photography Advice for ${destData.name}:** For the most dramatic lighting and minimal haze, early morning golden-hour shoots offer the cleanest compositions with fewer visitors.`;
+
+  return { text, options: [] };
+}
+
+// Destination Change Handler
+function handleDestinationChange(newDestData, oldDestName = '') {
+  const switchNote = oldDestName ? `Updated your destination from **${oldDestName}** to **${newDestData.name}**.` : `Updated your destination to **${newDestData.name}**.`;
+
+  const text = `### 🔄 ${switchNote}
+
+All previous recommendations and plans have been refreshed for **${newDestData.name}** (${newDestData.state || 'Karnataka'}).
+
+${newDestData.overview}
+
+Are you planning a solo trip, a romantic getaway, a family vacation, or a trip with friends?`;
+
+  const options = [
+    { label: 'Just Me', value: 'Just Me' },
+    { label: 'A Couple', value: 'A Couple' },
+    { label: 'Family', value: 'Family' },
+    { label: 'Friends', value: 'Friends' }
+  ];
+
+  return { text, options };
+}
 
 // A. General Destination Overview
 function handleGeneralInfo(destData, greetingPrefix = '') {
@@ -930,22 +1253,20 @@ ${destData.transport?.local || `Local auto rickshaws, cabs, and state city buses
 function handleWeather(destData) {
   return `### ☀️ Best Time to Visit & Weather in ${destData.name}
 
-${destData.best_time}
+${destData.best_time || 'October to March offers pleasant weather ideal for outdoor travel.'}
 
 ---
 
 #### 🌤️ Season-by-Season Breakdown:
 1. **Winter (October – February) — 🌟 PEAK SEASON:**
    • **Temperature:** 18°C – 30°C  
-   • **Experience:** Crisp mornings, sunny afternoons, and cool evenings. Ideal for walking through palace grounds, heritage bazaars, and climbing Chamundi Hill.
-2. **Dasara Period (September / October) — 🎉 CELEBRATION TIME:**
-   • **Experience:** The city is decorated with lights, cultural concerts take place nightly, and the royal Dasara procession takes place. Book accommodations 2 months in advance!
-3. **Summer (March – May):**
-   • **Temperature:** 24°C – 35°C  
-   • **Experience:** Warm afternoons. Plan outdoor sightseeing early in the morning (7 AM - 10 AM) and after 4:30 PM.
-4. **Monsoon (June – September):**
-   • **Temperature:** 20°C – 28°C  
-   • **Experience:** Fresh green landscapes and pleasant drizzles. Karanji Lake and Brindavan Gardens are especially lush.`;
+   • **Experience:** Crisp mornings, comfortable sunny afternoons, and pleasant evenings. Ideal for exploring heritage monuments, forts, viewpoints, and nature spots in ${destData.name}.
+2. **Summer (March – May):**
+   • **Temperature:** 24°C – 38°C  
+   • **Experience:** Warm afternoons. Plan outdoor sightseeing early in the morning (6:30 AM - 10:00 AM) and after 4:30 PM. Keep well hydrated.
+3. **Monsoon (June – September):**
+   • **Temperature:** 22°C – 30°C  
+   • **Experience:** Refreshing showers and lush green landscapes across ${destData.name}. Lakes, reservoirs, and natural waterfalls are at their scenic best.`;
 }
 
 // G. Comparison
@@ -1039,7 +1360,7 @@ function buildCustomizedPlan({
       budgetExplanation = `⚠️ **Budget Notice:** Your stated budget is ₹${userBudget.toLocaleString('en-IN')}, while estimated expenses for a comfortable ${duration}-day trip for ${peopleCount} travelers are ₹${calculatedTotal.toLocaleString('en-IN')} (shortfall of ₹${Math.abs(budgetDifference).toLocaleString('en-IN')}). We have pre-optimized your travel schedule below with cost-effective transportation and verified local dining to help you achieve the best trip experience without overspending.`;
     } else {
       budgetStatus = 'SURPLUS';
-      budgetExplanation = `✅ **Budget Confirmed:** Your budget of ₹${userBudget.toLocaleString('en-IN')} comfortably covers this ${duration}-day itinerary (estimated cost: ₹${calculatedTotal.toLocaleString('en-IN')}). You have approximately ₹${budgetDifference.toLocaleString('en-IN')} remaining for shopping Mysore silk, souvenirs, and discretionary indulgences!`;
+      budgetExplanation = `✅ **Budget Confirmed:** Your budget of ₹${userBudget.toLocaleString('en-IN')} comfortably covers this ${duration}-day itinerary (estimated cost: ₹${calculatedTotal.toLocaleString('en-IN')}). You have approximately ₹${budgetDifference.toLocaleString('en-IN')} remaining for shopping authentic local souvenirs, regional crafts, and discretionary indulgences in ${destName}!`;
     }
   }
 
@@ -1171,16 +1492,19 @@ ${daysMarkdown}
 💡 **Next Steps:** Check out the interactive plan card on the right-hand panel where you can **Save to My Trips**, **Print Route**, or **Book as a Guaranteed Package with ₹1,500 Instant Discount**!`;
 }
 
+let openAiQuotaExhausted = false;
+
 /**
  * Call External LLM API (Google Gemini or OpenAI/Groq) for dynamic AI travel intelligence
  */
 async function callLLMAssistant({ message, conversationHistory = [], context = {}, entities, destData }) {
   const geminiKey = process.env.GEMINI_API_KEY;
-  const openaiKey = process.env.OPENAI_API_KEY;
+  const openaiKey = openAiQuotaExhausted ? null : process.env.OPENAI_API_KEY;
   const groqKey = process.env.GROQ_API_KEY;
 
-  if (!geminiKey && !openaiKey && !groqKey) {
-    return null; // Zero-cost built-in engine fallback
+  const hasValidGeminiKey = geminiKey && geminiKey.trim().startsWith('AIzaSy');
+  if (!hasValidGeminiKey && !openaiKey && !groqKey) {
+    return null; // Zero-cost built-in engine fallback (instant response)
   }
 
   const formattedHistory = conversationHistory.slice(-6).map(m => {
@@ -1194,7 +1518,25 @@ async function callLLMAssistant({ message, conversationHistory = [], context = {
   const groupType = entities.travellerType || context.travellerType || 'Couple';
   const userBudget = entities.budget || context.budget || null;
 
-  const systemInstruction = `You are Tourist Hub AI, the world-class intelligent conversational travel guide & custom itinerary planner for India tourism.
+  const systemInstruction = `You are Tourist Hub AI, an intelligent travel assistant.
+
+Always answer questions about the destination explicitly requested by the user or established by the conversation.
+
+Before recommending attractions, identify the intended destination and retrieve relevant information for that destination.
+
+Never use a hardcoded default destination when the user has supplied a different valid destination.
+
+Never return attractions belonging to another city as though they are in the requested destination.
+
+If a location name is ambiguous, ask the user to clarify rather than silently choosing a different location.
+
+If no reliable results are found, explain that clearly and ask whether the user would like to try a nearby location.
+
+Use conversation history to understand follow-up questions, but always prioritize an explicit destination change in the latest message.
+
+Distinguish between the requested city, nearby destinations, and attractions within that city. Label nearby attractions accurately.
+
+Provide helpful, natural, destination-specific travel guidance.
 
 USER'S CURRENT REQUEST: "${message}"
 
@@ -1207,73 +1549,17 @@ BUDGET: ${userBudget ? '₹' + userBudget : 'Flexible'}
 RECENT CONVERSATION HISTORY:
 ${formattedHistory || 'None (new conversation)'}
 
-CRITICAL ARCHITECTURE RULES (YOU MUST STRICTLY FOLLOW):
-
-RULE 1: STRICT DESTINATION ACCURACY (NO DEFAULTING OR SUBSTITUTION)
-- The user is asking about or exploring: "${destinationName}".
-- YOU MUST ANSWER STRICTLY AND AUTHENTICALLY ABOUT "${destinationName}"!
-- DO NOT answer about Mysore, Hampi, or any other city unless the user explicitly requested it!
-- Every single attraction, monument, restaurant, local food specialty, and transport advice MUST belong strictly to "${destinationName}".
-
-RULE 2: STRICT INTENT SEPARATION (NEVER FORCE AN ITINERARY FOR GENERAL QUESTIONS)
-- If the user asks a GENERAL QUESTION, inquiry, greeting, overview, history, culture, sights to see, local food specialties, famous restaurants, transportation options, weather, best time to visit, hotel areas, or asks "Tell me about ${destinationName}", "How are you? I want to know about ${destinationName}. Can you explain?":
-  -> YOU MUST ONLY ANSWER THEIR QUESTION DIRECTLY AND CONVERSATIONALLY ABOUT ${destinationName}!
-  -> DO NOT generate an itinerary or day-by-day plan!
-  -> Set "intent": "GENERAL_INFO" (or appropriate question category) and set "plan": null.
-  -> Write your response in rich, elegant GitHub-style Markdown with clear headings (###), bullet points (•), and practical local tips.
-  -> At the very end of your response, provide 3 to 4 helpful suggested follow-up prompts specifically for ${destinationName} in the "suggested_prompts" array (e.g. "Plan a 2-day trip to ${destinationName}", "What food is famous in ${destinationName}?").
-
-RULE 3: CUSTOM TRIP & BUDGET PLANNING (ONLY WHEN EXPLICITLY REQUESTED)
-- ONLY if the user explicitly asks to PLAN a trip (e.g., "Plan a 2-day trip to ${destinationName}", "Create an itinerary", "Plan a weekend budget trip to ${destinationName} within ₹6,000", "Suggest a 3-day holiday in ${destinationName}", "Make this trip cheaper"):
-  -> Set "intent": "PLAN_ITINERARY" (or "MODIFY_PLAN").
-  -> You MUST generate a realistic, complete plan object in "plan" strictly for "${destinationName}":
-     {
-       "destination": "${destinationName}",
-       "origin": "${originCity}",
-       "days": ${tripDays},
-       "nights": ${Math.max(1, tripDays - 1)},
-       "people": ${groupCount},
-       "traveller_type": "${groupType}",
-       "food_preference": "${entities.foodPreference || 'Vegetarian'}",
-       "transport": "${entities.transport || 'Express Train'}",
-       "estimated_cost": 7500,
-       "per_person_cost": 3750,
-       "user_budget": ${userBudget || 'null'},
-       "budget_status": "SURPLUS",
-       "budget_explanation": "Trip fits comfortably within the budget with optimal transport and stay choices.",
-       "cost_breakdown": {
-         "transportation": 1500,
-         "accommodation": 2800,
-         "food_dining": 1600,
-         "local_transit": 800,
-         "sightseeing_activities": 500,
-         "miscellaneous": 300
-       },
-       "schedule": [
-         {
-           "day": 1,
-           "theme": "Arrival & City Highlights",
-           "morning": "Morning arrival and visit to the primary monument",
-           "afternoon": "Lunch and cultural museum visit",
-           "evening": "Sunset viewpoint and local market walk",
-           "attractions": ["Main Monument in ${destinationName}", "Evening Bazaar"],
-           "travel_time": "15-20 mins between stops",
-           "suggested_transport": "Auto Rickshaw / Walking",
-           "food_recommendations": { "specialty": "Famous local specialty dishes of ${destinationName}" }
-         }
-       ],
-       "travel_tips": [
-         "Book primary monument tickets in advance online to skip lines",
-         "Try local eateries during off-peak hours for authentic taste"
-       ]
-     }
-  -> In "response_text", provide an exciting markdown overview strictly for ${destinationName}, an itemized markdown budget table with columns | Expense Category | Estimated Cost (₹) | Notes |, and day-by-day schedule with emojis!
-
-RULE 4: STRICT JSON OUTPUT
-You MUST return ONLY a valid JSON object matching this schema with NO markdown wrapping around the JSON:
+CRITICAL RULES:
+1. TARGET ACCURACY: You are discussing "${destinationName}". Do NOT answer about Mysore, Hampi, or any other city unless explicitly requested. Every attraction, food, and transit tip MUST belong strictly to "${destinationName}".
+2. NO FORCED ITINERARY: If user asks a general question, overview, history, culture, attractions, food, or weather, set "plan": null and write an engaging Markdown response.
+3. PLANNING: Only when user explicitly asks to PLAN a trip or itinerary, generate a realistic "plan" object strictly for "${destinationName}".
+4. INTERACTIVE OPTIONS: When entering destination discovery or asking for preferences, return helpful options in "options" array.
+5. STRICT JSON OUTPUT: Return ONLY a valid JSON object matching this schema with NO markdown wrapping around the JSON:
 {
-  "intent": "GENERAL_INFO" | "PLAN_ITINERARY" | "ATTRACTIONS" | "FOOD_DINING" | "TRANSPORT_DIRECTIONS" | "HISTORY_CULTURE" | "WEATHER_BEST_TIME",
+  "intent": "DESTINATION_DISCOVERY" | "TRAVEL_TYPE_SELECTED" | "BUDGET_SELECTED" | "PHOTOGRAPHY_QUERY" | "GENERAL_INFO" | "PLAN_ITINERARY" | "ATTRACTIONS" | "FOOD_DINING" | "TRANSPORT_DIRECTIONS" | "HISTORY_CULTURE" | "WEATHER_BEST_TIME" | "DESTINATION_CHANGE",
   "destination": "${destinationName}",
+  "is_destination_change": ${!!entities.isDestinationChange},
+  "options": [{"label": "...", "subtext": "...", "value": "..."}],
   "response_text": "<Full markdown response>",
   "suggested_prompts": ["<Prompt 1>", "<Prompt 2>", "<Prompt 3>"],
   "plan": null OR <Plan Object>
@@ -1282,9 +1568,9 @@ You MUST return ONLY a valid JSON object matching this schema with NO markdown w
   try {
     let rawOutput = null;
 
-    if (geminiKey) {
-      // Call Google Gemini API (tries candidate models in order: gemini-3.8-flash, gemini-2.5-flash, etc.)
-      const candidateModels = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-flash-latest', 'gemini-1.5-flash'];
+    if (hasValidGeminiKey) {
+      // Call Google Gemini API (tries fast flash models with 5s timeout)
+      const candidateModels = ['gemini-1.5-flash', 'gemini-2.0-flash'];
       for (const model of candidateModels) {
         try {
           const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
@@ -1304,7 +1590,8 @@ You MUST return ONLY a valid JSON object matching this schema with NO markdown w
           const res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(5000)
           });
 
           if (res.ok) {
@@ -1346,7 +1633,11 @@ You MUST return ONLY a valid JSON object matching this schema with NO markdown w
         const data = await res.json();
         rawOutput = data?.choices?.[0]?.message?.content;
       } else {
-        console.warn('OpenAI/Groq call returned status:', res.status, await res.text());
+        const errText = await res.text();
+        console.warn('OpenAI/Groq call returned status:', res.status, errText);
+        if (res.status === 429 || res.status === 401) {
+          openAiQuotaExhausted = true;
+        }
       }
     }
 
@@ -1498,14 +1789,17 @@ async function processChatMessage({ message, conversationHistory = [], context =
         ? llmResult.suggested_prompts
         : generateFollowUpSuggestions(llmResult.intent || intent, llmResult.destination || destData.name, !!llmResult.plan);
 
+      const isDestChangeLLM = !!llmResult.is_destination_change || intent === 'DESTINATION_CHANGE' || !!entities.isDestinationChange;
       return {
         success: true,
         intent: llmResult.intent || (llmResult.plan ? 'PLAN_ITINERARY' : 'GENERAL_INFO'),
         destination: llmResult.destination || destData.name,
         origin: entities.origin,
         response_text: llmResult.response_text,
+        options: Array.isArray(llmResult.options) ? llmResult.options : [],
+        is_destination_change: isDestChangeLLM,
         suggested_prompts: followUpSuggestions,
-        plan: llmResult.plan || null,
+        plan: isDestChangeLLM ? null : (llmResult.plan || null),
         powered_by: process.env.GEMINI_API_KEY ? 'Google Gemini AI' : (process.env.OPENAI_API_KEY ? 'OpenAI' : 'Groq AI'),
         context_updates: {
           activeDestination: llmResult.destination || destData.name,
@@ -1523,7 +1817,45 @@ async function processChatMessage({ message, conversationHistory = [], context =
     let planResult = null;
 
     // Dispatch by detected intent
+    let optionsResult = [];
+
     switch (intent) {
+      case 'DESTINATION_DISCOVERY': {
+        const disc = handleDestinationDiscovery(destData);
+        responseText = disc.text;
+        optionsResult = disc.options;
+        break;
+      }
+
+      case 'TRAVEL_TYPE_SELECTED': {
+        const sel = handleTravelTypeSelected(destData, entities.travellerType);
+        responseText = sel.text;
+        optionsResult = sel.options;
+        break;
+      }
+
+      case 'BUDGET_SELECTED': {
+        const bg = handleBudgetSelected(destData, entities.budgetLevel, entities.travellerType);
+        responseText = bg.text;
+        optionsResult = bg.options;
+        break;
+      }
+
+      case 'PHOTOGRAPHY_QUERY': {
+        const phot = handlePhotography(destData);
+        responseText = phot.text;
+        optionsResult = phot.options;
+        break;
+      }
+
+      case 'DESTINATION_CHANGE': {
+        const oldDest = context.activeDestination && context.activeDestination !== destData.name ? context.activeDestination : '';
+        const chg = handleDestinationChange(destData, oldDest);
+        responseText = chg.text;
+        optionsResult = chg.options;
+        planResult = null;
+        break;
+      }
       case 'GREETING':
         responseText = `### 👋 Hello! Welcome to Tourist Hub AI
 
@@ -1644,21 +1976,24 @@ ${formatPlanMarkdown(plan)}`;
 
     const followUpSuggestions = generateFollowUpSuggestions(intent, destData.name, !!planResult);
 
+    const isDestChange = intent === 'DESTINATION_CHANGE' || !!entities.isDestinationChange;
     return {
       success: true,
       intent,
       destination: destData.name,
       origin: entities.origin,
       response_text: responseText,
+      options: optionsResult || [],
+      is_destination_change: isDestChange,
       suggested_prompts: followUpSuggestions,
-      plan: planResult,
+      plan: isDestChange ? null : planResult,
       context_updates: {
         activeDestination: destData.name,
         origin: entities.origin,
         days: entities.days,
         people: entities.people,
         budget: entities.budget,
-        currentPlan: planResult || context.currentPlan || null
+        currentPlan: isDestChange ? null : (planResult || context.currentPlan || null)
       }
     };
   } catch (error) {
