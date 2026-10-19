@@ -12,8 +12,8 @@ router.get('/', async (req, res) => {
     let query = `
       SELECT g.*, p.name as destination_name, s.name as state_name
       FROM guides g
-      JOIN tourist_places p ON g.destination_id = p.id
-      JOIN states s ON p.state_id = s.id
+      LEFT JOIN tourist_places p ON g.destination_id = p.id
+      LEFT JOIN states s ON p.state_id = s.id
       WHERE 1=1
     `;
     const params = [];
@@ -44,8 +44,8 @@ router.get('/:id', async (req, res) => {
     const [rows] = await pool.query(`
       SELECT g.*, p.name as destination_name, s.name as state_name
       FROM guides g
-      JOIN tourist_places p ON g.destination_id = p.id
-      JOIN states s ON p.state_id = s.id
+      LEFT JOIN tourist_places p ON g.destination_id = p.id
+      LEFT JOIN states s ON p.state_id = s.id
       WHERE g.id = ?
     `, [req.params.id]);
 

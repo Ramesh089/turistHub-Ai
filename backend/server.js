@@ -118,10 +118,31 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Database auto-initialization endpoint (safe, idempotent)
+app.get('/api/health/db-init', async (req, res) => {
+  try {
+    const initDatabase = require('./config/init_db');
+    await initDatabase();
+    res.json({ success: true, message: 'Database tables verified and initialized successfully.' });
+  } catch (error) {
+    console.error('DB Init Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Start server if run directly
 if (require.main === module) {
-  app.listen(PORT, '0.0.0.0', () => {
+  const initDatabase = require('./config/init_db');
+
+  app.listen(PORT, '0.0.0.0', async () => {
     console.log(`Tourist Hub API listening on port ${PORT}`);
+    try {
+      console.log('🔄 Verifying and auto-initializing database tables on startup...');
+      await initDatabase();
+      console.log('✅ Database auto-initialization ready.');
+    } catch (dbErr) {
+      console.error('⚠️ Database initialization notice:', dbErr.message);
+    }
   });
 }
 

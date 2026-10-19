@@ -15,7 +15,7 @@ export default function Guides() {
         if (specialization) params.append('specialization', specialization);
 
         const res = await api.get(`/guides?${params.toString()}`);
-        if (res.data.success) {
+        if (res.data.success && Array.isArray(res.data.guides)) {
           setGuides(res.data.guides);
         }
       } catch (err) {

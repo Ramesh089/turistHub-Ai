@@ -18,7 +18,7 @@ export default function Hotels() {
         if (budgetTier) params.append('budget_tier', budgetTier);
         if (minRating)  params.append('min_rating', minRating);
         const res = await api.get(`/hotels?${params.toString()}`);
-        if (res.data.success) setHotels(res.data.hotels);
+        if (res.data.success && Array.isArray(res.data.hotels)) setHotels(res.data.hotels);
       } catch (err) {
         console.error('Failed to load hotels:', err);
       } finally {

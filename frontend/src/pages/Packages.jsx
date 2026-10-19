@@ -33,7 +33,7 @@ export default function Packages() {
         if (duration) params.append('duration', duration);
 
         const res = await api.get(`/packages?${params.toString()}`);
-        if (res.data.success) {
+        if (res.data.success && Array.isArray(res.data.packages)) {
           setPackages(res.data.packages);
         }
       } catch (err) {

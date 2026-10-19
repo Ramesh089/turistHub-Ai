@@ -36,14 +36,22 @@ export default function Home() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [destRes, stateRes, pkgRes] = await Promise.all([
+        const results = await Promise.allSettled([
           api.get('/destinations'),
           api.get('/states'),
           api.get('/packages')
         ]);
-        if (destRes.data.success) setDestinations(destRes.data.destinations);
-        if (stateRes.data.success) setStates(stateRes.data.states);
-        if (pkgRes.data.success) setPackages(pkgRes.data.packages.slice(0, 3));
+        const [destRes, stateRes, pkgRes] = results;
+
+        if (destRes.status === 'fulfilled' && destRes.value.data?.success) {
+          setDestinations(destRes.value.data.destinations || []);
+        }
+        if (stateRes.status === 'fulfilled' && stateRes.value.data?.success) {
+          setStates(stateRes.value.data.states || []);
+        }
+        if (pkgRes.status === 'fulfilled' && pkgRes.value.data?.success) {
+          setPackages((pkgRes.value.data.packages || []).slice(0, 3));
+        }
       } catch (err) {
         console.error('Home data load error:', err.message);
       }

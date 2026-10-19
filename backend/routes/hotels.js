@@ -18,8 +18,8 @@ router.get('/', async (req, res) => {
     let query = `
       SELECT h.*, p.name as destination_name, p.location as destination_location, s.name as state_name
       FROM hotels h
-      JOIN tourist_places p ON h.destination_id = p.id
-      JOIN states s ON p.state_id = s.id
+      LEFT JOIN tourist_places p ON h.destination_id = p.id
+      LEFT JOIN states s ON p.state_id = s.id
       WHERE 1=1
     `;
     const params = [];

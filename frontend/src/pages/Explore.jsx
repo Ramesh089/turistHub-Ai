@@ -25,7 +25,9 @@ export default function Explore() {
     async function loadStates() {
       try {
         const res = await api.get('/states');
-        if (res.data.success) setStates(res.data.states);
+        if (res.data.success && Array.isArray(res.data.states)) {
+          setStates(res.data.states);
+        }
       } catch (err) {
         console.error('Failed to load states:', err);
       }
@@ -45,7 +47,7 @@ export default function Explore() {
         if (sortBy) params.append('sort', sortBy);
 
         const res = await api.get(`/destinations?${params.toString()}`);
-        if (res.data.success) {
+        if (res.data.success && Array.isArray(res.data.destinations)) {
           setDestinations(res.data.destinations);
         }
       } catch (err) {

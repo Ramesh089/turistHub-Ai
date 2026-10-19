@@ -887,7 +887,7 @@ async function seed() {
     console.log('✅ Emergency services seeded');
 
     // 11. Seed Sample Bookings for Demo Tourist
-    await pool.query('DELETE FROM bookings');
+    await pool.query('DELETE FROM bookings WHERE user_id = ?', [touristId]);
     const [firstPkg] = await pool.query('SELECT id, price FROM travel_packages LIMIT 1');
     if (firstPkg.length > 0) {
       await pool.query(
@@ -899,7 +899,7 @@ async function seed() {
     }
 
     // 12. Seed Sample Reviews
-    await pool.query('DELETE FROM reviews');
+    await pool.query('DELETE FROM reviews WHERE user_id = ?', [touristId]);
     const reviewsData = [
       {
         dest: 'Mysore (Mysuru)',

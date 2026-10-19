@@ -1,10 +1,20 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+// Smart resolution of backend API URL:
+// 1. Use configured VITE_API_URL if provided
+// 2. In production (on onrender.com or custom domain), fall back to deployed backend https://turisthub-ai-1.onrender.com
+// 3. In local development, fall back to http://localhost:3001
+const rawBaseUrl = (import.meta.env.VITE_API_URL || '').trim() || 
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    ? 'https://turisthub-ai-1.onrender.com'
+    : 'http://localhost:3001');
+
+const cleanBaseUrl = rawBaseUrl.replace(/\/+$/, '');
+const baseURL = cleanBaseUrl.endsWith('/api') ? cleanBaseUrl : `${cleanBaseUrl}/api`;
 
 const api = axios.create({
-  baseURL: `${API_BASE_URL?.replace(/\/+$/, '')}/api`,
+  baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',

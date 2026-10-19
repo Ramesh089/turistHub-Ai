@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
     let query = `
       SELECT p.*, s.name as state_name, s.code as state_code
       FROM tourist_places p
-      JOIN states s ON p.state_id = s.id
+      LEFT JOIN states s ON p.state_id = s.id
       WHERE 1=1
     `;
     const params = [];

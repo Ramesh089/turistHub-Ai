@@ -25,7 +25,7 @@ export default function Transport() {
         const params = new URLSearchParams();
         if (selectedType && selectedType !== 'Any') params.append('transport_type', selectedType);
         const res = await api.get(`/transport?${params.toString()}`);
-        if (res.data.success) setTransports(res.data.transports);
+        if (res.data.success && Array.isArray(res.data.transports)) setTransports(res.data.transports);
       } catch (err) {
         console.error('Failed to load transport:', err);
       } finally {

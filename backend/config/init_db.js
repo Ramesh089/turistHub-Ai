@@ -145,8 +145,14 @@ async function initDatabase() {
     const [stateRows] = await connection.query('SELECT COUNT(*) as count FROM states');
     const stateCount = stateRows[0].count;
 
-    if (stateCount === 0) {
-      console.log('🌱 States table is empty. Running initial master data seeding...');
+    const [placeRows] = await connection.query('SELECT COUNT(*) as count FROM tourist_places');
+    const placeCount = placeRows[0].count;
+
+    const [pkgRows] = await connection.query('SELECT COUNT(*) as count FROM travel_packages');
+    const pkgCount = pkgRows[0].count;
+
+    if (stateCount === 0 || placeCount === 0 || pkgCount === 0) {
+      console.log(`🌱 Master catalogue incomplete (states: ${stateCount}, places: ${placeCount}, packages: ${pkgCount}). Running catalogue seeding...`);
       try {
         const seed = require('./seed');
         await seed();
@@ -155,7 +161,7 @@ async function initDatabase() {
         console.warn('⚠️ Seeding warning:', seedErr.message);
       }
     } else {
-      console.log(`ℹ️ Master catalogue already populated (${stateCount} states found). Preserving existing data.`);
+      console.log(`ℹ️ Master catalogue already populated (${stateCount} states, ${placeCount} places, ${pkgCount} packages). Preserving existing data.`);
     }
 
     // 4. Optional Demo Users (CLI flag: --with-demo-users)
