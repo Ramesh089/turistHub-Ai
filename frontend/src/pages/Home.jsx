@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import BrandLogo from '../components/BrandLogo';
 import CultureSlider from '../components/CultureSlider';
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
   const [destinations, setDestinations] = useState([]);
   const [states, setStates] = useState([]);
   const [packages, setPackages] = useState([]);
@@ -49,9 +51,19 @@ export default function Home() {
     loadData();
   }, []);
 
+  const handleProtectedAction = (e, targetPath) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: targetPath } });
+    } else {
+      navigate(targetPath);
+    }
+  };
+
   const handleQuickPlan = (e) => {
     e.preventDefault();
-    navigate(`/ai-planner?origin=${encodeURIComponent(quickOrigin)}&dest=${encodeURIComponent(quickDest)}&days=${quickDays}`);
+    const target = `/ai-planner?origin=${encodeURIComponent(quickOrigin)}&dest=${encodeURIComponent(quickDest)}&days=${quickDays}`;
+    handleProtectedAction(e, target);
   };
 
   const categories = ['All', 'Heritage', 'Culture', 'Nature', 'Beach', 'Spiritual'];
@@ -168,12 +180,40 @@ export default function Home() {
             fontSize: 'clamp(1.05rem, 2vw, 1.25rem)',
             color: '#f0f9ff',
             maxWidth: '780px',
-            margin: '0 auto 40px auto',
+            margin: '0 auto 28px auto',
             lineHeight: 1.6,
             fontWeight: '300'
           }}>
             Explore India's timeless heritage, classical arts, vibrant festivals, and scenic landscapes with a personalized AI travel planner, verified local guides, and 24x7 safety assistance.
           </p>
+
+          {/* Prominent Explore / Auth Action Buttons */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '34px' }}>
+            <button
+              onClick={(e) => handleProtectedAction(e, '/explore')}
+              className="btn btn-green btn-lg"
+              style={{ fontWeight: '700', padding: '12px 28px', fontSize: '1rem', boxShadow: '0 8px 24px rgba(16, 185, 129, 0.35)', cursor: 'pointer' }}
+            >
+              <Compass size={18} /> Explore Indian Destinations &rarr;
+            </button>
+            {!isAuthenticated ? (
+              <button
+                onClick={() => navigate('/login', { state: { from: '/explore' } })}
+                className="btn btn-secondary btn-lg"
+                style={{ fontWeight: '700', padding: '12px 28px', fontSize: '1rem', background: '#ffffff', color: '#0369a1', cursor: 'pointer' }}
+              >
+                Sign In / Register
+              </button>
+            ) : (
+              <button
+                onClick={(e) => handleProtectedAction(e, '/ai-planner')}
+                className="btn btn-secondary btn-lg"
+                style={{ fontWeight: '700', padding: '12px 28px', fontSize: '1rem', background: '#ffffff', color: '#0369a1', cursor: 'pointer' }}
+              >
+                <Sparkles size={18} color="#0284c7" /> Open AI Planner
+              </button>
+            )}
+          </div>
 
           {/* Instant AI Trip Finder Bar */}
           <div style={{
@@ -321,13 +361,13 @@ export default function Home() {
                     </p>
                   </div>
 
-                  <Link
-                    to={`/explore?q=${encodeURIComponent(item.place.split(' ')[0])}`}
+                  <button
+                    onClick={(e) => handleProtectedAction(e, `/explore?q=${encodeURIComponent(item.place.split(' ')[0])}`)}
                     className="btn btn-secondary btn-sm"
-                    style={{ width: '100%', justifyContent: 'center' }}
+                    style={{ width: '100%', justifyContent: 'center', cursor: 'pointer' }}
                   >
                     Explore Cultural Journey &rarr;
-                  </Link>
+                  </button>
                 </div>
               </div>
             ))}
@@ -377,9 +417,13 @@ export default function Home() {
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '36px' }}>
-            <Link to="/explore" className="btn btn-secondary btn-lg" style={{ gap: '8px' }}>
+            <button
+              onClick={(e) => handleProtectedAction(e, '/explore')}
+              className="btn btn-secondary btn-lg"
+              style={{ gap: '8px', cursor: 'pointer' }}
+            >
               View All Indian Destinations <ArrowRight size={16} color="#0284c7" />
-            </Link>
+            </button>
           </div>
         </div>
       </section>
@@ -459,9 +503,13 @@ export default function Home() {
                 </div>
               </div>
 
-              <Link to="/ai-planner" className="btn btn-green btn-lg" style={{ display: 'inline-flex' }}>
+              <button
+                onClick={(e) => handleProtectedAction(e, '/ai-planner')}
+                className="btn btn-green btn-lg"
+                style={{ display: 'inline-flex', cursor: 'pointer' }}
+              >
                 <Sparkles size={18} /> Launch AI Travel Planner
-              </Link>
+              </button>
             </div>
 
             {/* Visual Demo Card */}
@@ -522,15 +570,25 @@ export default function Home() {
               <PackageCard
                 key={pkg.id}
                 pkg={pkg}
-                onBook={(selectedPkg) => setSelectedBookingPkg(selectedPkg)}
+                onBook={(selectedPkg) => {
+                  if (!isAuthenticated) {
+                    navigate('/login', { state: { from: '/packages' } });
+                  } else {
+                    setSelectedBookingPkg(selectedPkg);
+                  }
+                }}
               />
             ))}
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '36px' }}>
-            <Link to="/packages" className="btn btn-secondary">
+            <button
+              onClick={(e) => handleProtectedAction(e, '/packages')}
+              className="btn btn-secondary"
+              style={{ cursor: 'pointer' }}
+            >
               Browse All Tour Packages &rarr;
-            </Link>
+            </button>
           </div>
         </div>
       </section>
@@ -618,9 +676,13 @@ export default function Home() {
             </div>
 
             <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-              <Link to="/emergency" className="btn btn-primary btn-lg">
+              <button
+                onClick={(e) => handleProtectedAction(e, '/emergency')}
+                className="btn btn-primary btn-lg"
+                style={{ cursor: 'pointer' }}
+              >
                 View Emergency Contacts
-              </Link>
+              </button>
               <a href="tel:1363" className="btn btn-green btn-lg">
                 Call Helpline: 1363
               </a>

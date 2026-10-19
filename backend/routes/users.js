@@ -8,13 +8,26 @@ const router = express.Router();
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
     const [userRows] = await pool.query(
-      'SELECT id, name, email, phone, role, avatar_url, created_at FROM users WHERE id = ?',
+      'SELECT * FROM users WHERE id = ?',
       [req.user.id]
     );
 
     if (userRows.length === 0) {
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
+
+    const rawUser = userRows[0];
+    const user = {
+      id: rawUser.id,
+      name: rawUser.name || rawUser.full_name || '',
+      full_name: rawUser.full_name || rawUser.name || '',
+      email: rawUser.email,
+      phone: rawUser.phone,
+      role: rawUser.role,
+      avatar_url: rawUser.avatar_url || rawUser.profile_image_url || null,
+      profile_image_url: rawUser.profile_image_url || rawUser.avatar_url || null,
+      created_at: rawUser.created_at
+    };
 
     const [prefRows] = await pool.query(
       'SELECT travel_type, budget_range, preferred_transport, interests, food_preference, preferred_duration FROM user_preferences WHERE user_id = ?',
@@ -40,7 +53,7 @@ router.get('/profile', authenticateToken, async (req, res) => {
 
     return res.json({
       success: true,
-      user: userRows[0],
+      user,
       preferences
     });
   } catch (error) {
@@ -58,10 +71,29 @@ router.put('/profile', authenticateToken, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Name is required.' });
     }
 
-    await pool.query(
-      'UPDATE users SET full_name = ?, phone = ?, profile_image_url = ? WHERE id = ?',
-      [name.trim(), phone || null, avatar_url || null, req.user.id]
-    );
+    const [cols] = await pool.query(
+      "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'"
+    ).catch(() => [[]]);
+    const colSet = new Set(cols.map(c => c.COLUMN_NAME));
+
+    const updates = ['full_name = ?', 'phone = ?'];
+    const params = [name.trim(), phone || null];
+
+    if (colSet.has('name')) {
+      updates.push('name = ?');
+      params.push(name.trim());
+    }
+    if (colSet.has('profile_image_url')) {
+      updates.push('profile_image_url = ?');
+      params.push(avatar_url || null);
+    }
+    if (colSet.has('avatar_url')) {
+      updates.push('avatar_url = ?');
+      params.push(avatar_url || null);
+    }
+
+    params.push(req.user.id);
+    await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
 
     return res.json({
       success: true,

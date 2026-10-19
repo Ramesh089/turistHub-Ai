@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles, MapPin } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const SLIDES = [
   {
@@ -102,6 +103,8 @@ const SLIDES = [
 ];
 
 export default function CultureSlider() {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
@@ -180,9 +183,19 @@ export default function CultureSlider() {
             {slide.description}
           </p>
 
-          <Link to={slide.link} className="btn btn-green" style={{ padding: '12px 28px' }}>
+          <button
+            onClick={() => {
+              if (!isAuthenticated) {
+                navigate('/login', { state: { from: slide.link } });
+              } else {
+                navigate(slide.link);
+              }
+            }}
+            className="btn btn-green"
+            style={{ padding: '12px 28px', cursor: 'pointer' }}
+          >
             Explore Cultural Story &rarr;
-          </Link>
+          </button>
         </div>
 
         <button

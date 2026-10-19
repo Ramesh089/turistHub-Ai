@@ -91,6 +91,7 @@ app.use('/api/bookings', require('./routes/bookings'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/stats', require('./routes/stats'));
+app.use('/api/nearby', require('./routes/nearby'));
 
 // 404 handler
 app.use((req, res) => {
@@ -117,7 +118,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Tourist Hub API listening on port ${PORT}`);
-});
+// Start server if run directly
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Tourist Hub API listening on port ${PORT}`);
+  });
+}
+
+module.exports = app;

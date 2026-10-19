@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "init:db": "node config/init_db.js",
     "seed": "node config/seed.js",
     "seed:auth": "node config/seed_auth.js",
     "test:auth": "node test_auth_full.js"

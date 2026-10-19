@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useI18n } from '../context/I18nContext';
@@ -36,6 +36,7 @@ export default function Register() {
   const { isDark } = useTheme();
   const { t } = useI18n();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -209,9 +210,10 @@ export default function Register() {
     setLoading(false);
 
     if (res.success) {
-      setSuccessMsg('Account registered successfully! Redirecting to dashboard...');
+      const redirectState = location.state?.from?.pathname || location.state?.from;
+      setSuccessMsg('Account registered successfully! Redirecting...');
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate(redirectState || '/dashboard');
       }, 1500);
     } else {
       setErrorMsg(res.message);
@@ -312,6 +314,29 @@ export default function Register() {
               {t('registerSubtext')}
             </p>
           </div>
+
+          {/* Explore / Protected Redirect Notice */}
+          {location.state?.from && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '12px 14px',
+                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.18)' : 'rgba(16, 185, 129, 0.1)',
+                border: '1px solid rgba(16, 185, 129, 0.35)',
+                borderRadius: '10px',
+                color: isDark ? '#34d399' : '#047857',
+                fontSize: '0.85rem',
+                marginBottom: '16px',
+                fontWeight: '600',
+                lineHeight: 1.45
+              }}
+            >
+              <Compass size={18} style={{ flexShrink: 0, color: '#10b981' }} />
+              <span>Create your account to explore Indian destinations, generate AI itineraries, and access full Tourist Hub features.</span>
+            </div>
+          )}
 
           {/* Feedback Toasts */}
           {errorMsg && (
@@ -749,6 +774,7 @@ export default function Register() {
             <span>{t('haveAccount')} </span>
             <Link
               to="/login"
+              state={location.state}
               style={{
                 color: 'var(--accent-color, #5B7CFF)',
                 fontWeight: '600',

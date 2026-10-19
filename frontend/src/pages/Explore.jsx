@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import DestinationCard from '../components/DestinationCard';
-import { Search, Filter, Compass, SlidersHorizontal, RotateCcw } from 'lucide-react';
+import NearbyTouristGuide from '../components/NearbyTouristGuide/NearbyTouristGuide';
+import { Search, Filter, Compass, SlidersHorizontal, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+
+const INITIAL_VISIBLE_COUNT = 6; // 2 rows in 3-column grid
 
 export default function Explore() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [destinations, setDestinations] = useState([]);
   const [states, setStates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAll, setShowAll] = useState(false);
 
   // Filter States
   const [query, setQuery] = useState(searchParams.get('q') || '');
@@ -53,12 +57,20 @@ export default function Explore() {
     fetchDestinations();
   }, [query, selectedState, selectedCategory, maxBudget, sortBy]);
 
+  // Reset showAll back to false whenever filters change so results start with 2 rows
+  useEffect(() => {
+    setShowAll(false);
+  }, [query, selectedState, selectedCategory, maxBudget, sortBy]);
+
+  const visibleDestinations = showAll ? destinations : destinations.slice(0, INITIAL_VISIBLE_COUNT);
+
   const handleResetFilters = () => {
     setQuery('');
     setSelectedState('');
     setSelectedCategory('');
     setMaxBudget('');
     setSortBy('rating');
+    setShowAll(false);
     setSearchParams({});
   };
 
@@ -211,7 +223,12 @@ export default function Explore() {
         {/* Results Counter */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <div style={{ fontSize: '0.95rem', color: 'var(--slate)' }}>
-            Showing <strong>{destinations.length}</strong> incredible Indian destinations
+            Showing <strong>{visibleDestinations.length}</strong> of <strong>{destinations.length}</strong> incredible Indian destinations
+            {!showAll && destinations.length > INITIAL_VISIBLE_COUNT && (
+              <span style={{ fontSize: '0.82rem', color: '#0284c7', marginLeft: '8px', fontWeight: '600' }}>
+                (Top 2 rows)
+              </span>
+            )}
           </div>
         </div>
 
@@ -238,13 +255,66 @@ export default function Explore() {
             </button>
           </div>
         ) : (
-          <div className="grid-3">
-            {destinations.map((dest) => (
-              <DestinationCard key={dest.id} destination={dest} />
-            ))}
-          </div>
+          <>
+            <div className="grid-3">
+              {visibleDestinations.map((dest) => (
+                <DestinationCard key={dest.id} destination={dest} />
+              ))}
+            </div>
+
+            {/* Explore More / Show Less Button */}
+            {destinations.length > INITIAL_VISIBLE_COUNT && (
+              <div style={{ textAlign: 'center', marginTop: '40px', marginBottom: '24px' }}>
+                <button
+                  onClick={() => setShowAll(!showAll)}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '13px 36px',
+                    fontSize: '1rem',
+                    fontWeight: '700',
+                    borderRadius: '999px',
+                    border: '2px solid #0284c7',
+                    background: showAll ? '#0284c7' : '#ffffff',
+                    color: showAll ? '#ffffff' : '#0284c7',
+                    boxShadow: '0 6px 20px rgba(2, 132, 199, 0.16)',
+                    cursor: 'pointer',
+                    transition: 'all 0.25s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!showAll) {
+                      e.currentTarget.style.background = '#0284c7';
+                      e.currentTarget.style.color = '#ffffff';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!showAll) {
+                      e.currentTarget.style.background = '#ffffff';
+                      e.currentTarget.style.color = '#0284c7';
+                    }
+                  }}
+                >
+                  {showAll ? (
+                    <>
+                      <span>Show Less</span>
+                      <ChevronUp size={20} />
+                    </>
+                  ) : (
+                    <>
+                      <span>Explore More ({destinations.length - INITIAL_VISIBLE_COUNT} More Places)</span>
+                      <ChevronDown size={20} />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      {/* AI-Powered Nearby Tourist Guidance Section directly above the Footer */}
+      <NearbyTouristGuide />
     </div>
   );
 }

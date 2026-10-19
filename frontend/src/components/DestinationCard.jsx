@@ -1,8 +1,11 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { MapPin, Star, Clock, IndianRupee, ArrowRight } from 'lucide-react';
 
 export default function DestinationCard({ destination }) {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const {
     id,
     name,
@@ -170,13 +173,20 @@ export default function DestinationCard({ destination }) {
             </div>
           </div>
 
-          <Link
-            to={`/destination/${id}`}
+          <button
+            onClick={() => {
+              const target = `/destination/${id}`;
+              if (!isAuthenticated) {
+                navigate('/login', { state: { from: target } });
+              } else {
+                navigate(target);
+              }
+            }}
             className="btn btn-secondary"
-            style={{ width: '100%', padding: '9px 14px', fontSize: '0.88rem', justifyContent: 'center', gap: '6px' }}
+            style={{ width: '100%', padding: '9px 14px', fontSize: '0.88rem', justifyContent: 'center', gap: '6px', cursor: 'pointer' }}
           >
             Explore Cultural Lore <ArrowRight size={14} color="#0284c7" />
-          </Link>
+          </button>
         </div>
       </div>
     </div>

@@ -22,12 +22,26 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
+  const handleNavClick = (e, targetPath) => {
+    if (targetPath === '/') return;
+    if (!isAuthenticated) {
+      if (e && e.preventDefault) e.preventDefault();
+      setMobileMenuOpen(false);
+      navigate('/login', { state: { from: targetPath } });
+    }
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/explore?q=${encodeURIComponent(searchQuery.trim())}`);
+      const target = `/explore?q=${encodeURIComponent(searchQuery.trim())}`;
       setSearchQuery('');
       setMobileMenuOpen(false);
+      if (!isAuthenticated) {
+        navigate('/login', { state: { from: target } });
+      } else {
+        navigate(target);
+      }
     }
   };
 
@@ -93,100 +107,128 @@ export default function Navbar() {
               Home
             </NavLink>
 
-            <NavLink to="/explore" style={({ isActive }) => ({
-              fontSize: '0.82rem',
-              fontWeight: '700',
-              color: isActive ? '#0284c7' : '#334155',
-              transition: 'all 0.2s ease',
-              padding: '7px 13px',
-              borderRadius: '999px',
-              background: isActive ? '#e0f2fe' : 'transparent',
-              whiteSpace: 'nowrap'
-            })}>
+            <NavLink
+              to="/explore"
+              onClick={(e) => handleNavClick(e, '/explore')}
+              style={({ isActive }) => ({
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                color: isActive ? '#0284c7' : '#334155',
+                transition: 'all 0.2s ease',
+                padding: '7px 13px',
+                borderRadius: '999px',
+                background: isActive ? '#e0f2fe' : 'transparent',
+                whiteSpace: 'nowrap'
+              })}
+            >
               Explore
             </NavLink>
 
-            <NavLink to="/ai-planner" style={({ isActive }) => ({
-              fontSize: '0.82rem',
-              fontWeight: '700',
-              color: isActive ? '#0284c7' : '#334155',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              transition: 'all 0.2s ease',
-              padding: '7px 13px',
-              borderRadius: '999px',
-              background: isActive ? '#e0f2fe' : 'transparent',
-              whiteSpace: 'nowrap'
-            })}>
+            <NavLink
+              to="/ai-planner"
+              onClick={(e) => handleNavClick(e, '/ai-planner')}
+              style={({ isActive }) => ({
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                color: isActive ? '#0284c7' : '#334155',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.2s ease',
+                padding: '7px 13px',
+                borderRadius: '999px',
+                background: isActive ? '#e0f2fe' : 'transparent',
+                whiteSpace: 'nowrap'
+              })}
+            >
               <Sparkles size={15} color="#10b981" /> AI Planner
             </NavLink>
 
-            <NavLink to="/packages" style={({ isActive }) => ({
-              fontSize: '0.82rem',
-              fontWeight: '700',
-              color: isActive ? '#0284c7' : '#334155',
-              transition: 'all 0.2s ease',
-              padding: '7px 13px',
-              borderRadius: '999px',
-              background: isActive ? '#e0f2fe' : 'transparent',
-              whiteSpace: 'nowrap'
-            })}>
+            <NavLink
+              to="/packages"
+              onClick={(e) => handleNavClick(e, '/packages')}
+              style={({ isActive }) => ({
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                color: isActive ? '#0284c7' : '#334155',
+                transition: 'all 0.2s ease',
+                padding: '7px 13px',
+                borderRadius: '999px',
+                background: isActive ? '#e0f2fe' : 'transparent',
+                whiteSpace: 'nowrap'
+              })}
+            >
               Packages
             </NavLink>
 
-            <NavLink to="/hotels" style={({ isActive }) => ({
-              fontSize: '0.82rem',
-              fontWeight: '700',
-              color: isActive ? '#0284c7' : '#334155',
-              transition: 'all 0.2s ease',
-              padding: '7px 13px',
-              borderRadius: '999px',
-              background: isActive ? '#e0f2fe' : 'transparent',
-              whiteSpace: 'nowrap'
-            })}>
+            <NavLink
+              to="/hotels"
+              onClick={(e) => handleNavClick(e, '/hotels')}
+              style={({ isActive }) => ({
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                color: isActive ? '#0284c7' : '#334155',
+                transition: 'all 0.2s ease',
+                padding: '7px 13px',
+                borderRadius: '999px',
+                background: isActive ? '#e0f2fe' : 'transparent',
+                whiteSpace: 'nowrap'
+              })}
+            >
               Hotels
             </NavLink>
 
-            <NavLink to="/transport" style={({ isActive }) => ({
-              fontSize: '0.82rem',
-              fontWeight: '700',
-              color: isActive ? '#0284c7' : '#334155',
-              transition: 'all 0.2s ease',
-              padding: '7px 13px',
-              borderRadius: '999px',
-              background: isActive ? '#e0f2fe' : 'transparent',
-              whiteSpace: 'nowrap'
-            })}>
+            <NavLink
+              to="/transport"
+              onClick={(e) => handleNavClick(e, '/transport')}
+              style={({ isActive }) => ({
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                color: isActive ? '#0284c7' : '#334155',
+                transition: 'all 0.2s ease',
+                padding: '7px 13px',
+                borderRadius: '999px',
+                background: isActive ? '#e0f2fe' : 'transparent',
+                whiteSpace: 'nowrap'
+              })}
+            >
               Transport
             </NavLink>
 
-            <NavLink to="/guides" style={({ isActive }) => ({
-              fontSize: '0.82rem',
-              fontWeight: '700',
-              color: isActive ? '#0284c7' : '#334155',
-              transition: 'all 0.2s ease',
-              padding: '7px 13px',
-              borderRadius: '999px',
-              background: isActive ? '#e0f2fe' : 'transparent',
-              whiteSpace: 'nowrap'
-            })}>
+            <NavLink
+              to="/guides"
+              onClick={(e) => handleNavClick(e, '/guides')}
+              style={({ isActive }) => ({
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                color: isActive ? '#0284c7' : '#334155',
+                transition: 'all 0.2s ease',
+                padding: '7px 13px',
+                borderRadius: '999px',
+                background: isActive ? '#e0f2fe' : 'transparent',
+                whiteSpace: 'nowrap'
+              })}
+            >
               Guides
             </NavLink>
 
-            <NavLink to="/emergency" style={({ isActive }) => ({
-              fontSize: '0.82rem',
-              fontWeight: '700',
-              color: isActive ? '#dc2626' : '#ef4444',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              transition: 'all 0.2s ease',
-              padding: '7px 13px',
-              borderRadius: '999px',
-              background: isActive ? '#fee2e2' : 'transparent',
-              whiteSpace: 'nowrap'
-            })}>
+            <NavLink
+              to="/emergency"
+              onClick={(e) => handleNavClick(e, '/emergency')}
+              style={({ isActive }) => ({
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                color: isActive ? '#dc2626' : '#ef4444',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                transition: 'all 0.2s ease',
+                padding: '7px 13px',
+                borderRadius: '999px',
+                background: isActive ? '#fee2e2' : 'transparent',
+                whiteSpace: 'nowrap'
+              })}
+            >
               <ShieldAlert size={14} /> Emergency
             </NavLink>
           </div>
@@ -250,13 +292,13 @@ export default function Navbar() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Home</Link>
-            <Link to="/explore" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Explore</Link>
-            <Link to="/ai-planner" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: '600', color: '#0284c7', padding: '8px 10px', borderRadius: '8px' }}>AI Planner</Link>
-            <Link to="/packages" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Packages</Link>
-            <Link to="/hotels" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Hotels</Link>
-            <Link to="/transport" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Transport</Link>
-            <Link to="/guides" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Guides</Link>
-            <Link to="/emergency" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: '600', color: '#dc2626', padding: '8px 10px', borderRadius: '8px' }}>Emergency</Link>
+            <Link to="/explore" onClick={(e) => handleNavClick(e, '/explore')} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Explore</Link>
+            <Link to="/ai-planner" onClick={(e) => handleNavClick(e, '/ai-planner')} style={{ fontWeight: '600', color: '#0284c7', padding: '8px 10px', borderRadius: '8px' }}>AI Planner</Link>
+            <Link to="/packages" onClick={(e) => handleNavClick(e, '/packages')} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Packages</Link>
+            <Link to="/hotels" onClick={(e) => handleNavClick(e, '/hotels')} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Hotels</Link>
+            <Link to="/transport" onClick={(e) => handleNavClick(e, '/transport')} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Transport</Link>
+            <Link to="/guides" onClick={(e) => handleNavClick(e, '/guides')} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Guides</Link>
+            <Link to="/emergency" onClick={(e) => handleNavClick(e, '/emergency')} style={{ fontWeight: '600', color: '#dc2626', padding: '8px 10px', borderRadius: '8px' }}>Emergency</Link>
 
             <hr style={{ border: 'none', borderTop: '1px solid rgba(2, 132, 199, 0.15)', margin: '8px 0' }} />
 

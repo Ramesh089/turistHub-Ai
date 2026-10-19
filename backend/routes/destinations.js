@@ -77,6 +77,12 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Forward /api/destinations/nearby
+router.use('/nearby', (req, res, next) => {
+  req.url = '/places' + (req.url === '/' ? '' : req.url);
+  require('./nearby')(req, res, next);
+});
+
 // GET /api/destinations/:id
 router.get('/:id', async (req, res) => {
   try {

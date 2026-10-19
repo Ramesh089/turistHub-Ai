@@ -222,6 +222,29 @@ export default function Login() {
             </p>
           </div>
 
+          {/* Explore / Protected Redirect Notice */}
+          {location.state?.from && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '12px 14px',
+                backgroundColor: isDark ? 'rgba(2, 132, 199, 0.18)' : 'rgba(2, 132, 199, 0.1)',
+                border: '1px solid rgba(2, 132, 199, 0.35)',
+                borderRadius: '10px',
+                color: isDark ? '#38bdf8' : '#0369a1',
+                fontSize: '0.85rem',
+                marginBottom: '18px',
+                fontWeight: '600',
+                lineHeight: 1.45
+              }}
+            >
+              <Compass size={18} style={{ flexShrink: 0, color: '#0284c7' }} />
+              <span>Please sign in or register to explore destinations, plan trips with AI, and access Tourist Hub.</span>
+            </div>
+          )}
+
           {/* General Error Alert */}
           {errorMsg && (
             <div
@@ -494,6 +517,7 @@ export default function Login() {
             <span>{t('noAccount')} </span>
             <Link
               to="/register"
+              state={location.state}
               style={{
                 color: 'var(--accent-color, #5B7CFF)',
                 fontWeight: '600',

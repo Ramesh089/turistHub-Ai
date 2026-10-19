@@ -37,16 +37,74 @@ function AppContent() {
 
       <main style={{ flexGrow: 1 }}>
         <Routes>
-          {/* Public Website Routes */}
+          {/* Public Landing Route - Only Home is accessible without login */}
           <Route path="/" element={<Home />} />
-          <Route path="/explore" element={<Explore />} />
-          <Route path="/destination/:id" element={<DestinationDetails />} />
-          <Route path="/ai-planner" element={<AIPlanner />} />
-          <Route path="/packages" element={<Packages />} />
-          <Route path="/hotels" element={<Hotels />} />
-          <Route path="/transport" element={<Transport />} />
-          <Route path="/guides" element={<Guides />} />
-          <Route path="/emergency" element={<Emergency />} />
+
+          {/* Protected Exploration & App Routes (Require Login / Registration) */}
+          <Route
+            path="/explore"
+            element={
+              <ProtectedRoute>
+                <Explore />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/destination/:id"
+            element={
+              <ProtectedRoute>
+                <DestinationDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ai-planner"
+            element={
+              <ProtectedRoute>
+                <AIPlanner />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/packages"
+            element={
+              <ProtectedRoute>
+                <Packages />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/hotels"
+            element={
+              <ProtectedRoute>
+                <Hotels />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/transport"
+            element={
+              <ProtectedRoute>
+                <Transport />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/guides"
+            element={
+              <ProtectedRoute>
+                <Guides />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/emergency"
+            element={
+              <ProtectedRoute>
+                <Emergency />
+              </ProtectedRoute>
+            }
+          />
 
           {/* Authentication Routes (redirect logged-in users away) */}
           <Route

@@ -1,8 +1,11 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { Calendar, Sparkles, ArrowRight } from 'lucide-react';
 
 export default function StateCard({ state }) {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const { code, name, capital, description, image_url, best_time, highlights, places_count } = state;
 
   return (
@@ -74,13 +77,20 @@ export default function StateCard({ state }) {
             </span>
           </div>
 
-          <Link
-            to={`/explore?state=${code}`}
+          <button
+            onClick={() => {
+              const target = `/explore?state=${code}`;
+              if (!isAuthenticated) {
+                navigate('/login', { state: { from: target } });
+              } else {
+                navigate(target);
+              }
+            }}
             className="btn btn-secondary btn-sm"
-            style={{ width: '100%', marginTop: '10px', justifyContent: 'center', gap: '6px' }}
+            style={{ width: '100%', marginTop: '10px', justifyContent: 'center', gap: '6px', cursor: 'pointer' }}
           >
             Explore {name} <ArrowRight size={13} color="#0284c7" />
-          </Link>
+          </button>
         </div>
       </div>
     </div>

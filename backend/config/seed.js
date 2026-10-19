@@ -930,11 +930,21 @@ async function seed() {
     console.log('✅ Reviews seeded');
 
     console.log('🎉 Database seeding completed successfully for Tourist AI Hub!');
-    process.exit(0);
+    if (require.main === module) {
+      process.exit(0);
+    }
+    return true;
   } catch (err) {
     console.error('❌ Database seeding error:', err);
-    process.exit(1);
+    if (require.main === module) {
+      process.exit(1);
+    }
+    throw err;
   }
 }
 
-seed();
+if (require.main === module) {
+  seed();
+}
+
+module.exports = seed;
