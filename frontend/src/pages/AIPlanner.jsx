@@ -264,6 +264,9 @@ How can I help you plan your journey today?`,
         if (res.data.plan) {
           setPlanResult(res.data.plan);
           setSavedSuccess(false);
+        } else if (res.data.destination && res.data.destination !== travelContext.activeDestination) {
+          // If asking a general question about a new destination, clear the previous destination's plan card
+          setPlanResult(null);
         }
 
         // Update dynamic suggested follow-up prompts
@@ -276,7 +279,8 @@ How can I help you plan your journey today?`,
           setTravelContext((prev) => ({
             ...prev,
             ...res.data.context_updates,
-            currentPlan: res.data.plan || prev.currentPlan
+            activeDestination: res.data.destination || res.data.context_updates.activeDestination || prev.activeDestination,
+            currentPlan: res.data.plan || (res.data.destination && res.data.destination !== prev.activeDestination ? null : prev.currentPlan)
           }));
         }
       } else {

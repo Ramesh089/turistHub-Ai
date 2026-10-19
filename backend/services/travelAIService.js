@@ -242,6 +242,192 @@ const DESTINATION_KNOWLEDGE = {
         { mode: 'Direct Flights', duration: '1 hour 20 mins', cost: '₹3,500 - ₹5,500', details: 'Multiple daily non-stop flights from DEL, BOM, BLR to Lal Bahadur Shastri Airport (VNS).' }
       ]
     }
+  },
+
+  'chikmagalur': {
+    name: 'Chikmagalur (Chikkamagaluru)',
+    state: 'Karnataka',
+    nickname: 'The Coffee Land of Karnataka / Western Ghats Retreat',
+    overview: 'Perched at 3,400 feet against the dramatic Mullayanagiri range, Chikmagalur is famous for mist-shrouded Arabica coffee plantations, sparkling waterfalls, mountain peaks, and serene plantation homestays.',
+    history: 'In the 17th century, Sufi saint Baba Budan brought seven raw coffee beans from Mocha (Yemen) and planted them in the Chandradrona hills, initiating India\'s storied coffee culture.',
+    best_time: 'September to March for trekking and pleasant days; July to August for lush monsoon greenery.',
+    ideal_duration: '2 to 3 Days',
+    attractions: [
+      { name: 'Mullayanagiri Peak', category: 'Trekking & Mountain Vista', timings: '6:00 AM - 6:00 PM', entry_fee: 'Free', est_time: '2 - 3 hours', highlight: 'Highest peak in Karnataka (1,930 m) offering sweeping views above the clouds.' },
+      { name: 'Baba Budangiri & Manikyadhara Falls', category: 'Heritage & Pilgrimage', timings: '8:00 AM - 5:00 PM', entry_fee: 'Free', est_time: '2 hours', highlight: 'Sacred mountain shrine dedicated to Sufi saint Baba Budan and Dattatreya.' },
+      { name: 'Hebbe Falls', category: 'Waterfall & Forest Jeep Ride', timings: '8:00 AM - 4:00 PM', entry_fee: '₹100 (Forest jeep extra)', est_time: '3 hours', highlight: 'Dramatic two-tiered 550-foot waterfall inside Bhadra tiger reserve perimeter.' },
+      { name: 'Hirekolale Lake', category: 'Lake & Sunset Point', timings: '6:00 AM - 6:30 PM', entry_fee: 'Free', est_time: '1 hour', highlight: 'Tranquil mountain lake surrounded by pine slopes, perfect for evening walks.' }
+    ],
+    food: [
+      { name: 'Akki Roti with Kaayi Chutney', description: 'Crisp rice-flour flatbreads tempered with onions, dill, and served with spicy coconut chutney.', where: 'Town Canteen / Local Estate Homestays' },
+      { name: 'Malnad Koli Saaru & Kadubu', description: 'Traditional aromatic chicken curry slow-simmered with coconut milk, paired with steamed rice cakes.', where: 'Local Malnad Messes & Homestays' },
+      { name: 'Single-Estate Filter Coffee', description: 'Freshly roasted Arabica and Robusta coffee brewed with chicory and thick milk.', where: 'Plantation Cafes across Mallandur Road' }
+    ],
+    transport: {
+      from_bengaluru: [
+        { mode: 'Direct Drive / Private Cab (NH-75)', duration: '4.5 to 5 hours (245 km)', cost: '₹4,000 - ₹5,000', details: 'Scenic 4-lane highway via Hassan and Belur.' },
+        { mode: 'KSRTC Airavat AC Bus', duration: '5.5 hours', cost: '₹480 - ₹750', details: 'Multiple daily departures from Kempegowda Bus Station.' }
+      ],
+      local: 'Private cabs and rental 4x4 jeeps (essential for Mullayanagiri and Hebbe Falls forest terrain).'
+    }
+  },
+
+  'badami': {
+    name: 'Badami (Vatapi)',
+    state: 'Karnataka',
+    nickname: 'Rock-Cut Cave Citadel of the Early Chalukyas',
+    overview: 'Badami, ancient capital of the Chalukya dynasty from 540 to 757 AD, is world-famous for its dramatic red sandstone cave temples, Bhutanatha shrine overlooking Agastya Lake, and nearby UNESCO landmarks at Pattadakal and Aihole.',
+    history: 'Founded by Pulakeshin I in 540 AD, Badami was an extraordinary center of early Dravidian and Nagara stone temple architecture.',
+    best_time: 'October to March (Pleasant winter temperatures 16°C to 30°C).',
+    ideal_duration: '2 Days (including Pattadakal & Aihole)',
+    attractions: [
+      { name: 'Badami Rock-Cut Cave Temples', category: 'Heritage & UNESCO Architecture', timings: '9:00 AM - 5:30 PM', entry_fee: '₹25 (Indians), ₹300 (Foreigners)', est_time: '2 - 3 hours', highlight: 'Four ancient rock-cut caves carved into cliffs, featuring 18-armed dancing Shiva (Natara) and Vishnu avatars.' },
+      { name: 'Bhutanatha Group of Temples & Agastya Lake', category: 'Scenic Lake Shrine', timings: '6:00 AM - 6:30 PM', entry_fee: 'Free', est_time: '1.5 hours', highlight: '7th-century stone temple built right onto the edge of holy Agastya tank.' },
+      { name: 'Pattadakal UNESCO Monuments (22 km)', category: 'UNESCO World Heritage', timings: '6:00 AM - 6:00 PM', entry_fee: '₹40', est_time: '2 hours', highlight: 'Ten 8th-century grand stone temples illustrating the meeting point of North and South Indian temple styles.' },
+      { name: 'Aihole Temple Complex (35 km)', category: 'Cradle of Hindu Architecture', timings: '9:00 AM - 5:00 PM', entry_fee: '₹25', est_time: '2 hours', highlight: 'Over 120 stone temples dating back to the 6th century, including the apsidal Durga Temple.' }
+    ],
+    food: [
+      { name: 'North Karnataka Jowar Roti Oota', description: 'Wholesome sorghum flatbreads served with stuffed brinjal (Ennegai), spicy pulse chutneys, curd, and papad.', where: 'Traditional Khanavali Messes near Bus Stand' },
+      { name: 'Shenga Chutney & Shenga Holige', description: 'Crushed spiced peanut powders and sweet jaggery-peanut flatbreads.', where: 'Local sweet shops' }
+    ],
+    transport: {
+      from_bengaluru: [
+        { mode: 'Gol Gumbaz Express / Barmer Express (Train)', duration: '11 hours (Overnight)', cost: '₹340 (SL) / ₹950 (3AC)', details: 'Departs Bengaluru evenings, arrives Badami Station directly mornings.' },
+        { mode: 'KSRTC Non-AC / AC Sleeper Bus', duration: '9 to 10 hours', cost: '₹650 - ₹1,100', details: 'Direct overnight buses from Majestic to Badami.' }
+      ],
+      local: 'Auto rickshaws and pre-booked local taxis for Pattadakal and Aihole day trips.'
+    }
+  },
+
+  'gokarna': {
+    name: 'Gokarna',
+    state: 'Karnataka',
+    nickname: 'Sacred Coastal Haven / Serene Beaches & Shiva Shrine',
+    overview: 'Gokarna is a peaceful temple town on the Arabian Sea, celebrated for its revered Mahabaleshwar Temple holding the sacred Atmalinga, and five crescent-shaped golden beaches bordered by rocky hills.',
+    history: 'One of the seven sacred Muktistalas of Karnataka, revered since ancient times as the spot where Ganesha outwitted Ravana to ground Shiva\'s divine Atmalinga.',
+    best_time: 'October to March (Sunny beach days, cool sea breeze).',
+    ideal_duration: '2 to 3 Days',
+    attractions: [
+      { name: 'Mahabaleshwar Temple & Kotiteertha', category: 'Spiritual Shrine', timings: '6:00 AM - 12:30 PM, 5:00 PM - 8:00 PM', entry_fee: 'Free', est_time: '1.5 hours', highlight: 'Ancient Dravidian granite temple housing the Atmalinga of Lord Shiva.' },
+      { name: 'Om Beach', category: 'Beach & Water Sports', timings: 'Open 24 Hours', entry_fee: 'Free', est_time: '2 - 3 hours', highlight: 'Naturally shaped like the sacred Hindu symbol ॐ, with beach shacks and boat rides.' },
+      { name: 'Kudle Beach', category: 'Sunset & Shacks', timings: 'Open 24 Hours', entry_fee: 'Free', est_time: '2 hours', highlight: 'Spacious crescent bay framed by rocky headlands, ideal for relaxing and sunset watching.' },
+      { name: 'Half Moon & Paradise Beach Trek', category: 'Coastal Cliff Trek', timings: 'Daylight hours', entry_fee: 'Free', est_time: '3 hours', highlight: 'Scenic cliff-edge trail connecting secluded coves accessible only by foot or boat.' }
+    ],
+    food: [
+      { name: 'Coastal Fish Curry with Boiled Red Rice', description: 'Fresh catch of kingfish or mackerel simmered in tangy kokum-coconut gravy.', where: 'Chez Christophe / Prema Restaurant' },
+      { name: 'Mangalore Buns & Neer Dosa', description: 'Sweet banana pooris and paper-thin rice crepes served with spicy coconut chutney.', where: 'Shri Krishna Bhavan near Temple' }
+    ],
+    transport: {
+      from_bengaluru: [
+        { mode: 'Panchaganga Express (16595) Overnight Train', duration: '12 hours', cost: '₹350 (SL) / ₹980 (3AC)', details: 'Departs Yesvantpur 6:50 PM, arrives Gokarna Road Station 7:30 AM.' },
+        { mode: 'KSRTC Airavat AC Sleeper Bus', duration: '9 to 10 hours', cost: '₹750 - ₹1,200', details: 'Direct overnight bus from Bengaluru to Gokarna town.' }
+      ],
+      local: 'Auto rickshaws (₹100-₹200 between beaches), scooter rentals (₹400/day), and fishing boat transfers.'
+    }
+  },
+
+  'ooty': {
+    name: 'Ooty (Udhagamandalam)',
+    state: 'Tamil Nadu',
+    nickname: 'Queen of Hill Stations / Nilgiris Paradise',
+    overview: 'Nestled at 7,350 feet in the Nilgiri Hills, Ooty is famous for vast tea estates, eucalyptus groves, the UNESCO Nilgiri Mountain Toy Train, and cool refreshing mountain air.',
+    history: 'Developed as a summer sanctuary for the British Madras Presidency in the 1820s by John Sullivan, preserving stone churches and Toda tribal heritage.',
+    best_time: 'October to June (Pleasant weather between 10°C and 20°C).',
+    ideal_duration: '2 to 3 Days',
+    attractions: [
+      { name: 'Government Botanical Garden', category: 'Flora & Heritage Garden', timings: '7:00 AM - 6:30 PM', entry_fee: '₹40 (Adults)', est_time: '2 hours', highlight: '55-acre terraced garden established in 1848, featuring thousands of exotic plant species and a 20-million-year-old fossil tree.' },
+      { name: 'Doddabetta Peak', category: 'Highest Nilgiri Viewpoint', timings: '7:00 AM - 6:00 PM', entry_fee: '₹10', est_time: '1.5 hours', highlight: 'Highest mountain in the Nilgiris (2,637 m) with telescope house overlooking panoramic valleys.' },
+      { name: 'Ooty Lake & Boathouse', category: 'Boating & Leisure', timings: '8:30 AM - 6:00 PM', entry_fee: '₹15 (Boating extra)', est_time: '1.5 hours', highlight: 'Artificial lake created in 1824 with pedal, row, and motor boats framed by eucalyptus trees.' },
+      { name: 'Nilgiri Mountain Railway (Toy Train)', category: 'UNESCO World Heritage Ride', timings: 'Daily departures', entry_fee: '₹100 - ₹300', est_time: '3 hours', highlight: 'Historic steam-hauled cog railway traversing 16 tunnels, 250 bridges, and cliffside tea slopes.' }
+    ],
+    food: [
+      { name: 'Homemade Nilgiri Chocolates', description: 'Rich dark, milk, and white artisan chocolates loaded with roasted nuts.', where: 'King Star Confectionery / Modern Stores' },
+      { name: 'Ooty Varkey & Piping Tea', description: 'Crisp flaky regional puff biscuits paired with fresh Nilgiri single-estate black tea.', where: 'Local bakeries across Commercial Road' }
+    ],
+    transport: {
+      from_bengaluru: [
+        { mode: 'Direct Road Drive via Bandipur (NH-275 / NH-766)', duration: '6 hours (280 km)', cost: '₹4,500 - ₹5,500 by cab', details: 'Scenic route passing through Mysore and Bandipur-Mudumalai Tiger Reserve.' },
+        { mode: 'KSRTC Airavat AC Bus', duration: '7 to 8 hours', cost: '₹650 - ₹950', details: 'Direct day and night buses from Bengaluru Satellite Bus Stand.' }
+      ],
+      local: 'Local taxis, tourist autos, and town buses connecting Coonoor and Pykara.'
+    }
+  },
+
+  'goa': {
+    name: 'Goa',
+    state: 'Goa',
+    nickname: 'Pearl of the Orient / Sun, Sand & Portuguese Heritage',
+    overview: 'Goa is India\'s premier coastal getaway, famous for golden beaches, UNESCO Portuguese churches, fragrant spice plantations, vibrant flea markets, and relaxed susegad vibes.',
+    history: 'Ruled by the Portuguese for over 450 years from 1510 until 1961, Goa presents a unique blend of Indian and Iberian culture, architecture, and cuisine.',
+    best_time: 'November to February (Cool coastal breezes 20°C - 30°C); July to September for lush monsoons.',
+    ideal_duration: '3 to 4 Days',
+    attractions: [
+      { name: 'Basilica of Bom Jesus (Old Goa)', category: 'UNESCO World Heritage Church', timings: '9:00 AM - 6:30 PM', entry_fee: 'Free', est_time: '1.5 hours', highlight: '16th-century Baroque church holding the sacred mortal remains of St. Francis Xavier.' },
+      { name: 'Fort Aguada & Lighthouse', category: 'Coastal Portuguese Fort', timings: '9:30 AM - 6:00 PM', entry_fee: '₹25', est_time: '1.5 hours', highlight: '17th-century clifftop fortress overlooking the confluence of Mandovi River and Arabian Sea.' },
+      { name: 'Baga & Calangute Beaches', category: 'Beaches & Water Sports', timings: 'Open 24 Hours', entry_fee: 'Free', est_time: '3 hours', highlight: 'High-energy beaches with parasailing, jet skiing, beach shacks, and nightlife.' },
+      { name: 'Dudhsagar Waterfalls', category: 'Waterfall & Forest Safari', timings: '6:00 AM - 5:00 PM', entry_fee: '₹500 (Jeep safari)', est_time: 'Half day', highlight: 'Four-tiered 310-meter white cataract cascading beneath the famous railway bridge.' }
+    ],
+    food: [
+      { name: 'Authentic Goan Fish Curry Thali', description: 'Fresh Kingfish simmered in tangy coconut-kokum gravy served with rice, kismoor, and sol kadhi.', where: 'Ritz Classic (Panaji) / Fisherman\'s Wharf' },
+      { name: 'Bebinca & Feni', description: 'Traditional multi-layered Goan coconut milk pudding and indigenous cashew spirit.', where: 'Local bakeries across Fontainhas' }
+    ],
+    transport: {
+      from_bengaluru: [
+        { mode: 'Direct Flights (BLR to GOI / GOX)', duration: '1 hour 15 mins', cost: '₹2,500 - ₹4,500', details: 'Multiple daily non-stop flights from Bengaluru.' },
+        { mode: 'KSRTC / Private AC Sleeper Bus', duration: '11 hours (Overnight)', cost: '₹950 - ₹1,600', details: 'Overnight comfortable sleeper buses to Panaji and Mapusa.' }
+      ],
+      local: 'Scooter / Moped rentals (₹350 - ₹500/day) and GoaMiles app cabs.'
+    }
+  },
+
+  'munnar': {
+    name: 'Munnar',
+    state: 'Kerala',
+    nickname: 'Kashmir of South India / High Ranges of God\'s Own Country',
+    overview: 'Perched at 5,200 feet in Kerala\'s Western Ghats, Munnar is a breathtaking hill station blanketed in rolling emerald tea plantations, mist-draped peaks, and rare mountain wildlife.',
+    history: 'A favorite summer retreat for British planters in the late 19th century, transforming into India\'s prime center for orthodox tea production.',
+    best_time: 'September to March (Pleasant, cool weather 12°C - 24°C).',
+    ideal_duration: '2 to 3 Days',
+    attractions: [
+      { name: 'Eravikulam National Park', category: 'Wildlife Sanctuary', timings: '7:30 AM - 4:00 PM (Closed Feb-March for calving)', entry_fee: '₹200', est_time: '3 hours', highlight: 'Home of the endangered Nilgiri Tahr mountain goat and rare Neelakurinji flowers.' },
+      { name: 'Mattupetty Dam & Lake', category: 'Dam & Boating', timings: '9:30 AM - 5:00 PM', entry_fee: '₹20 (Speedboat extra)', est_time: '1.5 hours', highlight: 'Picturesque concrete gravity dam surrounded by tea hills, with speedboating.' },
+      { name: 'KDHP Tea Museum', category: 'Tea Heritage', timings: '9:00 AM - 5:00 PM (Closed Mondays)', entry_fee: '₹125', est_time: '1.5 hours', highlight: 'Demonstrations of tea processing from freshly plucked leaves to packaged tea.' }
+    ],
+    food: [
+      { name: 'Kerala Appam with Vegetable / Chicken Stew', description: 'Soft fermented rice crepes with coconut milk stew infused with black pepper and ginger.', where: 'Saravana Bhavan / Rapsy Restaurant' },
+      { name: 'Fresh Kerala Banana Chips', description: 'Crisp raw Nendran bananas fried fresh in pure coconut oil.', where: 'Munnar Town Spice Bazaars' }
+    ],
+    transport: {
+      from_bengaluru: [
+        { mode: 'KSRTC Airavat AC Bus to Munnar', duration: '10 hours (Overnight)', cost: '₹850 - ₹1,200', details: 'Overnight bus via Coimbatore and Pollachi.' }
+      ],
+      local: 'Auto rickshaws and private rental cabs for winding tea estate circuits.'
+    }
+  },
+
+  'agra': {
+    name: 'Agra',
+    state: 'Uttar Pradesh',
+    nickname: 'City of the Taj / Imperial Mughal Capital',
+    overview: 'Resting along the Yamuna River, Agra is home to three UNESCO World Heritage Sites, crowned by the Taj Mahal—one of the Seven Wonders of the World.',
+    history: 'The royal seat of the Mughal Empire from 1526 to 1658 under Akbar, Jahangir, and Shah Jahan.',
+    best_time: 'October to March (Pleasant winter weather 10°C - 25°C).',
+    ideal_duration: '1 to 2 Days',
+    attractions: [
+      { name: 'Taj Mahal', category: 'UNESCO World Wonder', timings: 'Sunrise to Sunset (Closed Fridays)', entry_fee: '₹50 (Indians), ₹1,100 (Foreigners)', est_time: '2 - 3 hours', highlight: 'Colossal white marble mausoleum built by Shah Jahan in memory of Mumtaz Mahal.' },
+      { name: 'Agra Fort', category: 'Mughal Citadel', timings: 'Sunrise to Sunset', entry_fee: '₹50', est_time: '2 hours', highlight: 'Red sandstone fortress housing Jahangiri Mahal, Khas Mahal, and Diwan-i-Khas.' },
+      { name: 'Fatehpur Sikri (35 km)', category: 'UNESCO Deserted City', timings: 'Sunrise to Sunset', entry_fee: '₹50', est_time: '2.5 hours', highlight: 'Emperor Akbar\'s red sandstone capital with Buland Darwaza and Salim Chishti shrine.' }
+    ],
+    food: [
+      { name: 'Authentic Agra Petha', description: 'Translucent ash gourd confection flavored with saffron, cardamom, and rose.', where: 'Panchhi Petha, Sadar Bazaar' },
+      { name: 'Bedmi Puri & Aloo Sabzi', description: 'Crisp lentil-stuffed pooris paired with spicy fenugreek potato curry.', where: 'Deviram Sweets' }
+    ],
+    transport: {
+      from_delhi: [
+        { mode: 'Gatimaan Express / Vande Bharat (Train)', duration: '1 hr 40 mins', cost: '₹750 - ₹1,450', details: 'Fastest train from Hazrat Nizamuddin to Agra Cantt.' },
+        { mode: 'Yamuna Expressway Drive', duration: '3.5 hours', cost: '₹2,500 - ₹3,500 by cab', details: 'Access-controlled 6-lane expressway.' }
+      ]
+    }
   }
 };
 
@@ -326,15 +512,24 @@ function detectIntent(message, context = {}) {
     return 'COMPARISON';
   }
 
+  // If greeting mentions ANY question or inquiry, prioritize that
   if (text.startsWith('hi') || text.startsWith('hello') || text.startsWith('hey') || text === 'how are you' || text === 'help') {
-    // If greeting mentions destination, prioritize general info
-    if (text.includes('mysore') || text.includes('hampi') || text.includes('jaipur') || text.includes('goa') || text.includes('coorg') || text.includes('varanasi') || text.includes('kerala')) {
+    if (
+      text.includes('about') ||
+      text.includes('know') ||
+      text.includes('explain') ||
+      text.includes('trip') ||
+      text.includes('places') ||
+      text.includes('plan') ||
+      text.includes('food') ||
+      text.includes('visit')
+    ) {
       return 'GENERAL_INFO';
     }
     return 'GREETING';
   }
 
-  // General destination inquiry (e.g., "Tell me about Mysore", "What about Coorg?", "Explain about Hampi")
+  // General destination inquiry (e.g., "Tell me about Chikmagalur", "What about Coorg?", "Explain about Hampi")
   if (text.includes('tell me about') || text.includes('what about') || text.includes('what is') || text.includes('explain') || text.includes('guide to') || text.includes('information on')) {
     return 'GENERAL_INFO';
   }
@@ -348,52 +543,107 @@ function detectIntent(message, context = {}) {
 }
 
 /**
- * 2. Entity Extraction
- * Extracts destination, origin, days, budget, people, preferences
+ * 2. Dynamic Entity Extraction
+ * Accurately extracts destination, origin, days, budget, people, preferences
+ * Supports ALL destinations in Karnataka & India without hardcoded fallbacks
  */
 function extractEntities(message, context = {}) {
-  const text = (message || '').toLowerCase();
+  const originalText = (message || '').trim();
+  const text = originalText.toLowerCase();
 
-  // Known destination matching
-  let destination = null;
+  let destinationKey = null;
+  let destinationName = null;
+  let isExplicitlyMentioned = false;
+
+  // 1. Comprehensive dictionary of Indian and Karnataka travel destinations
   const knownDestinations = [
-    { key: 'mysore', names: ['mysore', 'mysuru'] },
-    { key: 'hampi', names: ['hampi', 'vijayanagara'] },
-    { key: 'coorg', names: ['coorg', 'kodagu', 'madikeri'] },
-    { key: 'jaipur', names: ['jaipur', 'pink city'] },
-    { key: 'varanasi', names: ['varanasi', 'kashi', 'banaras'] },
-    { key: 'goa', names: ['goa', 'panaji', 'baga', 'calangute'] },
-    { key: 'munnar', names: ['munnar', 'idukki'] },
-    { key: 'alleppey', names: ['alleppey', 'alappuzha'] },
-    { key: 'bengaluru', names: ['bengaluru', 'bangalore'] },
-    { key: 'udaipur', names: ['udaipur', 'lake city'] },
-    { key: 'jodhpur', names: ['jodhpur', 'blue city'] },
-    { key: 'agra', names: ['agra', 'taj mahal'] },
-    { key: 'manali', names: ['manali', 'kullu'] },
-    { key: 'shimla', names: ['shimla'] },
-    { key: 'gokarna', names: ['gokarna'] },
-    { key: 'ooty', names: ['ooty', 'udagamandalam'] }
+    { key: 'mysore', name: 'Mysore (Mysuru)', names: ['mysore', 'mysuru', 'mysore palace', 'chamundi'] },
+    { key: 'hampi', name: 'Hampi', names: ['hampi', 'vijayanagara', 'virupaksha', 'vittala'] },
+    { key: 'coorg', name: 'Coorg (Kodagu)', names: ['coorg', 'kodagu', 'madikeri', 'abbey falls', 'rajas seat'] },
+    { key: 'chikmagalur', name: 'Chikmagalur', names: ['chikmagalur', 'chikkamagaluru', 'mullayanagiri', 'baba budan', 'hebbe falls'] },
+    { key: 'badami', name: 'Badami', names: ['badami', 'vatapi', 'pattadakal', 'aihole', 'agastya lake', 'cave temples'] },
+    { key: 'gokarna', name: 'Gokarna', names: ['gokarna', 'om beach', 'kudle', 'mahabaleshwar temple'] },
+    { key: 'ooty', name: 'Ooty', names: ['ooty', 'udhagamandalam', 'nilgiris', 'doddabetta'] },
+    { key: 'goa', name: 'Goa', names: ['goa', 'panaji', 'baga', 'calangute', 'anjuna', 'palolem', 'fort aguada', 'dudhsagar'] },
+    { key: 'munnar', name: 'Munnar', names: ['munnar', 'idukki', 'eravikulam', 'mattupetty'] },
+    { key: 'alleppey', name: 'Alleppey (Alappuzha)', names: ['alleppey', 'alappuzha', 'backwaters', 'kettuvallam'] },
+    { key: 'wayanad', name: 'Wayanad', names: ['wayanad', 'chembra', 'banasura', 'edakkal'] },
+    { key: 'dandeli', name: 'Dandeli', names: ['dandeli', 'kali river', 'syntheri'] },
+    { key: 'jogfalls', name: 'Jog Falls', names: ['jog falls', 'gerusoppa'] },
+    { key: 'murudeshwar', name: 'Murudeshwar', names: ['murudeshwar', 'murdeshwar', 'shiva statue'] },
+    { key: 'udupi', name: 'Udupi', names: ['udupi', 'malpe', 'st mary', 'krishna matha'] },
+    { key: 'jaipur', name: 'Jaipur', names: ['jaipur', 'pink city', 'amber fort', 'hawa mahal'] },
+    { key: 'udaipur', name: 'Udaipur', names: ['udaipur', 'lake pichola', 'city palace udaipur'] },
+    { key: 'jodhpur', name: 'Jodhpur', names: ['jodhpur', 'blue city', 'mehrangarh'] },
+    { key: 'varanasi', name: 'Varanasi', names: ['varanasi', 'kashi', 'banaras', 'ganga aarti'] },
+    { key: 'agra', name: 'Agra', names: ['agra', 'taj mahal', 'fatehpur sikri'] },
+    { key: 'delhi', name: 'Delhi', names: ['delhi', 'new delhi', 'qutub minar', 'red fort', 'india gate'] },
+    { key: 'mumbai', name: 'Mumbai', names: ['mumbai', 'bombay', 'marine drive', 'gateway of india'] },
+    { key: 'bengaluru', name: 'Bengaluru', names: ['bengaluru', 'bangalore', 'lalbagh', 'cubbon park'] },
+    { key: 'kerala', name: 'Kerala', names: ['kerala'] },
+    { key: 'manali', name: 'Manali', names: ['manali', 'rohtang', 'solang valley'] },
+    { key: 'shimla', name: 'Shimla', names: ['shimla', 'kufri', 'mall road shimla'] },
+    { key: 'rishikesh', name: 'Rishikesh', names: ['rishikesh', 'laxman jhula', 'triveni ghat'] },
+    { key: 'darjeeling', name: 'Darjeeling', names: ['darjeeling', 'tiger hill', 'ghoom'] },
+    { key: 'ladakh', name: 'Ladakh', names: ['ladakh', 'leh', 'pangong'] },
+    { key: 'kanyakumari', name: 'Kanyakumari', names: ['kanyakumari', 'vivekananda rock'] },
+    { key: 'pondicherry', name: 'Pondicherry', names: ['pondicherry', 'puducherry', 'auroville', 'promenade beach'] },
+    { key: 'shravanabelagola', name: 'Shravanabelagola', names: ['shravanabelagola', 'bahubali', 'gommateshwara'] },
+    { key: 'belur', name: 'Belur', names: ['belur', 'chennakeshava'] },
+    { key: 'halebidu', name: 'Halebidu', names: ['halebidu', 'halebid', 'hoysaleshwara'] },
+    { key: 'kodaikanal', name: 'Kodaikanal', names: ['kodaikanal', 'kodai lake'] },
+    { key: 'madurai', name: 'Madurai', names: ['madurai', 'meenakshi temple'] },
+    { key: 'rameshwaram', name: 'Rameshwaram', names: ['rameshwaram', 'pamban bridge', 'dhanushkodi'] },
+    { key: 'tirupati', name: 'Tirupati', names: ['tirupati', 'balaji temple', 'tirumala'] }
   ];
 
   for (const item of knownDestinations) {
     if (item.names.some(n => text.includes(n))) {
-      destination = item.key;
+      destinationKey = item.key;
+      destinationName = item.name;
+      isExplicitlyMentioned = true;
       break;
     }
   }
 
-  // Inherit active destination from context if none mentioned
-  if (!destination) {
-    if (context.currentPlan && context.currentPlan.destination) {
-      destination = context.currentPlan.destination.toLowerCase().split(' ')[0].replace(/[^a-z]/g, '');
-    } else if (context.activeDestination) {
-      destination = context.activeDestination.toLowerCase().split(' ')[0].replace(/[^a-z]/g, '');
+  // 2. Natural Language Pattern Extraction for Custom / Any Other Place
+  if (!destinationName) {
+    const placePatterns = [
+      /(?:tell me about|what about|explain about|information on|guide to|know about|about)\s+([a-zA-Z\s]{3,30})/i,
+      /(?:plan (?:a )?(?:\d+[- ]day )?(?:trip|tour|vacation|visit|itinerary) to)\s+([a-zA-Z\s]{3,30})/i,
+      /(?:places to visit in|best places in|attractions in|things to do in|sightseeing in|top spots in)\s+([a-zA-Z\s]{3,30})/i,
+      /(?:how to reach|how can i reach|directions to|route to|distance to)\s+([a-zA-Z\s]{3,30})/i,
+      /(?:food in|famous food in|what to eat in|restaurants in|cuisine of)\s+([a-zA-Z\s]{3,30})/i,
+      /(?:why is|history of|culture of)\s+([a-zA-Z\s]{3,30})/i
+    ];
+
+    for (const pattern of placePatterns) {
+      const match = originalText.match(pattern);
+      if (match && match[1]) {
+        let extracted = match[1].trim()
+          .replace(/[?!.,;:]+$/, '')
+          .replace(/\b(?:please|can you|explain|for|within|under|inr|rupees|budget|with)\b.*$/i, '')
+          .trim();
+
+        if (extracted.length >= 3 && !['you', 'this', 'that', 'there', 'it', 'here', 'more', 'trip', 'place', 'places', 'the trip'].includes(extracted.toLowerCase())) {
+          destinationName = extracted.replace(/\b\w/g, c => c.toUpperCase());
+          destinationKey = extracted.toLowerCase().replace(/[^a-z0-9]/g, '');
+          isExplicitlyMentioned = true;
+          break;
+        }
+      }
     }
   }
 
-  // Fallback default
-  if (!destination) {
-    destination = 'mysore';
+  // 3. Inherit active destination from context ONLY if none explicitly mentioned
+  if (!destinationName) {
+    if (context.currentPlan && context.currentPlan.destination) {
+      destinationName = context.currentPlan.destination;
+      destinationKey = destinationName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    } else if (context.activeDestination) {
+      destinationName = context.activeDestination;
+      destinationKey = destinationName.toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
   }
 
   // Extract Origin
@@ -416,7 +666,7 @@ function extractEntities(message, context = {}) {
     days = 7;
   }
 
-  // Extract Budget (handles within ₹6,000, under Rs 5000, 6000 rupees, etc.)
+  // Extract Budget
   let budget = context.budget || null;
   const matchCurrency = text.match(/(?:₹|rs\.?|inr)\s*([\d,]+)/i) ||
                         text.match(/(?:within|under|budget|around|budget of|cost of)\s*(?:₹|rs\.?|inr)?\s*([\d,]{3,})/i) ||
@@ -469,7 +719,9 @@ function extractEntities(message, context = {}) {
   }
 
   return {
-    destinationKey: destination,
+    destinationKey,
+    destinationName,
+    isExplicitlyMentioned,
     origin,
     days,
     budget,
@@ -597,68 +849,81 @@ Here is a curated guide to the most rewarding places to visit in **${destData.na
 ${sightsFormatted}
 
 ---
-💡 **Pro Traveler Tip:** Visit **${destData.attractions[0]?.name}** in the late afternoon so you can experience both the palace interior and the spectacular illuminated facade at twilight.`;
+💡 **Pro Traveler Tip:** Visit **${destData.attractions?.[0]?.name || destData.name}** in the morning to enjoy unhurried sightseeing before peak visiting hours.`;
 }
 
 // C. History and Culture
 function handleHistoryCulture(destData, specificSubject = '') {
-  return `### 👑 Royal Heritage & History of ${destData.name}
+  let cultureSection = '';
+  if (destData.cultural_symbols && destData.cultural_symbols.length > 0) {
+    cultureSection = destData.cultural_symbols.map(s => `• **${s.title}:** ${s.description}`).join('\n');
+  } else if (destData.db_culture) {
+    cultureSection = destData.db_culture;
+  } else {
+    cultureSection = `• **Living Traditions:** Known for vibrant local celebrations, folk arts, temple festivals, and deep-rooted heritage.
+• **Art & Architecture:** Rich regional craftsmanship reflected in traditional stone monuments, sculptures, and historic streets.`;
+  }
 
-${destData.history}
+  return `### 👑 Heritage, Culture & History of ${destData.name}
+
+${destData.history || destData.db_history || destData.overview}
 
 ---
 
-#### 🏰 The Story of Mysore Palace:
-${destData.palace_history || destData.history}
-
----
-
-#### 🎨 Living Arts, Crafts & Cultural Symbols:
-• **Mysore Silk:** Celebrated for pure mulberry silk interwoven with genuine gold zari thread, manufactured at the century-old Government Silk Weaving Factory.  
-• **Mysore Sandalwood & Agarbatti:** Famed as the "Sandalwood City", known for pure sandalwood soaps, oils, and aromatic hand-rolled incense.  
-• **Mysore Dasara (Nadahabba):** A 10-day state festival celebrating Goddess Chamundeshwari's victory over Mahishasura. The grand procession (Jumboo Savari) features 750 kg golden howdah carried by majestic decorated royal elephants.  
-• **Ganjifa Art & Rosewood Inlay:** Traditional intricate playing cards and marquetry furniture crafted by generational artisan families.`;
+#### 🎨 Living Arts, Crafts & Cultural Heritage:
+${cultureSection}`;
 }
 
 // D. Local Food and Dining
 function handleFood(destData) {
-  const foodItems = destData.food.map((f, i) => `
+  const foodItems = (destData.food || []).map((f, i) => `
 ### ${i + 1}. ${f.name}
 ${f.description}  
-📍 **Where to Taste It:** *${f.where}*
+📍 **Where to Taste It:** *${f.where || `Popular traditional eateries across ${destData.name}`}*
 `).join('\n');
+
+  const topEatery = destData.food?.[0]?.where || `local eateries in ${destData.name}`;
 
   return `### 🍽️ Famous Culinary Delights of ${destData.name}
 
-${destData.name} is a paradise for food lovers! Here are the legendary dishes you absolutely cannot miss:
+${destData.name} is a paradise for food lovers! Here are the legendary specialties you must experience:
 
-${foodItems}
+${foodItems || `• **Traditional Regional Thali:** A delicious spread of local curries, rice/breads, and authentic sweet specialties.`}
 
 ---
-💡 **Local Tip:** At **Hotel Vinayaka Mylari**, arrive by 8:00 AM or 4:30 PM to get seated without a wait. The dosas are made fresh to order on cast-iron griddles with pure fresh butter.`;
+💡 **Local Tip:** Visit **${topEatery}** during morning or early evening hours to enjoy specialties freshly prepared on traditional setups.`;
 }
 
 // E. Transportation and Routes
 function handleTransport(destData, origin = 'Bengaluru') {
-  const transRoutes = destData.transport?.from_bengaluru?.map((t, idx) => `
+  let transRoutes = '';
+  if (destData.transport?.from_bengaluru && destData.transport.from_bengaluru.length > 0) {
+    transRoutes = destData.transport.from_bengaluru.map((t, idx) => `
 #### ${idx + 1}. ${t.mode}
 * **Travel Time:** ${t.duration}
 * **Approximate Cost:** ${t.cost}
 * **Details:** ${t.details}
-`).join('\n') || 'Frequent trains, state buses, and expressway cabs connect directly.';
+`).join('\n');
+  } else {
+    transRoutes = `
+• **By Train:** Regular express trains connect major railway junctions to ${destData.name}.
+• **By Road / Bus:** Direct AC and non-AC state transport buses (KSRTC / private) operate daily and overnight.
+• **By Air / Cab:** Nearest major airport and well-maintained highway networks offer seamless connectivity.
+`;
+  }
 
   return `### 🚆 How to Reach ${destData.name} from ${origin}
 
-Traveling from **${origin}** to **${destData.name}** is fast, scenic, and convenient:
+Traveling from **${origin}** to **${destData.name}**:
 
 ${transRoutes}
 
 ---
 
 #### 🛺 Getting Around within ${destData.name}:
-${destData.transport?.local || 'Auto rickshaws, app cabs, and state city buses provide easy connectivity between monuments.'}
+${destData.transport?.local || `Local auto rickshaws, cabs, and state city buses provide easy connectivity between attractions in ${destData.name}.`}
 
-💡 **Recommendation:** For comfort and speed, take the morning **Vande Bharat Express** or an early drive on the **Expressway (NH-275)** to avoid weekend city traffic.`;
+💡 **Recommendation:** Start early in the morning to beat the highway traffic and make the most of your travel day!`;
 }
 
 // F. Weather & Best Time
@@ -933,31 +1198,35 @@ async function callLLMAssistant({ message, conversationHistory = [], context = {
 
 USER'S CURRENT REQUEST: "${message}"
 
-CURRENT TRIP CONTEXT:
-- Active Destination: ${destinationName}
-- Origin: ${originCity}
-- Stated Days: ${tripDays}
-- Stated Group: ${groupCount} travelers (${groupType})
-- Stated Budget: ${userBudget ? '₹' + userBudget : 'Flexible'}
-- Has active plan in view: ${context.currentPlan ? 'Yes' : 'No'}
+TARGET DESTINATION FOR THIS REQUEST: "${destinationName}"
+ORIGIN: "${originCity}"
+DURATION: ${tripDays} Days
+GROUP: ${groupCount} travelers (${groupType})
+BUDGET: ${userBudget ? '₹' + userBudget : 'Flexible'}
 
 RECENT CONVERSATION HISTORY:
 ${formattedHistory || 'None (new conversation)'}
 
 CRITICAL ARCHITECTURE RULES (YOU MUST STRICTLY FOLLOW):
 
-RULE 1: STRICT INTENT SEPARATION (NEVER FORCE AN ITINERARY FOR GENERAL QUESTIONS)
-- If the user asks a GENERAL QUESTION, inquiry, greeting, overview, history, culture, sights to see, local food specialties, famous restaurants, transportation options/expressway/trains/buses, weather, best time to visit, hotel areas, or asks "Tell me about Mysore", "How are you? I want to know about Mysore. Can you explain?":
-  -> YOU MUST ONLY ANSWER THEIR QUESTION DIRECTLY AND CONVERSATIONALLY!
+RULE 1: STRICT DESTINATION ACCURACY (NO DEFAULTING OR SUBSTITUTION)
+- The user is asking about or exploring: "${destinationName}".
+- YOU MUST ANSWER STRICTLY AND AUTHENTICALLY ABOUT "${destinationName}"!
+- DO NOT answer about Mysore, Hampi, or any other city unless the user explicitly requested it!
+- Every single attraction, monument, restaurant, local food specialty, and transport advice MUST belong strictly to "${destinationName}".
+
+RULE 2: STRICT INTENT SEPARATION (NEVER FORCE AN ITINERARY FOR GENERAL QUESTIONS)
+- If the user asks a GENERAL QUESTION, inquiry, greeting, overview, history, culture, sights to see, local food specialties, famous restaurants, transportation options, weather, best time to visit, hotel areas, or asks "Tell me about ${destinationName}", "How are you? I want to know about ${destinationName}. Can you explain?":
+  -> YOU MUST ONLY ANSWER THEIR QUESTION DIRECTLY AND CONVERSATIONALLY ABOUT ${destinationName}!
   -> DO NOT generate an itinerary or day-by-day plan!
   -> Set "intent": "GENERAL_INFO" (or appropriate question category) and set "plan": null.
   -> Write your response in rich, elegant GitHub-style Markdown with clear headings (###), bullet points (•), and practical local tips.
-  -> At the very end of your response, provide 3 to 4 helpful suggested follow-up prompts in the "suggested_prompts" array (e.g. "Plan a 2-day trip to Mysore", "What food is Mysore famous for?").
+  -> At the very end of your response, provide 3 to 4 helpful suggested follow-up prompts specifically for ${destinationName} in the "suggested_prompts" array (e.g. "Plan a 2-day trip to ${destinationName}", "What food is famous in ${destinationName}?").
 
-RULE 2: CUSTOM TRIP & BUDGET PLANNING (ONLY WHEN EXPLICITLY REQUESTED)
-- ONLY if the user explicitly asks to PLAN a trip (e.g., "Plan a 2-day trip to Mysore", "Create an itinerary", "Plan a weekend budget trip within ₹6,000", "Suggest a 3-day holiday", "Make this trip cheaper"):
+RULE 3: CUSTOM TRIP & BUDGET PLANNING (ONLY WHEN EXPLICITLY REQUESTED)
+- ONLY if the user explicitly asks to PLAN a trip (e.g., "Plan a 2-day trip to ${destinationName}", "Create an itinerary", "Plan a weekend budget trip to ${destinationName} within ₹6,000", "Suggest a 3-day holiday in ${destinationName}", "Make this trip cheaper"):
   -> Set "intent": "PLAN_ITINERARY" (or "MODIFY_PLAN").
-  -> You MUST generate a realistic, complete plan object in "plan":
+  -> You MUST generate a realistic, complete plan object in "plan" strictly for "${destinationName}":
      {
        "destination": "${destinationName}",
        "origin": "${originCity}",
@@ -983,24 +1252,24 @@ RULE 2: CUSTOM TRIP & BUDGET PLANNING (ONLY WHEN EXPLICITLY REQUESTED)
        "schedule": [
          {
            "day": 1,
-           "theme": "Arrival & Royal Heritage",
+           "theme": "Arrival & City Highlights",
            "morning": "Morning arrival and visit to the primary monument",
            "afternoon": "Lunch and cultural museum visit",
            "evening": "Sunset viewpoint and local market walk",
-           "attractions": ["Main Monument", "Evening Bazaar"],
+           "attractions": ["Main Monument in ${destinationName}", "Evening Bazaar"],
            "travel_time": "15-20 mins between stops",
            "suggested_transport": "Auto Rickshaw / Walking",
-           "food_recommendations": { "specialty": "Famous local specialty dishes" }
+           "food_recommendations": { "specialty": "Famous local specialty dishes of ${destinationName}" }
          }
        ],
        "travel_tips": [
-         "Book palace and monument tickets in advance online to skip lines",
+         "Book primary monument tickets in advance online to skip lines",
          "Try local eateries during off-peak hours for authentic taste"
        ]
      }
-  -> In "response_text", provide an exciting markdown overview, an itemized markdown budget table with columns | Expense Category | Estimated Cost (₹) | Notes |, and day-by-day schedule with emojis!
+  -> In "response_text", provide an exciting markdown overview strictly for ${destinationName}, an itemized markdown budget table with columns | Expense Category | Estimated Cost (₹) | Notes |, and day-by-day schedule with emojis!
 
-RULE 3: STRICT JSON OUTPUT
+RULE 4: STRICT JSON OUTPUT
 You MUST return ONLY a valid JSON object matching this schema with NO markdown wrapping around the JSON:
 {
   "intent": "GENERAL_INFO" | "PLAN_ITINERARY" | "ATTRACTIONS" | "FOOD_DINING" | "TRANSPORT_DIRECTIONS" | "HISTORY_CULTURE" | "WEATHER_BEST_TIME",
@@ -1116,25 +1385,103 @@ async function processChatMessage({ message, conversationHistory = [], context =
     const intent = detectIntent(message, context);
     const entities = extractEntities(message, context);
 
-    // Look up destination knowledge
-    let destData = DESTINATION_KNOWLEDGE[entities.destinationKey] || DESTINATION_KNOWLEDGE['mysore'];
+    // Target destination
+    const targetName = entities.destinationName || context.activeDestination || 'India';
+    const targetKey = entities.destinationKey || targetName.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-    // Try fetching database record for destination to ensure database sync
+    // 1. Check static curated knowledge base
+    let destData = DESTINATION_KNOWLEDGE[targetKey];
+
+    // 2. Query MySQL database dynamically for ANY matching place!
     try {
       const [places] = await pool.query(
-        `SELECT p.*, s.name as state_name FROM tourist_places p LEFT JOIN states s ON p.state_id = s.id WHERE p.name LIKE ? LIMIT 1`,
-        [`%${destData.name.split(' ')[0]}%`]
+        `SELECT p.*, s.name as state_name 
+         FROM tourist_places p 
+         LEFT JOIN states s ON p.state_id = s.id 
+         WHERE p.name LIKE ? OR p.location LIKE ? 
+         LIMIT 1`,
+        [`%${targetName}%`, `%${targetName}%`]
       );
-      if (places.length > 0 && places[0].history) {
-        destData = {
-          ...destData,
-          db_description: places[0].description,
-          db_history: places[0].history,
-          db_culture: places[0].culture_info
+
+      if (places.length > 0) {
+        const place = places[0];
+        const parseArr = (v) => {
+          if (!v) return [];
+          if (Array.isArray(v)) return v;
+          if (typeof v === 'object') return [v];
+          try { const p = JSON.parse(v); return Array.isArray(p) ? p : [p]; } catch (e) { return [v]; }
         };
+        const attractionsList = parseArr(place.major_attractions);
+        const foodList = parseArr(place.local_food);
+        const transportList = parseArr(place.local_transport);
+
+        if (destData) {
+          destData = {
+            ...destData,
+            db_description: place.description || destData.overview,
+            db_history: place.history || destData.history,
+            db_culture: place.culture_info || destData.culture
+          };
+        } else {
+          destData = {
+            name: place.name,
+            state: place.state_name || 'India',
+            nickname: place.category || `${place.name} Exploration`,
+            overview: place.description || `${place.name} is a renowned destination in ${place.state_name || 'India'}.`,
+            history: place.history || `${place.name} holds rich cultural and historical significance.`,
+            cultural_symbols: place.culture_info ? [{ title: 'Cultural Heritage', description: place.culture_info }] : null,
+            best_time: place.best_time_to_visit || place.best_time || 'October to March (Winter)',
+            ideal_duration: `${place.ideal_duration_days || 2} to 3 Days`,
+            attractions: attractionsList.length > 0 ? attractionsList.map(a => typeof a === 'object' ? a : { name: a, category: 'Attraction', timings: '9:00 AM - 6:00 PM', entry_fee: 'Standard entry', est_time: '2 hours', highlight: `Iconic attraction in ${place.name}` }) : [
+              { name: `${place.name} Landmark`, category: 'Heritage', timings: '9:00 AM - 5:30 PM', entry_fee: 'Standard', est_time: '2 hours', highlight: `Historic centerpiece of ${place.name}` }
+            ],
+            food: foodList.length > 0 ? foodList.map(f => typeof f === 'object' ? f : { name: f, description: `Authentic regional specialty of ${place.name}`, where: `Local eateries in ${place.name}` }) : [
+              { name: `Traditional ${place.name} Thali`, description: 'Signature local cuisine with authentic flavors', where: `Traditional restaurants in ${place.name}` }
+            ],
+            transport: {
+              from_bengaluru: [
+                { mode: 'Direct Train / Bus', duration: 'Varies', cost: '₹300 - ₹900', details: `Regular trains and KSRTC coaches connect to ${place.name}.` },
+                { mode: 'Private Cab / Self Drive', duration: 'Flexible', cost: '₹3,000 - ₹5,000', details: `Accessible via major national and state highways.` }
+              ],
+              local: transportList.length > 0 ? transportList.join(', ') : 'Local auto rickshaws, cabs, and state city buses.'
+            },
+            safety_tips: `Very tourist-friendly. Check opening hours and weather forecast before embarking.`
+          };
+        }
       }
     } catch (dbErr) {
-      // Continue with knowledge base
+      console.warn('DB destination lookup warning:', dbErr.message);
+    }
+
+    // 3. Dynamic destination fallback for unlisted custom places (e.g. Darjeeling, Paris, etc.)
+    // NEVER DEFAULT TO MYSORE!
+    if (!destData) {
+      destData = {
+        name: targetName,
+        state: 'India',
+        nickname: `${targetName} Travel Experience`,
+        overview: `${targetName} is an attractive travel destination celebrated for its unique sights, cultural experiences, and scenic charm.`,
+        history: `${targetName} has an interesting historical past and rich regional traditions passed down through generations.`,
+        best_time: 'October to March offers pleasant weather ideal for outdoor sightseeing and travel.',
+        ideal_duration: '2 to 3 Days',
+        attractions: [
+          { name: `${targetName} Heritage Center`, category: 'Landmark', timings: '9:00 AM - 6:00 PM', entry_fee: 'Standard entry', est_time: '2 hours', highlight: `The iconic cultural and historical landmark of ${targetName}.` },
+          { name: `${targetName} Scenic Viewpoint`, category: 'Nature & Views', timings: '6:00 AM - 6:30 PM', entry_fee: 'Free', est_time: '1.5 hours', highlight: `Breathtaking panoramic viewpoint offering sweeping landscapes of ${targetName}.` },
+          { name: `Historic Bazaars of ${targetName}`, category: 'Local Culture', timings: '10:00 AM - 8:30 PM', entry_fee: 'Free', est_time: '2 hours', highlight: `Vibrant traditional markets with local handicrafts, regional produce, and souvenirs.` }
+        ],
+        food: [
+          { name: `Authentic ${targetName} Regional Thali`, description: 'Delicious local delicacies and signature regional preparations.', where: `Popular traditional dining spots in ${targetName}` },
+          { name: 'Signature Local Snacks & Street Food', description: 'Freshly prepared popular street snacks and regional drinks.', where: `Bazaars and heritage food stalls in ${targetName}` }
+        ],
+        transport: {
+          from_bengaluru: [
+            { mode: 'Direct Express Train / Bus', duration: 'Standard travel time', cost: '₹300 - ₹1,200', details: `Regular train and bus connectivity from major transport hubs to ${targetName}.` },
+            { mode: 'Private Cab / Self-Drive', duration: 'Flexible', cost: '₹3,000 - ₹6,000', details: `Connected via well-maintained national and state highways.` }
+          ],
+          local: `Auto rickshaws, app cabs, and local buses connect all major attractions across ${targetName}.`
+        },
+        safety_tips: `Enjoy exploring ${targetName}! Keep essentials handy and consult local guides for the best viewpoints.`
+      };
     }
 
     // 1. If an external LLM API key is configured (Gemini or OpenAI/Groq), try calling LLM
