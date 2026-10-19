@@ -72,6 +72,7 @@ CREATE TABLE IF NOT EXISTS tourist_places (
   rating DECIMAL(3,2) DEFAULT 4.50,
   reviews_count INT DEFAULT 0,
   best_time VARCHAR(150) NULL,
+  best_time_to_visit VARCHAR(150) NULL,
   entry_fee DECIMAL(10,2) DEFAULT 0.00,
   estimated_cost_per_day DECIMAL(10,2) DEFAULT 2500.00,
   recommended_duration_days INT DEFAULT 3,

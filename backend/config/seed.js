@@ -350,6 +350,20 @@ async function seed() {
       }
     ];
 
+    // Ensure both best_time and best_time_to_visit columns exist
+    try {
+      const [col1] = await pool.query(`SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tourist_places' AND COLUMN_NAME = 'best_time_to_visit'`);
+      if (col1.length === 0) {
+        await pool.query('ALTER TABLE tourist_places ADD COLUMN best_time_to_visit VARCHAR(150) NULL');
+      }
+      const [col2] = await pool.query(`SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'tourist_places' AND COLUMN_NAME = 'best_time'`);
+      if (col2.length === 0) {
+        await pool.query('ALTER TABLE tourist_places ADD COLUMN best_time VARCHAR(150) NULL');
+      }
+    } catch (e) {
+      // Column check safety catch
+    }
+
     const placeMap = {};
     for (const p of placesData) {
       const stateId = stateMap[p.state_code];
@@ -357,14 +371,14 @@ async function seed() {
       if (existing.length > 0) {
         placeMap[p.name] = existing[0].id;
         await pool.query(
-          `UPDATE tourist_places SET description=?, history=?, culture_info=?, major_attractions=?, activities=?, local_food=?, local_transport=?, estimated_cost_per_day=?, recommended_duration_days=? WHERE id=?`,
-          [p.description, p.history, p.culture_info, p.major_attractions, p.activities, p.local_food, p.local_transport, p.estimated_cost_per_day, p.recommended_duration_days, existing[0].id]
+          `UPDATE tourist_places SET description=?, history=?, culture_info=?, major_attractions=?, activities=?, local_food=?, local_transport=?, estimated_cost_per_day=?, recommended_duration_days=?, best_time=?, best_time_to_visit=? WHERE id=?`,
+          [p.description, p.history, p.culture_info, p.major_attractions, p.activities, p.local_food, p.local_transport, p.estimated_cost_per_day, p.recommended_duration_days, p.best_time_to_visit, p.best_time_to_visit, existing[0].id]
         );
       } else {
         const [res] = await pool.query(
-          `INSERT INTO tourist_places (state_id, name, location, category, image_url, gallery_urls, description, history, culture_info, best_time_to_visit, major_attractions, activities, local_food, local_transport, estimated_cost_per_day, recommended_duration_days, rating, reviews_count, latitude, longitude)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [stateId, p.name, p.location, p.category, p.image_url, p.gallery_urls, p.description, p.history, p.culture_info, p.best_time_to_visit, p.major_attractions, p.activities, p.local_food, p.local_transport, p.estimated_cost_per_day, p.recommended_duration_days, p.rating, p.reviews_count, p.latitude, p.longitude]
+          `INSERT INTO tourist_places (state_id, name, location, category, image_url, gallery_urls, description, history, culture_info, best_time, best_time_to_visit, major_attractions, activities, local_food, local_transport, estimated_cost_per_day, recommended_duration_days, rating, reviews_count, latitude, longitude)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [stateId, p.name, p.location, p.category, p.image_url, p.gallery_urls, p.description, p.history, p.culture_info, p.best_time_to_visit, p.best_time_to_visit, p.major_attractions, p.activities, p.local_food, p.local_transport, p.estimated_cost_per_day, p.recommended_duration_days, p.rating, p.reviews_count, p.latitude, p.longitude]
         );
         placeMap[p.name] = res.insertId;
       }

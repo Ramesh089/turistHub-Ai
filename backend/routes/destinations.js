@@ -63,6 +63,8 @@ router.get('/', async (req, res) => {
 
     const formatted = places.map(p => ({
       ...p,
+      best_time: p.best_time || p.best_time_to_visit || '',
+      best_time_to_visit: p.best_time_to_visit || p.best_time || '',
       gallery_urls: safeJsonParse(p.gallery_urls),
       major_attractions: safeJsonParse(p.major_attractions),
       activities: safeJsonParse(p.activities),
@@ -98,6 +100,8 @@ router.get('/:id', async (req, res) => {
     }
 
     const place = places[0];
+    place.best_time = place.best_time || place.best_time_to_visit || '';
+    place.best_time_to_visit = place.best_time_to_visit || place.best_time || '';
     place.gallery_urls = safeJsonParse(place.gallery_urls);
     place.major_attractions = safeJsonParse(place.major_attractions);
     place.activities = safeJsonParse(place.activities);

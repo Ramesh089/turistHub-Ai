@@ -145,6 +145,8 @@ async function initDatabase() {
     await addColumnIfNotExists(connection, 'tourist_places', 'estimated_cost_per_day', 'DECIMAL(10,2) DEFAULT 2500.00');
     await addColumnIfNotExists(connection, 'tourist_places', 'recommended_duration_days', 'INT DEFAULT 3');
     await addColumnIfNotExists(connection, 'tourist_places', 'reviews_count', 'INT DEFAULT 0');
+    await addColumnIfNotExists(connection, 'tourist_places', 'best_time', 'VARCHAR(150) NULL');
+    await addColumnIfNotExists(connection, 'tourist_places', 'best_time_to_visit', 'VARCHAR(150) NULL');
 
     // Table: hotels
     await addColumnIfNotExists(connection, 'hotels', 'location', 'VARCHAR(255) NULL');
