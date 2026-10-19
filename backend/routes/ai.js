@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../config/db');
 const { authenticateToken, optionalAuth } = require('../middleware/auth');
+const travelAIService = require('../services/travelAIService');
 
 const router = express.Router();
 
@@ -9,6 +10,43 @@ function safeJson(val) {
   if (typeof val === 'object') return val;
   try { return JSON.parse(val); } catch (e) { return [val]; }
 }
+
+// POST /api/ai/chat - Intelligent Conversational Travel Assistant
+router.post('/chat', optionalAuth, async (req, res) => {
+  try {
+    const { message, conversation_history = [], context = {} } = req.body;
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({ success: false, message: 'Message is required.' });
+    }
+
+    const result = await travelAIService.processChatMessage({
+      message: message.trim(),
+      conversationHistory: conversation_history,
+      context
+    });
+
+    return res.json(result);
+  } catch (error) {
+    console.error('AI Chat Route Error:', error);
+    return res.status(500).json({ success: false, message: 'Error processing travel chat.' });
+  }
+});
+
+// Alias /api/ai/assistant -> /api/ai/chat
+router.post('/assistant', optionalAuth, async (req, res) => {
+  try {
+    const { message, conversation_history = [], context = {} } = req.body;
+    const result = await travelAIService.processChatMessage({
+      message: (message || '').trim(),
+      conversationHistory: conversation_history,
+      context
+    });
+    return res.json(result);
+  } catch (error) {
+    console.error('AI Assistant Route Error:', error);
+    return res.status(500).json({ success: false, message: 'Error processing travel chat.' });
+  }
+});
 
 // POST /api/ai/plan and /api/ai/plan-itinerary - AI Travel Planner
 // Both routes point to the same handler so either URL works
