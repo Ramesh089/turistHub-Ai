@@ -48,6 +48,25 @@ router.post('/assistant', optionalAuth, async (req, res) => {
   }
 });
 
+// GET /api/ai/status - Returns active AI provider info
+router.get('/status', (req, res) => {
+  const hasGemini = !!process.env.GEMINI_API_KEY;
+  const hasOpenAI = !!process.env.OPENAI_API_KEY;
+  const hasGroq = !!process.env.GROQ_API_KEY;
+
+  let provider = 'Built-in Knowledge & Itinerary Engine';
+  if (hasGemini) provider = 'Google Gemini 1.5 Flash';
+  else if (hasOpenAI) provider = 'OpenAI GPT-4o-mini';
+  else if (hasGroq) provider = 'Groq Llama 3';
+
+  return res.json({
+    success: true,
+    has_api_key: hasGemini || hasOpenAI || hasGroq,
+    active_provider: provider,
+    recommended_api: 'Google Gemini (Free forever via Google AI Studio at https://aistudio.google.com/app/apikey)'
+  });
+});
+
 // POST /api/ai/plan and /api/ai/plan-itinerary - AI Travel Planner
 // Both routes point to the same handler so either URL works
 async function handlePlanItinerary(req, res) {

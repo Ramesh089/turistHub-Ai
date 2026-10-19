@@ -162,6 +162,18 @@ export default function AIPlanner() {
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
   const [bookingModalPkg, setBookingModalPkg] = useState(null);
+  const [aiProvider, setAiProvider] = useState('Smart Travel Engine');
+
+  // Query backend for active AI provider info on mount
+  useEffect(() => {
+    api.get('/ai/status')
+      .then((res) => {
+        if (res.data?.active_provider) {
+          setAiProvider(res.data.active_provider);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   // Multi-turn context memory
   const [travelContext, setTravelContext] = useState({
@@ -407,9 +419,27 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                   <Bot size={20} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#0f172a', margin: 0 }}>
-                    AI Travel Companion
-                  </h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: '#0f172a', margin: 0 }}>
+                      AI Travel Companion
+                    </h3>
+                    <span
+                      style={{
+                        fontSize: '0.68rem',
+                        background: '#e0f2fe',
+                        color: '#0369a1',
+                        border: '1px solid #bae6fd',
+                        padding: '1px 7px',
+                        borderRadius: '12px',
+                        fontWeight: '700',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                      }}
+                    >
+                      ✨ {aiProvider}
+                    </span>
+                  </div>
                   <span style={{ fontSize: '0.74rem', color: '#64748b' }}>
                     Active Topic: <strong style={{ color: '#0284c7' }}>{travelContext.activeDestination}</strong>
                   </span>

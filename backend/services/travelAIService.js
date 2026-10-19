@@ -907,6 +907,188 @@ ${daysMarkdown}
 }
 
 /**
+ * Call External LLM API (Google Gemini or OpenAI/Groq) for dynamic AI travel intelligence
+ */
+async function callLLMAssistant({ message, conversationHistory = [], context = {}, entities, destData }) {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  const openaiKey = process.env.OPENAI_API_KEY;
+  const groqKey = process.env.GROQ_API_KEY;
+
+  if (!geminiKey && !openaiKey && !groqKey) {
+    return null; // Zero-cost built-in engine fallback
+  }
+
+  const formattedHistory = conversationHistory.slice(-6).map(m => {
+    return `${m.role === 'assistant' ? 'Assistant' : 'User'}: ${m.content || m.text}`;
+  }).join('\n');
+
+  const destinationName = entities.destinationName || context.activeDestination || destData.name;
+  const originCity = entities.origin || context.origin || 'Bengaluru';
+  const tripDays = entities.days || context.days || 2;
+  const groupCount = entities.people || context.people || 2;
+  const groupType = entities.travellerType || context.travellerType || 'Couple';
+  const userBudget = entities.budget || context.budget || null;
+
+  const systemInstruction = `You are Tourist Hub AI, the world-class intelligent conversational travel guide & custom itinerary planner for India tourism.
+
+USER'S CURRENT REQUEST: "${message}"
+
+CURRENT TRIP CONTEXT:
+- Active Destination: ${destinationName}
+- Origin: ${originCity}
+- Stated Days: ${tripDays}
+- Stated Group: ${groupCount} travelers (${groupType})
+- Stated Budget: ${userBudget ? '₹' + userBudget : 'Flexible'}
+- Has active plan in view: ${context.currentPlan ? 'Yes' : 'No'}
+
+RECENT CONVERSATION HISTORY:
+${formattedHistory || 'None (new conversation)'}
+
+CRITICAL ARCHITECTURE RULES (YOU MUST STRICTLY FOLLOW):
+
+RULE 1: STRICT INTENT SEPARATION (NEVER FORCE AN ITINERARY FOR GENERAL QUESTIONS)
+- If the user asks a GENERAL QUESTION, inquiry, greeting, overview, history, culture, sights to see, local food specialties, famous restaurants, transportation options/expressway/trains/buses, weather, best time to visit, hotel areas, or asks "Tell me about Mysore", "How are you? I want to know about Mysore. Can you explain?":
+  -> YOU MUST ONLY ANSWER THEIR QUESTION DIRECTLY AND CONVERSATIONALLY!
+  -> DO NOT generate an itinerary or day-by-day plan!
+  -> Set "intent": "GENERAL_INFO" (or appropriate question category) and set "plan": null.
+  -> Write your response in rich, elegant GitHub-style Markdown with clear headings (###), bullet points (•), and practical local tips.
+  -> At the very end of your response, provide 3 to 4 helpful suggested follow-up prompts in the "suggested_prompts" array (e.g. "Plan a 2-day trip to Mysore", "What food is Mysore famous for?").
+
+RULE 2: CUSTOM TRIP & BUDGET PLANNING (ONLY WHEN EXPLICITLY REQUESTED)
+- ONLY if the user explicitly asks to PLAN a trip (e.g., "Plan a 2-day trip to Mysore", "Create an itinerary", "Plan a weekend budget trip within ₹6,000", "Suggest a 3-day holiday", "Make this trip cheaper"):
+  -> Set "intent": "PLAN_ITINERARY" (or "MODIFY_PLAN").
+  -> You MUST generate a realistic, complete plan object in "plan":
+     {
+       "destination": "${destinationName}",
+       "origin": "${originCity}",
+       "days": ${tripDays},
+       "nights": ${Math.max(1, tripDays - 1)},
+       "people": ${groupCount},
+       "traveller_type": "${groupType}",
+       "food_preference": "${entities.foodPreference || 'Vegetarian'}",
+       "transport": "${entities.transport || 'Express Train'}",
+       "estimated_cost": 7500,
+       "per_person_cost": 3750,
+       "user_budget": ${userBudget || 'null'},
+       "budget_status": "SURPLUS",
+       "budget_explanation": "Trip fits comfortably within the budget with optimal transport and stay choices.",
+       "cost_breakdown": {
+         "transportation": 1500,
+         "accommodation": 2800,
+         "food_dining": 1600,
+         "local_transit": 800,
+         "sightseeing_activities": 500,
+         "miscellaneous": 300
+       },
+       "schedule": [
+         {
+           "day": 1,
+           "theme": "Arrival & Royal Heritage",
+           "morning": "Morning arrival and visit to the primary monument",
+           "afternoon": "Lunch and cultural museum visit",
+           "evening": "Sunset viewpoint and local market walk",
+           "attractions": ["Main Monument", "Evening Bazaar"],
+           "travel_time": "15-20 mins between stops",
+           "suggested_transport": "Auto Rickshaw / Walking",
+           "food_recommendations": { "specialty": "Famous local specialty dishes" }
+         }
+       ],
+       "travel_tips": [
+         "Book palace and monument tickets in advance online to skip lines",
+         "Try local eateries during off-peak hours for authentic taste"
+       ]
+     }
+  -> In "response_text", provide an exciting markdown overview, an itemized markdown budget table with columns | Expense Category | Estimated Cost (₹) | Notes |, and day-by-day schedule with emojis!
+
+RULE 3: STRICT JSON OUTPUT
+You MUST return ONLY a valid JSON object matching this schema with NO markdown wrapping around the JSON:
+{
+  "intent": "GENERAL_INFO" | "PLAN_ITINERARY" | "ATTRACTIONS" | "FOOD_DINING" | "TRANSPORT_DIRECTIONS" | "HISTORY_CULTURE" | "WEATHER_BEST_TIME",
+  "destination": "${destinationName}",
+  "response_text": "<Full markdown response>",
+  "suggested_prompts": ["<Prompt 1>", "<Prompt 2>", "<Prompt 3>"],
+  "plan": null OR <Plan Object>
+}`;
+
+  try {
+    let rawOutput = null;
+
+    if (geminiKey) {
+      // Call Google Gemini API (gemini-1.5-flash)
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+      const payload = {
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: systemInstruction }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          responseMimeType: 'application/json'
+        }
+      };
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      } else {
+        console.warn('Gemini API call returned status:', res.status, await res.text());
+      }
+    } else if (openaiKey || groqKey) {
+      // Call OpenAI or Groq API
+      const isGroq = !!groqKey && !openaiKey;
+      const endpoint = isGroq ? 'https://api.groq.com/openai/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+      const key = openaiKey || groqKey;
+      const model = isGroq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini';
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${key}`
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: 'You are a travel AI assistant that outputs structured JSON.' },
+            { role: 'user', content: systemInstruction }
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.7
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        rawOutput = data?.choices?.[0]?.message?.content;
+      } else {
+        console.warn('OpenAI/Groq call returned status:', res.status, await res.text());
+      }
+    }
+
+    if (!rawOutput) return null;
+
+    const cleanJson = rawOutput.trim().replace(/^```json/i, '').replace(/```$/i, '').trim();
+    const parsed = JSON.parse(cleanJson);
+
+    if (parsed && parsed.response_text) {
+      return parsed;
+    }
+  } catch (llmErr) {
+    console.warn('LLM API error (falling back to built-in travel knowledge engine):', llmErr.message);
+  }
+
+  return null;
+}
+
+/**
  * Main Controller: Process User Message & Return Intelligent Response
  */
 async function processChatMessage({ message, conversationHistory = [], context = {} }) {
@@ -935,6 +1117,41 @@ async function processChatMessage({ message, conversationHistory = [], context =
       // Continue with knowledge base
     }
 
+    // 1. If an external LLM API key is configured (Gemini or OpenAI/Groq), try calling LLM
+    const llmResult = await callLLMAssistant({
+      message,
+      conversationHistory,
+      context,
+      entities,
+      destData
+    });
+
+    if (llmResult && llmResult.response_text) {
+      const followUpSuggestions = Array.isArray(llmResult.suggested_prompts) && llmResult.suggested_prompts.length > 0
+        ? llmResult.suggested_prompts
+        : generateFollowUpSuggestions(llmResult.intent || intent, llmResult.destination || destData.name, !!llmResult.plan);
+
+      return {
+        success: true,
+        intent: llmResult.intent || (llmResult.plan ? 'PLAN_ITINERARY' : 'GENERAL_INFO'),
+        destination: llmResult.destination || destData.name,
+        origin: entities.origin,
+        response_text: llmResult.response_text,
+        suggested_prompts: followUpSuggestions,
+        plan: llmResult.plan || null,
+        powered_by: process.env.GEMINI_API_KEY ? 'Google Gemini AI' : (process.env.OPENAI_API_KEY ? 'OpenAI' : 'Groq AI'),
+        context_updates: {
+          activeDestination: llmResult.destination || destData.name,
+          origin: entities.origin,
+          days: llmResult.plan?.days || entities.days,
+          people: llmResult.plan?.people || entities.people,
+          budget: llmResult.plan?.user_budget || entities.budget,
+          currentPlan: llmResult.plan || context.currentPlan || null
+        }
+      };
+    }
+
+    // 2. Built-in Intelligence & Knowledge Engine Fallback
     let responseText = '';
     let planResult = null;
 
