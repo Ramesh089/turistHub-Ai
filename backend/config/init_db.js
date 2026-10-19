@@ -14,8 +14,19 @@ const fs = require('fs');
 const path = require('path');
 const pool = require('./db');
 
-// Helper to safely add column only if missing in INFORMATION_SCHEMA
+// Helper to safely add column only if table exists and column is missing
 async function addColumnIfNotExists(connection, tableName, columnName, columnDefinition) {
+  const [tables] = await connection.query(`
+    SELECT TABLE_NAME 
+    FROM INFORMATION_SCHEMA.TABLES 
+    WHERE TABLE_SCHEMA = DATABASE() 
+      AND TABLE_NAME = ?
+  `, [tableName]);
+
+  if (tables.length === 0) {
+    return false;
+  }
+
   const [cols] = await connection.query(`
     SELECT COLUMN_NAME 
     FROM INFORMATION_SCHEMA.COLUMNS 
@@ -50,16 +61,26 @@ async function initDatabase() {
       console.log('📄 Executing schema definitions from schema.sql...');
       const schemaSql = fs.readFileSync(schemaPath, 'utf8');
 
-      // Split into discrete SQL statements, filtering out comments and empty lines
-      const statements = schemaSql
+      // Strip comments properly without dropping CREATE TABLE statements
+      const cleanSql = schemaSql
         .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/--.*$/gm, '')
+        .trim();
+
+      const statements = cleanSql
         .split(';')
         .map(s => s.trim())
-        .filter(s => s.length > 0 && !s.startsWith('--'));
+        .filter(s => s.length > 0);
+
+      console.log(`  -> Found ${statements.length} table definitions to execute.`);
 
       for (const statement of statements) {
         try {
           await connection.query(statement);
+          const match = statement.match(/CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?`?([a-zA-Z0-9_]+)`?/i);
+          if (match) {
+            console.log(`  ✅ Table '${match[1]}' verified / created.`);
+          }
         } catch (err) {
           // If table already exists or constraint already exists, log and proceed
           if (err.errno !== 1050 && err.errno !== 1061) {
