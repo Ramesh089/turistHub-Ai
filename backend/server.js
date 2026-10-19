@@ -77,6 +77,34 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Database auto-initialization endpoint (safe, idempotent)
+app.get('/api/health/db-init', async (req, res) => {
+  try {
+    const initDatabase = require('./config/init_db');
+    await initDatabase();
+    if (req.query.seed === 'true' || req.query.seed === '1') {
+      const seed = require('./config/seed');
+      await seed();
+    }
+    res.json({ success: true, message: 'Database tables verified and initialized successfully.' });
+  } catch (error) {
+    console.error('DB Init Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Database seed endpoint (re-populates catalogues safely)
+app.get('/api/health/db-seed', async (req, res) => {
+  try {
+    const seed = require('./config/seed');
+    await seed();
+    res.json({ success: true, message: 'Database catalogue seeded successfully.' });
+  } catch (error) {
+    console.error('DB Seed Error:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Mount routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
@@ -116,18 +144,6 @@ app.use((err, req, res, next) => {
     success: false,
     message: 'Internal server error occurred.'
   });
-});
-
-// Database auto-initialization endpoint (safe, idempotent)
-app.get('/api/health/db-init', async (req, res) => {
-  try {
-    const initDatabase = require('./config/init_db');
-    await initDatabase();
-    res.json({ success: true, message: 'Database tables verified and initialized successfully.' });
-  } catch (error) {
-    console.error('DB Init Error:', error);
-    res.status(500).json({ success: false, message: error.message });
-  }
 });
 
 // Start server if run directly

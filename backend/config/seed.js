@@ -108,12 +108,12 @@ async function seed() {
 
     const stateMap = {};
     for (const st of statesData) {
-      const [existing] = await pool.query('SELECT id FROM states WHERE code = ?', [st.code]);
+      const [existing] = await pool.query('SELECT id FROM states WHERE code = ? OR name = ?', [st.code, st.name]);
       if (existing.length > 0) {
         stateMap[st.code] = existing[0].id;
         await pool.query(
-          'UPDATE states SET description=?, image_url=?, best_time=?, highlights=? WHERE id=?',
-          [st.description, st.image_url, st.best_time, st.highlights, existing[0].id]
+          'UPDATE states SET name=?, code=?, capital=?, description=?, image_url=?, best_time=?, highlights=? WHERE id=?',
+          [st.name, st.code, st.capital, st.description, st.image_url, st.best_time, st.highlights, existing[0].id]
         );
       } else {
         const [res] = await pool.query(
@@ -542,14 +542,16 @@ async function seed() {
     ];
 
     for (const pkg of packagesData) {
-      const destId = placeMap[pkg.destination_name];
-      if (destId) {
-        await pool.query(
-          `INSERT INTO travel_packages (destination_id, title, company_name, duration_days, duration_nights, price, transport_type, hotel_type, food_included, guide_included, activities, description, image_url, rating)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [destId, pkg.title, pkg.company_name, pkg.duration_days, pkg.duration_nights, pkg.price, pkg.transport_type, pkg.hotel_type, pkg.food_included, pkg.guide_included, pkg.activities, pkg.description, pkg.image_url, pkg.rating]
-        );
+      let destId = placeMap[pkg.destination_name] || null;
+      if (!destId) {
+        const [pRows] = await pool.query('SELECT id FROM tourist_places WHERE name LIKE ? LIMIT 1', [`%${pkg.destination_name.split(' ')[0]}%`]);
+        if (pRows.length > 0) destId = pRows[0].id;
       }
+      await pool.query(
+        `INSERT INTO travel_packages (destination_id, title, company_name, duration_days, duration_nights, price, transport_type, hotel_type, food_included, guide_included, activities, description, image_url, rating)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [destId, pkg.title, pkg.company_name, pkg.duration_days, pkg.duration_nights, pkg.price, pkg.transport_type, pkg.hotel_type, pkg.food_included, pkg.guide_included, pkg.activities, pkg.description, pkg.image_url, pkg.rating]
+      );
     }
     console.log('✅ Travel Packages seeded');
 
@@ -631,14 +633,16 @@ async function seed() {
     ];
 
     for (const h of hotelsData) {
-      const destId = placeMap[h.dest];
-      if (destId) {
-        await pool.query(
-          `INSERT INTO hotels (destination_id, name, location, price_per_night, rating, room_type, amenities, contact, image_url, address)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [destId, h.name, h.location, h.price_per_night, h.rating, h.room_type, h.amenities, h.contact, h.image_url, h.address]
-        );
+      let destId = placeMap[h.dest] || null;
+      if (!destId) {
+        const [pRows] = await pool.query('SELECT id FROM tourist_places WHERE name LIKE ? LIMIT 1', [`%${h.dest.split(' ')[0]}%`]);
+        if (pRows.length > 0) destId = pRows[0].id;
       }
+      await pool.query(
+        `INSERT INTO hotels (destination_id, name, location, price_per_night, rating, room_type, amenities, contact, image_url, address)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [destId, h.name, h.location, h.price_per_night, h.rating, h.room_type, h.amenities, h.contact, h.image_url, h.address]
+      );
     }
     console.log('✅ Hotels seeded');
 
@@ -714,14 +718,16 @@ async function seed() {
     ];
 
     for (const t of transportData) {
-      const destId = placeMap[t.dest];
-      if (destId) {
-        await pool.query(
-          `INSERT INTO transport (destination_id, transport_type, provider, route, departure_time, arrival_time, price, duration, booking_info)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [destId, t.type, t.provider, t.route, t.departure, t.arrival, t.price, t.duration, t.booking_info]
-        );
+      let destId = placeMap[t.dest] || null;
+      if (!destId) {
+        const [pRows] = await pool.query('SELECT id FROM tourist_places WHERE name LIKE ? LIMIT 1', [`%${t.dest.split(' ')[0]}%`]);
+        if (pRows.length > 0) destId = pRows[0].id;
       }
+      await pool.query(
+        `INSERT INTO transport (destination_id, transport_type, provider, route, departure_time, arrival_time, price, duration, booking_info)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [destId, t.type, t.provider, t.route, t.departure, t.arrival, t.price, t.duration, t.booking_info]
+      );
     }
     console.log('✅ Transport options seeded');
 
@@ -786,14 +792,16 @@ async function seed() {
     ];
 
     for (const g of guidesData) {
-      const destId = placeMap[g.dest];
-      if (destId) {
-        await pool.query(
-          `INSERT INTO guides (destination_id, name, languages, experience_years, specialization, price_per_day, rating, contact, image_url)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [destId, g.name, g.languages, g.experience_years, g.specialization, g.price_per_day, g.rating, g.contact, g.image_url]
-        );
+      let destId = placeMap[g.dest] || null;
+      if (!destId) {
+        const [pRows] = await pool.query('SELECT id FROM tourist_places WHERE name LIKE ? LIMIT 1', [`%${g.dest.split(' ')[0]}%`]);
+        if (pRows.length > 0) destId = pRows[0].id;
       }
+      await pool.query(
+        `INSERT INTO guides (destination_id, name, languages, experience_years, specialization, price_per_day, rating, contact, image_url)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [destId, g.name, g.languages, g.experience_years, g.specialization, g.price_per_day, g.rating, g.contact, g.image_url]
+      );
     }
     console.log('✅ Tourist Guides seeded');
 
@@ -875,14 +883,16 @@ async function seed() {
     ];
 
     for (const e of emergencyData) {
-      const destId = placeMap[e.dest];
-      if (destId) {
-        await pool.query(
-          `INSERT INTO emergency_services (destination_id, service_type, name, contact_number, address, distance_km)
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [destId, e.type, e.name, e.phone, e.address, e.distance]
-        );
+      let destId = placeMap[e.dest] || null;
+      if (!destId) {
+        const [pRows] = await pool.query('SELECT id FROM tourist_places WHERE name LIKE ? LIMIT 1', [`%${e.dest.split(' ')[0]}%`]);
+        if (pRows.length > 0) destId = pRows[0].id;
       }
+      await pool.query(
+        `INSERT INTO emergency_services (destination_id, service_type, name, contact_number, address, distance_km)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [destId, e.type, e.name, e.phone, e.address, e.distance]
+      );
     }
     console.log('✅ Emergency services seeded');
 
@@ -919,7 +929,11 @@ async function seed() {
     ];
 
     for (const r of reviewsData) {
-      const destId = placeMap[r.dest];
+      let destId = placeMap[r.dest] || null;
+      if (!destId) {
+        const [pRows] = await pool.query('SELECT id FROM tourist_places WHERE name LIKE ? LIMIT 1', [`%${r.dest.split(' ')[0]}%`]);
+        if (pRows.length > 0) destId = pRows[0].id;
+      }
       if (destId) {
         await pool.query(
           `INSERT INTO reviews (user_id, destination_id, rating, review_text) VALUES (?, ?, ?, ?)`,
