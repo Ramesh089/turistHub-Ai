@@ -1014,32 +1014,40 @@ You MUST return ONLY a valid JSON object matching this schema with NO markdown w
     let rawOutput = null;
 
     if (geminiKey) {
-      // Call Google Gemini API (gemini-1.5-flash)
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
-      const payload = {
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: systemInstruction }]
+      // Call Google Gemini API (tries candidate models in order: gemini-3.8-flash, gemini-2.5-flash, etc.)
+      const candidateModels = ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-flash-latest', 'gemini-1.5-flash'];
+      for (const model of candidateModels) {
+        try {
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
+          const payload = {
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: systemInstruction }]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 8192
+            }
+          };
+
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (rawOutput) break;
+          } else {
+            console.warn(`Gemini model ${model} returned status:`, res.status);
           }
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          responseMimeType: 'application/json'
+        } catch (mErr) {
+          console.warn(`Gemini model ${model} request error:`, mErr.message);
         }
-      };
-
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        rawOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      } else {
-        console.warn('Gemini API call returned status:', res.status, await res.text());
       }
     } else if (openaiKey || groqKey) {
       // Call OpenAI or Groq API
@@ -1075,7 +1083,19 @@ You MUST return ONLY a valid JSON object matching this schema with NO markdown w
 
     if (!rawOutput) return null;
 
-    const cleanJson = rawOutput.trim().replace(/^```json/i, '').replace(/```$/i, '').trim();
+    let cleanJson = rawOutput.trim();
+    if (cleanJson.startsWith('```json')) {
+      cleanJson = cleanJson.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
+    } else if (cleanJson.startsWith('```')) {
+      cleanJson = cleanJson.replace(/^```\s*/i, '').replace(/\s*```$/i, '');
+    }
+
+    const firstBrace = cleanJson.indexOf('{');
+    const lastBrace = cleanJson.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
+    }
+
     const parsed = JSON.parse(cleanJson);
 
     if (parsed && parsed.response_text) {
