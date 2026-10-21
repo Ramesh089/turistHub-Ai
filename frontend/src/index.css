@@ -683,3 +683,21 @@ html, body {
     height: 140px !important;
   }
 }
+
+/* AI Planner Typography & Bouncing Dots */
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.formatted-ai-stream p {
+  margin: 8px 0;
+}
+
+.formatted-ai-stream strong {
+  color: #0f172a;
+}
