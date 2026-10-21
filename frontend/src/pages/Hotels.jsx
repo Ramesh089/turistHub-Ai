@@ -33,12 +33,12 @@ export default function Hotels() {
   return (
     <div style={{ background: '#f8fafc', minHeight: '90vh', paddingBottom: 90 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 60%, #065f46 100%)', color: '#fff', padding: '50px 0', marginBottom: 40 }}>
+      <div className="page-banner" style={{ background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 60%, #065f46 100%)', color: '#fff' }}>
         <div className="container">
           <span style={{ color: '#6ee7b7', fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
             Heritage & Luxury Stays
           </span>
-          <h1 style={{ fontSize: '2.4rem', fontFamily: 'var(--font-serif)', marginTop: 6, marginBottom: 10 }}>
+          <h1 className="page-banner-title">
             Verified Hotels & Resorts
           </h1>
           <p style={{ color: '#e0f2fe', maxWidth: 620, fontSize: '0.97rem' }}>
@@ -49,19 +49,19 @@ export default function Hotels() {
 
       <div className="container">
         {/* Filters */}
-        <div style={{ background: '#fff', padding: '18px 24px', borderRadius: 14, border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap', marginBottom: 36, boxShadow: '0 1px 4px rgba(2,132,199,0.06)' }}>
-          <div>
+        <div style={{ background: '#fff', padding: 'clamp(14px, 3vw, 18px) clamp(16px, 3vw, 24px)', borderRadius: 14, border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginBottom: 36, boxShadow: '0 1px 4px rgba(2,132,199,0.06)' }}>
+          <div style={{ width: 'min(100%, 220px)' }}>
             <label className="form-label" style={{ marginBottom: 4 }}>Budget Category</label>
-            <select value={budgetTier} onChange={e => setBudgetTier(e.target.value)} className="form-control" style={{ width: 220 }}>
+            <select value={budgetTier} onChange={e => setBudgetTier(e.target.value)} className="form-control" style={{ width: '100%' }}>
               <option value="">All Price Tiers</option>
               <option value="Budget">Budget (Under ₹3,000/night)</option>
               <option value="Moderate">Moderate (₹3,000 – ₹6,000/night)</option>
               <option value="Luxury">Luxury (₹6,000+/night)</option>
             </select>
           </div>
-          <div>
+          <div style={{ width: 'min(100%, 180px)' }}>
             <label className="form-label" style={{ marginBottom: 4 }}>Min Rating</label>
-            <select value={minRating} onChange={e => setMinRating(e.target.value)} className="form-control" style={{ width: 180 }}>
+            <select value={minRating} onChange={e => setMinRating(e.target.value)} className="form-control" style={{ width: '100%' }}>
               <option value="">All Ratings</option>
               <option value="4.5">4.5+ Stars</option>
               <option value="4.7">4.7+ Stars (Top Rated)</option>

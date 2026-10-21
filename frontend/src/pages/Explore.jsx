@@ -81,17 +81,15 @@ export default function Explore() {
   return (
     <div style={{ background: '#faf6f0', minHeight: '90vh', paddingBottom: '80px' }}>
       {/* Header Banner */}
-      <div style={{
+      <div className="page-banner" style={{
         background: 'linear-gradient(135deg, #1c1917 0%, #2e1d18 100%)',
-        color: '#ffffff',
-        padding: '50px 0',
-        marginBottom: '40px'
+        color: '#ffffff'
       }}>
         <div className="container">
           <span style={{ color: '#f59e0b', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
             Discover Incredible India
           </span>
-          <h1 style={{ fontSize: '2.4rem', fontFamily: 'var(--font-serif)', marginTop: '6px', marginBottom: '12px' }}>
+          <h1 className="page-banner-title">
             Explore Indian Tourist Destinations
           </h1>
           <p style={{ color: '#cbd5e1', maxWidth: '650px', fontSize: '0.98rem' }}>
@@ -104,7 +102,7 @@ export default function Explore() {
         {/* Search & Filter Toolbar */}
         <div style={{
           background: '#ffffff',
-          padding: '24px',
+          padding: 'clamp(16px, 3vw, 24px)',
           borderRadius: '16px',
           boxShadow: 'var(--shadow-md)',
           marginBottom: '36px',
@@ -112,7 +110,7 @@ export default function Explore() {
         }}>
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))',
             gap: '16px',
             alignItems: 'flex-end'
           }}>
@@ -223,7 +221,7 @@ export default function Explore() {
         </div>
 
         {/* Results Counter */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
           <div style={{ fontSize: '0.95rem', color: 'var(--slate)' }}>
             Showing <strong>{visibleDestinations.length}</strong> of <strong>{destinations.length}</strong> incredible Indian destinations
             {!showAll && destinations.length > INITIAL_VISIBLE_COUNT && (

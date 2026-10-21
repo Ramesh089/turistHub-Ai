@@ -83,17 +83,15 @@ export default function Profile() {
   return (
     <div style={{ background: '#faf6f0', minHeight: '90vh', paddingBottom: '90px' }}>
       {/* Header */}
-      <div style={{
+      <div className="page-banner" style={{
         background: 'linear-gradient(135deg, #1c1917 0%, #2f1d18 100%)',
-        color: '#ffffff',
-        padding: '50px 0',
-        marginBottom: '40px'
+        color: '#ffffff'
       }}>
         <div className="container">
           <span style={{ color: '#f59e0b', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
             Account Settings
           </span>
-          <h1 style={{ fontSize: '2.4rem', fontFamily: 'var(--font-serif)', marginTop: '6px', marginBottom: '8px' }}>
+          <h1 className="page-banner-title">
             Profile & Travel Preferences
           </h1>
           <p style={{ color: '#cbd5e1', fontSize: '0.95rem' }}>
@@ -122,12 +120,12 @@ export default function Profile() {
 
           <form onSubmit={handleSaveAll}>
             {/* Personal Details Card */}
-            <div className="card" style={{ padding: '30px', marginBottom: '30px' }}>
+            <div className="card" style={{ padding: 'clamp(18px, 4vw, 30px)', marginBottom: '30px' }}>
               <h3 style={{ fontSize: '1.25rem', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <User size={20} color="#e65100" /> Personal Account Details
               </h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-row-2">
                 <div className="form-group">
                   <label className="form-label">Full Name</label>
                   <input
@@ -150,7 +148,7 @@ export default function Profile() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-row-2">
                 <div className="form-group">
                   <label className="form-label">Email Address (Read-only)</label>
                   <input
@@ -176,12 +174,12 @@ export default function Profile() {
             </div>
 
             {/* AI Travel Preferences Card */}
-            <div className="card" style={{ padding: '30px', marginBottom: '30px' }}>
+            <div className="card" style={{ padding: 'clamp(18px, 4vw, 30px)', marginBottom: '30px' }}>
               <h3 style={{ fontSize: '1.25rem', marginBottom: '18px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Sparkles size={20} color="#d97706" /> AI Personalization Preferences
               </h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-row-2">
                 <div className="form-group">
                   <label className="form-label">Typical Travel Style</label>
                   <select value={travelType} onChange={(e) => setTravelType(e.target.value)} className="form-control">
@@ -203,7 +201,7 @@ export default function Profile() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="form-row-2">
                 <div className="form-group">
                   <label className="form-label">Preferred Transportation</label>
                   <select value={preferredTransport} onChange={(e) => setPreferredTransport(e.target.value)} className="form-control">

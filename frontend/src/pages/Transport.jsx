@@ -40,12 +40,12 @@ export default function Transport() {
   return (
     <div style={{ background: '#f8fafc', minHeight: '90vh', paddingBottom: 90 }}>
       {/* Header */}
-      <div style={{ background: 'linear-gradient(135deg, #0284c7, #0369a1 60%, #065f46)', color: '#fff', padding: '50px 0', marginBottom: 40 }}>
+      <div className="page-banner" style={{ background: 'linear-gradient(135deg, #0284c7, #0369a1 60%, #065f46)', color: '#fff' }}>
         <div className="container">
           <span style={{ color: '#6ee7b7', fontSize: '0.82rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>
             Seamless Transit
           </span>
-          <h1 style={{ fontSize: '2.4rem', fontFamily: 'var(--font-serif)', marginTop: 6, marginBottom: 10 }}>
+          <h1 className="page-banner-title">
             Intercity Transportation
           </h1>
           <p style={{ color: '#e0f2fe', maxWidth: 640, fontSize: '0.97rem' }}>

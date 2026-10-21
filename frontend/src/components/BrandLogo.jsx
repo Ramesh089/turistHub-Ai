@@ -11,13 +11,14 @@ export default function BrandLogo({ size = 'default', showTagline = true, light 
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '14px',
+        gap: '10px',
         textDecoration: 'none'
       }}
     >
       <img
         src="/logo.png"
         alt="Tourist AI Hub"
+        className="brand-logo-img"
         style={{
           height: `${logoSize}px`,
           width: `${logoSize}px`,
@@ -35,6 +36,7 @@ export default function BrandLogo({ size = 'default', showTagline = true, light 
 
       <div>
         <div
+          className="brand-logo-text"
           style={{
             fontFamily: "'Outfit', var(--font-serif), sans-serif",
             fontSize: isLarge ? '1.65rem' : '1.36rem',
@@ -63,6 +65,7 @@ export default function BrandLogo({ size = 'default', showTagline = true, light 
 
         {showTagline && (
           <div
+            className="brand-logo-tagline"
             style={{
               fontSize: isLarge ? '0.8rem' : '0.72rem',
               color: light ? '#93c5fd' : '#64748b',
@@ -79,6 +82,21 @@ export default function BrandLogo({ size = 'default', showTagline = true, light 
           </div>
         )}
       </div>
+
+      <style>{`
+        @media (max-width: 540px) {
+          .brand-logo-img {
+            height: 42px !important;
+            width: 42px !important;
+          }
+          .brand-logo-text {
+            font-size: 1.15rem !important;
+          }
+          .brand-logo-tagline {
+            display: none !important;
+          }
+        }
+      `}</style>
     </Link>
   );
 }

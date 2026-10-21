@@ -274,8 +274,9 @@ export default function Navbar() {
           borderTop: '1px solid rgba(2, 132, 199, 0.15)',
           padding: '16px',
           boxShadow: '0 12px 28px rgba(2, 132, 199, 0.12)',
-          margin: '0 auto',
-          width: 'min(380px, calc(100% - 24px))',
+          margin: '0 auto 12px auto',
+          width: 'calc(100% - 24px)',
+          maxWidth: '420px',
           borderRadius: '16px',
           marginTop: '8px'
         }} className="mobile-only">

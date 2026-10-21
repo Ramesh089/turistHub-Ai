@@ -128,15 +128,15 @@ export default function CultureSlider() {
     <div style={{ position: 'relative', width: '100%', overflow: 'hidden', borderRadius: '22px', boxShadow: 'var(--shadow-lg)', background: '#0f172a' }}>
       <div style={{
         position: 'relative',
-        height: '520px',
+        minHeight: 'clamp(420px, 60vh, 520px)',
         width: '100%',
-        backgroundImage: `linear-gradient(to top, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.45) 45%, rgba(15, 23, 42, 0.18) 100%), url(${slide.image})`,
+        backgroundImage: `linear-gradient(to top, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.5) 50%, rgba(15, 23, 42, 0.2) 100%), url(${slide.image})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         transition: 'background-image 0.6s ease-in-out',
         display: 'flex',
         alignItems: 'flex-end',
-        padding: '50px'
+        padding: 'clamp(20px, 5vw, 50px)'
       }}>
         <div style={{ maxWidth: '760px', color: '#ffffff', zIndex: 2 }} className="animate-fade-in" key={current}>
           <div style={{
@@ -146,38 +146,38 @@ export default function CultureSlider() {
             background: 'rgba(15, 118, 110, 0.85)',
             backdropFilter: 'blur(6px)',
             color: '#ffffff',
-            padding: '6px 16px',
+            padding: '5px 14px',
             borderRadius: '30px',
-            fontSize: '0.8rem',
+            fontSize: '0.76rem',
             fontWeight: '700',
             textTransform: 'uppercase',
             letterSpacing: '1px',
-            marginBottom: '14px',
+            marginBottom: '10px',
             border: '1px solid rgba(255,255,255,0.15)'
           }}>
             <Sparkles size={14} /> {slide.category}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6ee7b7', fontSize: '0.95rem', fontWeight: '600', marginBottom: '8px' }}>
-            <MapPin size={16} color="#6ee7b7" /> {slide.subtitle}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6ee7b7', fontSize: '0.88rem', fontWeight: '600', marginBottom: '6px' }}>
+            <MapPin size={15} color="#6ee7b7" /> {slide.subtitle}
           </div>
 
           <h2 style={{
             fontFamily: 'var(--font-serif)',
-            fontSize: '2.4rem',
+            fontSize: 'clamp(1.4rem, 4vw, 2.3rem)',
             fontWeight: '800',
             lineHeight: 1.2,
-            marginBottom: '14px',
+            marginBottom: '10px',
             textShadow: '0 2px 10px rgba(0,0,0,0.5)'
           }}>
             {slide.title}
           </h2>
 
           <p style={{
-            fontSize: '1.05rem',
+            fontSize: 'clamp(0.88rem, 1.8vw, 1.02rem)',
             color: '#e2e8f0',
             lineHeight: 1.6,
-            marginBottom: '24px',
+            marginBottom: '18px',
             maxWidth: '650px'
           }}>
             {slide.description}
@@ -192,7 +192,7 @@ export default function CultureSlider() {
               }
             }}
             className="btn btn-green"
-            style={{ padding: '12px 28px', cursor: 'pointer' }}
+            style={{ padding: '10px 22px', fontSize: '0.9rem', cursor: 'pointer' }}
           >
             Explore Cultural Story &rarr;
           </button>
@@ -202,16 +202,16 @@ export default function CultureSlider() {
           onClick={prevSlide}
           style={{
             position: 'absolute',
-            left: '20px',
+            left: 'clamp(8px, 2vw, 20px)',
             top: '50%',
             transform: 'translateY(-50%)',
-            width: '46px',
-            height: '46px',
+            width: 'clamp(36px, 5vw, 46px)',
+            height: 'clamp(36px, 5vw, 46px)',
             borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.18)',
+            background: 'rgba(255, 255, 255, 0.25)',
             backdropFilter: 'blur(6px)',
             color: '#ffffff',
-            border: '1px solid rgba(255,255,255,0.25)',
+            border: '1px solid rgba(255,255,255,0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -220,23 +220,23 @@ export default function CultureSlider() {
             zIndex: 10
           }}
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft size={20} />
         </button>
 
         <button
           onClick={nextSlide}
           style={{
             position: 'absolute',
-            right: '20px',
+            right: 'clamp(8px, 2vw, 20px)',
             top: '50%',
             transform: 'translateY(-50%)',
-            width: '46px',
-            height: '46px',
+            width: 'clamp(36px, 5vw, 46px)',
+            height: 'clamp(36px, 5vw, 46px)',
             borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.18)',
+            background: 'rgba(255, 255, 255, 0.25)',
             backdropFilter: 'blur(6px)',
             color: '#ffffff',
-            border: '1px solid rgba(255,255,255,0.25)',
+            border: '1px solid rgba(255,255,255,0.3)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -245,7 +245,7 @@ export default function CultureSlider() {
             zIndex: 10
           }}
         >
-          <ChevronRight size={24} />
+          <ChevronRight size={20} />
         </button>
 
         <div style={{

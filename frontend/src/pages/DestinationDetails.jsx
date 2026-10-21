@@ -108,14 +108,14 @@ export default function DestinationDetails() {
       {/* Hero Header */}
       <div style={{
         position: 'relative',
-        minHeight: '440px',
+        minHeight: 'clamp(320px, 45vh, 440px)',
         background: `linear-gradient(to top, rgba(28,25,23,0.95) 0%, rgba(28,25,23,0.4) 60%, rgba(28,25,23,0.3) 100%), url(${dest.image_url})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',
         alignItems: 'flex-end',
         color: '#ffffff',
-        padding: '50px 0'
+        padding: 'clamp(28px, 5vw, 50px) 0'
       }}>
         <div className="container" style={{ width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
@@ -124,11 +124,11 @@ export default function DestinationDetails() {
             <span style={{ fontSize: '0.9rem', color: '#fef3c7', fontWeight: '600' }}>{dest.state_name}</span>
           </div>
 
-          <h1 style={{ fontSize: '3rem', fontFamily: 'var(--font-serif)', fontWeight: '800', marginBottom: '10px' }}>
+          <h1 style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)', fontFamily: 'var(--font-serif)', fontWeight: '800', marginBottom: '10px' }}>
             {dest.name}
           </h1>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px', fontSize: '0.92rem', color: '#e2e8f0' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '14px', fontSize: '0.88rem', color: '#e2e8f0' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <MapPin size={16} color="#fbbf24" /> {dest.location}
             </span>
@@ -142,7 +142,7 @@ export default function DestinationDetails() {
         </div>
       </div>
 
-      <div className="container" style={{ marginTop: '30px' }}>
+      <div className="container" style={{ marginTop: '24px' }}>
         {/* Navigation Tabs */}
         <div className="tabs-nav" style={{ background: '#ffffff', padding: '8px 16px', borderRadius: '12px', boxShadow: 'var(--shadow-sm)' }}>
           <button onClick={() => setActiveTab('overview')} className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}>Overview & History</button>
@@ -157,7 +157,7 @@ export default function DestinationDetails() {
 
         {/* Tab 1: Overview & History */}
         {activeTab === 'overview' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '30px' }} className="animate-fade-in">
+          <div className="destination-detail-grid animate-fade-in">
             <div>
               <div className="card" style={{ padding: '30px', marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '1.4rem', marginBottom: '14px', color: 'var(--dark)' }}>About {dest.name}</h3>
@@ -232,7 +232,7 @@ export default function DestinationDetails() {
         {/* Tab 2: Attractions & Activities */}
         {activeTab === 'attractions' && (
           <div className="animate-fade-in">
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '20px' }}>
               <div className="card" style={{ padding: '26px' }}>
                 <h3 style={{ fontSize: '1.3rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Compass size={20} color="#e65100" /> Must-Visit Attractions
@@ -266,7 +266,7 @@ export default function DestinationDetails() {
 
         {/* Tab 3: Culture & Food */}
         {activeTab === 'culture_food' && (
-          <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+          <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '20px' }}>
             <div className="card" style={{ padding: '28px' }}>
               <h3 style={{ fontSize: '1.3rem', marginBottom: '14px', color: '#78350f' }}>Cultural Traditions & Folklore</h3>
               <p style={{ fontSize: '0.95rem', color: '#334155', lineHeight: 1.7 }}>

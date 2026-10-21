@@ -30,17 +30,15 @@ export default function Guides() {
   return (
     <div style={{ background: '#faf6f0', minHeight: '90vh', paddingBottom: '90px' }}>
       {/* Header */}
-      <div style={{
+      <div className="page-banner" style={{
         background: 'linear-gradient(135deg, #1c1917 0%, #2f1d18 100%)',
-        color: '#ffffff',
-        padding: '50px 0',
-        marginBottom: '40px'
+        color: '#ffffff'
       }}>
         <div className="container">
           <span style={{ color: '#f59e0b', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
             Local Storytellers & Historians
           </span>
-          <h1 style={{ fontSize: '2.4rem', fontFamily: 'var(--font-serif)', marginTop: '6px', marginBottom: '12px' }}>
+          <h1 className="page-banner-title">
             Government & Certified Tourist Guides
           </h1>
           <p style={{ color: '#cbd5e1', maxWidth: '650px', fontSize: '0.98rem' }}>

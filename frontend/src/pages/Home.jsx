@@ -226,22 +226,19 @@ export default function Home() {
           </div>
 
           {/* Instant AI Trip Finder Bar */}
-          <div style={{
-            background: '#ffffff',
-            borderRadius: '20px',
-            padding: '24px',
-            boxShadow: '0 20px 45px rgba(2, 132, 199, 0.16)',
-            maxWidth: '920px',
-            margin: '0 auto',
-            color: 'var(--dark)',
-            border: '1px solid rgba(2, 132, 199, 0.15)'
-          }}>
-            <form onSubmit={handleQuickPlan} style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr)) 160px',
-              gap: '16px',
-              alignItems: 'center'
-            }}>
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '20px',
+              padding: 'clamp(14px, 3vw, 24px)',
+              boxShadow: '0 20px 45px rgba(2, 132, 199, 0.16)',
+              maxWidth: '920px',
+              margin: '0 auto',
+              color: 'var(--dark)',
+              border: '1px solid rgba(2, 132, 199, 0.15)'
+            }}
+          >
+            <form onSubmit={handleQuickPlan} className="quick-plan-form">
               <div style={{ textAlign: 'left' }}>
                 <label style={{ fontSize: '0.78rem', fontWeight: '700', color: '#0369a1', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <MapPin size={13} color="#0284c7" /> Starting From
@@ -288,7 +285,11 @@ export default function Home() {
                 </select>
               </div>
 
-              <button type="submit" className="btn btn-green" style={{ height: '46px', marginTop: '16px', fontWeight: '700' }}>
+              <button
+                type="submit"
+                className="btn btn-green"
+                style={{ height: '46px', marginTop: '16px', fontWeight: '700', width: '100%', justifyContent: 'center' }}
+              >
                 <Sparkles size={16} /> Plan My Trip
               </button>
             </form>
@@ -465,8 +466,8 @@ export default function Home() {
         <div className="container">
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '50px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+            gap: 'clamp(24px, 4vw, 50px)',
             alignItems: 'center'
           }}>
             <div>

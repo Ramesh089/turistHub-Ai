@@ -760,24 +760,15 @@ Thank you for choosing Tourist Hub AI!
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '16px',
+        padding: 'clamp(8px, 2.5vw, 16px)',
         backdropFilter: 'blur(5px)',
         overflowY: 'auto'
       }}
     >
       <div
+        className="booking-modal-card"
         style={{
-          background: '#ffffff',
-          borderRadius: '20px',
-          width: '100%',
-          maxWidth: (step === 'details' || step === 'success') ? '640px' : '520px',
-          maxHeight: '92vh',
-          overflowY: 'auto',
-          boxShadow: '0 25px 70px rgba(0, 0, 0, 0.16)',
-          border: '1px solid #e2e8f0',
-          padding: '24px 28px',
-          position: 'relative',
-          transition: 'all 0.25s ease'
+          maxWidth: (step === 'details' || step === 'success') ? '640px' : '520px'
         }}
       >
         {/* ═══════════════ TOP HEADER & CLOSE (Matching Image 1) ═══════════════ */}
@@ -839,7 +830,7 @@ Thank you for choosing Tourist Hub AI!
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                <div className="form-row-2" style={{ marginBottom: 16 }}>
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Check-In</label>
                     <input type="date" value={checkIn} min={new Date().toISOString().split('T')[0]} onChange={(e) => setCheckIn(e.target.value)} className="form-control" />
@@ -896,7 +887,7 @@ Thank you for choosing Tourist Hub AI!
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
+                <div className="form-row-2" style={{ marginBottom: 18 }}>
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Travel Date</label>
                     <input type="date" value={travelDate} min={new Date().toISOString().split('T')[0]} onChange={(e) => setTravelDate(e.target.value)} className="form-control" />
@@ -932,7 +923,7 @@ Thank you for choosing Tourist Hub AI!
                   <div style={{ fontSize: '0.82rem', color: '#64748b' }}>by <strong style={{ color: '#0369a1' }}>{item?.company_name || 'Tourist Hub AI Verified Partner'}</strong></div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+                <div className="form-row-2" style={{ marginBottom: 14 }}>
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Travel Date</label>
                     <input type="date" value={pkgTravelDate} min={new Date().toISOString().split('T')[0]} onChange={(e) => setPkgTravelDate(e.target.value)} className="form-control" />
@@ -1139,7 +1130,7 @@ Thank you for choosing Tourist Hub AI!
                 </div>
 
                 {/* 4 UPI Selectable App Cards */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px' }}>
+                <div className="upi-apps-grid">
                   {[
                     { key: 'gpay', label: 'Google Pay', Logo: GooglePayLogo },
                     { key: 'phonepe', label: 'PhonePe', Logo: PhonePeLogo },
@@ -1625,18 +1616,7 @@ Thank you for choosing Tourist Hub AI!
                   </div>
 
                   {/* Receipt Metadata Grid (Receipt No, Date, Ref ID, Txn ID) */}
-                  <div
-                    style={{
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '10px',
-                      padding: '12px 14px',
-                      display: 'grid',
-                      gridTemplateColumns: 'repeat(2, 1fr)',
-                      gap: '10px',
-                      marginBottom: '16px'
-                    }}
-                  >
+                  <div className="receipt-meta-grid">
                     <div>
                       <span style={{ fontSize: '0.68rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', display: 'block' }}>
                         Receipt Number
@@ -1707,7 +1687,7 @@ Thank you for choosing Tourist Hub AI!
                   </div>
 
                   {/* 2-Column Details: Customer vs Trip */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px', fontSize: '0.82rem' }}>
+                  <div className="receipt-details-grid">
                     {/* Billed To */}
                     <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '8px', padding: '10px 12px' }}>
                       <div style={{ fontSize: '0.68rem', color: '#0284c7', textTransform: 'uppercase', fontWeight: '800', marginBottom: '4px' }}>
@@ -1818,7 +1798,7 @@ Thank you for choosing Tourist Hub AI!
               {/* 3. RECEIPT ACTION BUTTONS */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {/* Row 1: Print & Download */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div className="receipt-actions-row1">
                   <button
                     type="button"
                     onClick={handlePrintReceipt}
@@ -1870,7 +1850,7 @@ Thank you for choosing Tourist Hub AI!
                 </div>
 
                 {/* Row 2: View in Dashboard & Back to Explore */}
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                <div className="receipt-actions-row2">
                   <button
                     type="button"
                     onClick={() => {

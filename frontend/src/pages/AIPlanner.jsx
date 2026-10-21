@@ -367,15 +367,14 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
     <div style={{ background: '#f8fafc', minHeight: '90vh', paddingBottom: '90px' }}>
       {/* Header Banner */}
       <div
+        className="page-banner"
         style={{
           background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #065f46 100%)',
-          color: '#ffffff',
-          padding: '44px 0',
-          marginBottom: '32px'
+          color: '#ffffff'
         }}
       >
-        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '20px' }}>
-          <div>
+        <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ flex: 1, minWidth: 'min(100%, 300px)' }}>
             <div
               style={{
                 display: 'inline-flex',
@@ -386,7 +385,7 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                 color: '#6ee7b7',
                 padding: '6px 16px',
                 borderRadius: '999px',
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 fontWeight: '700',
                 textTransform: 'uppercase',
                 marginBottom: '10px'
@@ -394,26 +393,23 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
             >
               <Sparkles size={14} /> Intelligent Travel Assistant & Trip Planner
             </div>
-            <h1 style={{ fontSize: '2.3rem', fontFamily: 'var(--font-serif)', margin: '0 0 10px 0' }}>
+            <h1 className="page-banner-title">
               Conversational Travel Concierge
             </h1>
-            <p style={{ color: '#e0f2fe', maxWidth: '760px', fontSize: '0.98rem', margin: 0, lineHeight: 1.6 }}>
+            <p style={{ color: '#e0f2fe', maxWidth: '760px', fontSize: '0.94rem', margin: 0, lineHeight: 1.6 }}>
               Ask general questions about destinations, attractions, food, and transit, or request a customized day-by-day itinerary with an itemized budget breakdown.
             </p>
           </div>
           <img
             src="/logo.png"
             alt="Tourist AI Hub Logo"
+            className="page-banner-logo"
             style={{
-              height: '84px',
-              width: '84px',
               borderRadius: '16px',
-              objectFit: 'contain',
               background: 'rgba(255, 255, 255, 0.12)',
               padding: '6px',
               border: '1.5px solid rgba(255, 255, 255, 0.3)',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-              flexShrink: 0
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)'
             }}
           />
         </div>
@@ -421,7 +417,7 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
 
       <div className="container">
         {/* Main Grid: Chat Assistant (Left) & Trip Itinerary Canvas (Right) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(360px, 490px) minmax(0, 1fr)', gap: '28px', alignItems: 'start' }}>
+        <div className="ai-planner-grid">
           {/* LEFT PANEL: Conversational Travel Assistant */}
           <div className="card" style={{ padding: '20px', background: '#ffffff', borderRadius: '18px', boxShadow: '0 10px 30px rgba(0,0,0,0.04)' }}>
             {/* Chat Assistant Header */}

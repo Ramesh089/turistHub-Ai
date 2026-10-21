@@ -8,15 +8,15 @@ export default function Footer() {
     <footer style={{
       background: '#f0f9ff',
       color: '#334155',
-      padding: '60px 0 28px 0',
+      padding: 'clamp(36px, 6vw, 60px) 0 24px 0',
       borderTop: '3px solid #0284c7'
     }}>
       <div className="container">
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '36px',
-          marginBottom: '44px'
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 200px), 1fr))',
+          gap: 'clamp(20px, 4vw, 36px)',
+          marginBottom: '36px'
         }}>
           {/* Col 1: Brand & Philosophy */}
           <div>

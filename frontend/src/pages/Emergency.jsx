@@ -51,17 +51,15 @@ export default function Emergency() {
   return (
     <div style={{ background: '#faf6f0', minHeight: '90vh', paddingBottom: '90px' }}>
       {/* Header Banner */}
-      <div style={{
+      <div className="page-banner" style={{
         background: 'linear-gradient(135deg, #450a0a 0%, #1c1917 100%)',
-        color: '#ffffff',
-        padding: '50px 0',
-        marginBottom: '40px'
+        color: '#ffffff'
       }}>
         <div className="container">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171', fontWeight: '700', fontSize: '0.85rem', textTransform: 'uppercase', marginBottom: '8px' }}>
             <ShieldAlert size={18} /> 24x7 Safety Assistance
           </div>
-          <h1 style={{ fontSize: '2.4rem', fontFamily: 'var(--font-serif)', marginBottom: '12px' }}>
+          <h1 className="page-banner-title">
             Emergency Services & Tourist Helplines
           </h1>
           <p style={{ color: '#fecdd3', maxWidth: '680px', fontSize: '1rem', lineHeight: 1.6 }}>
@@ -72,18 +70,18 @@ export default function Emergency() {
 
       <div className="container">
         {/* National Helplines Grid */}
-        <h2 style={{ fontSize: '1.4rem', marginBottom: '20px', fontFamily: 'var(--font-serif)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h2 style={{ fontSize: '1.4rem', marginBottom: '20px', fontFamily: 'var(--font-serif)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <PhoneCall size={20} color="#b91c1c" /> Nationwide Emergency Helplines (Toll-Free)
         </h2>
 
         <div className="grid-3" style={{ marginBottom: '50px' }}>
           {nationalHelplines.map((h, idx) => (
-            <div key={idx} className="card" style={{ padding: '24px', borderLeft: '4px solid #b91c1c', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div key={idx} className="card" style={{ padding: 'clamp(16px, 3vw, 24px)', borderLeft: '4px solid #b91c1c', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <h4 style={{ fontSize: '1.15rem', color: 'var(--dark)', marginBottom: '6px' }}>{h.title}</h4>
                 <p style={{ fontSize: '0.85rem', color: 'var(--slate)', lineHeight: 1.5, marginBottom: '14px' }}>{h.desc}</p>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: '1px solid var(--border)', flexWrap: 'wrap', gap: '8px' }}>
                 <span style={{ fontSize: '1.4rem', fontWeight: '800', color: '#b91c1c' }}>{h.number}</span>
                 <a href={`tel:${h.number.split('/')[0].trim()}`} className="btn btn-primary btn-sm" style={{ background: '#b91c1c' }}>
                   <PhoneCall size={14} /> Call Now
@@ -96,7 +94,7 @@ export default function Emergency() {
         {/* Local Emergency Directory by Destination */}
         <div style={{
           background: '#ffffff',
-          padding: '30px',
+          padding: 'clamp(18px, 4vw, 30px)',
           borderRadius: '16px',
           border: '1px solid var(--border)',
           boxShadow: 'var(--shadow-sm)'
@@ -107,7 +105,7 @@ export default function Emergency() {
               <p style={{ fontSize: '0.88rem', color: 'var(--slate)' }}>Select your destination to view closest hospitals and police stations.</p>
             </div>
 
-            <div style={{ minWidth: '240px' }}>
+            <div style={{ width: '100%', maxWidth: '320px', minWidth: 'min(100%, 240px)' }}>
               <select
                 value={selectedDest}
                 onChange={(e) => setSelectedDest(e.target.value)}

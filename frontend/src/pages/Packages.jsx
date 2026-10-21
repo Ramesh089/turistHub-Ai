@@ -57,17 +57,15 @@ export default function Packages() {
   return (
     <div style={{ background: '#faf6f0', minHeight: '90vh', paddingBottom: '90px' }}>
       {/* Header */}
-      <div style={{
+      <div className="page-banner" style={{
         background: 'linear-gradient(135deg, #1c1917 0%, #2f1d18 100%)',
-        color: '#ffffff',
-        padding: '50px 0',
-        marginBottom: '40px'
+        color: '#ffffff'
       }}>
         <div className="container">
           <span style={{ color: '#f59e0b', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
             Curated Indian Expeditions
           </span>
-          <h1 style={{ fontSize: '2.4rem', fontFamily: 'var(--font-serif)', marginTop: '6px', marginBottom: '12px' }}>
+          <h1 className="page-banner-title">
             All-Inclusive Tour Packages
           </h1>
           <p style={{ color: '#cbd5e1', maxWidth: '650px', fontSize: '0.98rem' }}>
@@ -80,18 +78,18 @@ export default function Packages() {
         {/* Filters */}
         <div style={{
           background: '#ffffff',
-          padding: '20px 24px',
+          padding: 'clamp(14px, 3vw, 20px) clamp(16px, 3vw, 24px)',
           borderRadius: '14px',
           border: '1px solid var(--border)',
           display: 'flex',
           alignItems: 'center',
-          gap: '20px',
+          gap: '16px',
           flexWrap: 'wrap',
           marginBottom: '36px'
         }}>
-          <div>
+          <div style={{ width: 'min(100%, 200px)' }}>
             <label className="form-label" style={{ marginBottom: '4px' }}>Max Package Price (₹)</label>
-            <select value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="form-control" style={{ width: '200px' }}>
+            <select value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="form-control" style={{ width: '100%' }}>
               <option value="">Any Price</option>
               <option value="10000">Under ₹10,000</option>
               <option value="15000">Under ₹15,000</option>
@@ -99,9 +97,9 @@ export default function Packages() {
             </select>
           </div>
 
-          <div>
+          <div style={{ width: 'min(100%, 180px)' }}>
             <label className="form-label" style={{ marginBottom: '4px' }}>Trip Duration</label>
-            <select value={duration} onChange={(e) => setDuration(e.target.value)} className="form-control" style={{ width: '180px' }}>
+            <select value={duration} onChange={(e) => setDuration(e.target.value)} className="form-control" style={{ width: '100%' }}>
               <option value="">Any Duration</option>
               <option value="3">3 Days</option>
               <option value="4">4 Days</option>

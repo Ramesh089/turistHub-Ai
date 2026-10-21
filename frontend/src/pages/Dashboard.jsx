@@ -124,34 +124,29 @@ Thank you for choosing Tourist Hub AI!
   return (
     <div style={{ background: '#faf6f0', minHeight: '90vh', paddingBottom: '90px' }}>
       {/* Welcome Banner */}
-      <div style={{
+      <div className="page-banner" style={{
         background: 'linear-gradient(135deg, #1c1917 0%, #2f1d18 100%)',
-        color: '#ffffff',
-        padding: '50px 0',
-        marginBottom: '36px'
+        color: '#ffffff'
       }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap' }}>
             <img
               src="/logo.png"
               alt="Tourist AI Hub Logo"
+              className="page-banner-logo"
               style={{
-                height: '84px',
-                width: '84px',
-                borderRadius: '16px',
                 objectFit: 'contain',
                 background: 'rgba(255, 255, 255, 0.1)',
                 padding: '6px',
                 border: '1.5px solid rgba(255, 255, 255, 0.25)',
-                boxShadow: '0 6px 22px rgba(0, 0, 0, 0.4)',
-                flexShrink: 0
+                boxShadow: '0 6px 22px rgba(0, 0, 0, 0.4)'
               }}
             />
             <div>
               <span style={{ color: '#f59e0b', fontSize: '0.82rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 Tourist Travel Hub
               </span>
-              <h1 style={{ fontSize: '2.4rem', fontFamily: 'var(--font-serif)', marginTop: '6px', marginBottom: '8px' }}>
+              <h1 className="page-banner-title">
                 Namaste, {user?.name}!
               </h1>
               <p style={{ color: '#cbd5e1', fontSize: '0.95rem' }}>
@@ -160,7 +155,7 @@ Thank you for choosing Tourist Hub AI!
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <Link to="/ai-planner" className="btn btn-primary">
               <Sparkles size={16} /> Plan New Trip
             </Link>
@@ -208,9 +203,9 @@ Thank you for choosing Tourist Hub AI!
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {plans.map((p) => (
-                      <div key={p.id} className="card" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
+                      <div key={p.id} className="card dashboard-item-card">
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
                             <span className="badge badge-heritage">AI Itinerary</span>
                             <span style={{ fontSize: '0.82rem', color: 'var(--slate)' }}>
                               Created on {new Date(p.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -240,13 +235,13 @@ Thank you for choosing Tourist Hub AI!
                           </div>
                         </div>
 
-                        <div style={{ textAlign: 'right' }}>
+                        <div className="dashboard-card-action">
                           <span style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>Estimated Budget</span>
                           <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--primary)', marginBottom: '12px' }}>
                             ₹{Number(p.estimated_cost).toLocaleString('en-IN')}
                           </div>
 
-                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                             <Link
                               to={`/ai-planner?origin=${encodeURIComponent(p.origin)}&dest=${encodeURIComponent(p.destination_name)}&days=${p.days}`}
                               className="btn btn-secondary btn-sm"
@@ -287,9 +282,9 @@ Thank you for choosing Tourist Hub AI!
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {bookings.map((b) => (
-                      <div key={b.id} className="card" style={{ padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
+                      <div key={b.id} className="card dashboard-item-card">
                         <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
                             <span style={{
                               fontSize: '0.75rem',
                               fontWeight: '700',
@@ -316,7 +311,7 @@ Thank you for choosing Tourist Hub AI!
                           )}
                         </div>
 
-                        <div style={{ textAlign: 'right' }}>
+                        <div className="dashboard-card-action">
                           <span style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>Total Paid / Amount</span>
                           <div style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary)', marginBottom: '8px' }}>
                             ₹{Number(b.total_amount).toLocaleString('en-IN')}
@@ -355,10 +350,10 @@ Thank you for choosing Tourist Hub AI!
 
                 <div className="grid-2">
                   {recommendations.map((dest) => (
-                    <div key={dest.id} className="card" style={{ padding: '20px', display: 'flex', gap: '16px', alignItems: 'center' }}>
-                      <img src={dest.image_url} alt={dest.name} style={{ width: '130px', height: '110px', objectFit: 'cover', borderRadius: '10px' }} />
+                    <div key={dest.id} className="card dashboard-recom-card">
+                      <img src={dest.image_url} alt={dest.name} style={{ width: '130px', height: '110px', objectFit: 'cover', borderRadius: '10px', flexShrink: 0 }} />
                       <div style={{ flexGrow: 1 }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px', flexWrap: 'wrap', gap: '4px' }}>
                           <span className="badge badge-heritage">{dest.category}</span>
                           <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#15803d', background: '#dcfce7', padding: '2px 8px', borderRadius: '12px' }}>
                             {dest.matchScore}% Match
