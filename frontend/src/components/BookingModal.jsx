@@ -20,6 +20,10 @@ import {
   Lock,
   ArrowRight,
   Download,
+  Printer,
+  Receipt,
+  Copy,
+  Check,
   Clock,
   Hotel,
   Bus,
@@ -293,6 +297,7 @@ export default function BookingModal({
 
   const [processing, setProcessing] = useState(false);
   const [bookingResult, setBookingResult] = useState(null);
+  const [copiedField, setCopiedField] = useState(null);
 
   // Auto-apply promo from AI Planner
   useEffect(() => {
@@ -407,53 +412,328 @@ export default function BookingModal({
     }
   };
 
+  const copyToClipboard = (text, fieldName) => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(text);
+      setCopiedField(fieldName);
+      setTimeout(() => setCopiedField(null), 2000);
+    }
+  };
+
+  // ─── PRINT / SAVE AS PDF RECEIPT ──────────────────────────────────────────
+  const handlePrintReceipt = () => {
+    const tripName = item?.name || item?.title || item?.provider || 'Tourist Booking';
+    const destination = item?.location || item?.destination_name || (toCity ? `${fromCity} to ${toCity}` : 'Incredible India');
+    const txnId = bookingResult?.transaction?.demo_transaction_id || bookingResult?.transaction_id || `DEMO_TXN_${Date.now()}`;
+    const bkRef = bookingResult?.booking_reference || (bookingResult?.booking_id ? `TH-BK-${bookingResult.booking_id}` : `TH-BK-${Date.now().toString().slice(-6)}`);
+    const recNo = `REC-${new Date().getFullYear()}-${String(bookingResult?.transaction?.payment_record_id || bookingResult?.booking_id || '82941').padStart(6, '0')}`;
+    const upiAppName = upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI';
+    const methodStr = payMethod === 'UPI' ? `UPI (${upiAppName})` : payMethod === 'CARD' ? 'Debit/Credit Card' : `Net Banking (${selBank})`;
+    const travelDates = bookingType === 'hotel' ? `${checkIn} to ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate;
+    const nowStr = new Date(bookingResult?.transaction?.timestamp || Date.now()).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const printHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Payment Receipt - ${bkRef} - Tourist Hub AI</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 30px 20px;
+      color: #0f172a;
+      background: #f8fafc;
+    }
+    .receipt-container {
+      max-width: 650px;
+      margin: 0 auto;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 32px 36px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #0284c7;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+    }
+    .brand-title {
+      font-size: 24px;
+      font-weight: 900;
+      color: #0284c7;
+      letter-spacing: 0.5px;
+    }
+    .brand-sub {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 3px;
+    }
+    .paid-stamp {
+      background: #ecfdf5;
+      border: 2px solid #10b981;
+      color: #065f46;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .meta-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .meta-item span {
+      display: block;
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .meta-item strong {
+      color: #0f172a;
+      font-size: 13px;
+    }
+    .details-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .section-head {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0369a1;
+      text-transform: uppercase;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+    }
+    .breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .breakdown-table th {
+      text-align: left;
+      padding: 8px 0;
+      border-bottom: 1.5px solid #cbd5e1;
+      color: #475569;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .breakdown-table td {
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .total-line td {
+      font-size: 16px;
+      font-weight: 800;
+      color: #059669;
+      border-top: 2px solid #0f172a;
+      border-bottom: 2px solid #0f172a;
+      padding: 14px 0;
+    }
+    .disclaimer-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      font-size: 11px;
+      color: #1e40af;
+      line-height: 1.4;
+      margin-top: 20px;
+    }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .receipt-container { border: none; box-shadow: none; padding: 0; max-width: 100%; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt-container">
+    <div class="top-bar">
+      <div>
+        <div class="brand-title">TOURIST HUB AI</div>
+        <div class="brand-sub">Official Travel Booking & Payment Receipt</div>
+        <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">GSTIN: 29AAACT9821K1ZZ • Simulated Academic Booking</div>
+      </div>
+      <div class="paid-stamp">&#10003; PAID (DEMO)</div>
+    </div>
+
+    <div class="meta-box">
+      <div class="meta-item"><span>Receipt No</span><strong>${recNo}</strong></div>
+      <div class="meta-item"><span>Payment Date</span><strong>${nowStr}</strong></div>
+      <div class="meta-item"><span>Booking Ref</span><strong style="color:#0284c7">${bkRef}</strong></div>
+      <div class="meta-item"><span>Transaction ID</span><strong style="font-family:monospace">${txnId}</strong></div>
+    </div>
+
+    <div class="details-row">
+      <div>
+        <div class="section-head">Billed To</div>
+        <div><strong>${user?.name || user?.full_name || 'Demo Traveler'}</strong></div>
+        <div style="color:#64748b">${user?.email || 'traveler@example.com'}</div>
+        ${user?.phone ? `<div style="color:#64748b">Phone: ${user.phone}</div>` : ''}
+      </div>
+
+      <div>
+        <div class="section-head">Reservation Summary</div>
+        <div><strong>${tripName}</strong></div>
+        <div style="color:#64748b">Destination: ${destination}</div>
+        <div style="color:#64748b">Travel Date: ${travelDates}</div>
+        <div style="color:#64748b">Guests/Seats: ${guests} Person(s)</div>
+      </div>
+    </div>
+
+    <table class="breakdown-table">
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th style="text-align:right">Amount (INR)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Base Fare / Booking Fee (${bookingType.toUpperCase()})</td>
+          <td style="text-align:right">&#8377;${baseAmount.toLocaleString('en-IN')}</td>
+        </tr>
+        ${savingsAmt > 0 ? `
+        <tr>
+          <td style="color:#059669">Promotional Discount (${appliedPromo?.code})</td>
+          <td style="text-align:right; color:#059669">&#8722;&#8377;${savingsAmt.toLocaleString('en-IN')}</td>
+        </tr>` : ''}
+        <tr>
+          <td>Goods & Services Tax (GST 5%)</td>
+          <td style="text-align:right">&#8377;${gst.toLocaleString('en-IN')}</td>
+        </tr>
+        <tr class="total-line">
+          <td>Total Amount Paid (${methodStr})</td>
+          <td style="text-align:right">&#8377;${totalAmt.toLocaleString('en-IN')}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="disclaimer-box">
+      <strong>Academic Demonstration Notice:</strong> This receipt was generated as part of a safe academic simulation on Tourist Hub AI.<br/>
+      No real money was charged or transferred. Thank you for using Tourist Hub AI!
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 350);
+    } else {
+      const blob = new Blob([printHtml], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `TouristHub_Payment_Receipt_${bkRef}.html`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  };
+
   // ─── DOWNLOAD DEMO RECEIPT ────────────────────────────────────────────────
   const handleDownloadReceipt = () => {
     const tripName = item?.name || item?.title || item?.provider || 'Tourist Booking';
-    const destination = item?.location || item?.destination_name || 'Incredible India';
+    const destination = item?.location || item?.destination_name || (toCity ? `${fromCity} to ${toCity}` : 'Incredible India');
     const txnId = bookingResult?.transaction?.demo_transaction_id || `DEMO_TXN_${Date.now()}`;
-    const bkRef = bookingResult?.booking_reference || `TH-BK-${bookingResult?.booking_id || '9821'}`;
+    const bkRef = bookingResult?.booking_reference || (bookingResult?.booking_id ? `TH-BK-${bookingResult.booking_id}` : `TH-BK-${Date.now().toString().slice(-6)}`);
+    const recNo = `REC-${new Date().getFullYear()}-${String(bookingResult?.transaction?.payment_record_id || bookingResult?.booking_id || '82941').padStart(6, '0')}`;
     const upiAppName = upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI';
     const methodStr = payMethod === 'UPI' ? `UPI (${upiAppName})` : payMethod === 'CARD' ? 'Debit/Credit Card' : `Net Banking (${selBank})`;
+    const travelDates = bookingType === 'hotel' ? `${checkIn} to ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate;
+    const nowStr = new Date(bookingResult?.transaction?.timestamp || Date.now()).toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      dateStyle: 'full',
+      timeStyle: 'medium'
+    });
 
     const textReceipt = `
-============================================================
-              TOURIST HUB AI — DEMO PAYMENT RECEIPT
-             Incredible India Safe Travel Companion
-============================================================
-Receipt No:     REC-${Date.now().toString().slice(-6)}
-Booking Ref:    ${bkRef}
-Demo Txn ID:    ${txnId}
-Date & Time:    ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+================================================================================
+                    TOURIST HUB AI — OFFICIAL PAYMENT RECEIPT
+                         Incredible India Travel Companion
+================================================================================
+RECEIPT NO:         ${recNo}
+BOOKING REFERENCE:  ${bkRef}
+DEMO TXN ID:        ${txnId}
+DATE & TIME:        ${nowStr}
+PAYMENT STATUS:     PAID • DEMO SIMULATION
 
+--------------------------------------------------------------------------------
 CUSTOMER DETAILS:
-Name:           ${user?.name || user?.full_name || 'Demo Traveler'}
-Email:          ${user?.email || 'traveler@example.com'}
+--------------------------------------------------------------------------------
+Name:               ${user?.name || user?.full_name || 'Demo Traveler'}
+Email:              ${user?.email || 'traveler@example.com'}
+Phone:              ${user?.phone || 'Not provided'}
 
-BOOKING DETAILS:
-Service / Trip: ${tripName}
-Destination:    ${destination}
-Travel Date:    ${bookingType === 'hotel' ? `${checkIn} to ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate}
-Guests / Seats: ${guests} Person(s)
+--------------------------------------------------------------------------------
+RESERVATION DETAILS:
+--------------------------------------------------------------------------------
+Service / Trip:     ${tripName}
+Destination:        ${destination}
+Travel Schedule:    ${travelDates}
+Travelers / Guests: ${guests} Person(s)
+Booking Type:       ${bookingType.toUpperCase()}
 
+--------------------------------------------------------------------------------
 FINANCIAL BREAKDOWN:
-Base Amount:    ₹${baseAmount.toLocaleString('en-IN')}
-Coupon Savings: ${savingsAmt > 0 ? `-₹${savingsAmt.toLocaleString('en-IN')} (${appliedPromo?.code})` : '₹0'}
-GST & Taxes:    ₹${gst.toLocaleString('en-IN')}
-Total Paid:     ₹${totalAmt.toLocaleString('en-IN')}
-Payment Method: ${methodStr}
-Payment Status: SUCCESS (DEMO SIMULATION)
+--------------------------------------------------------------------------------
+Base Amount:        ₹${baseAmount.toLocaleString('en-IN')}
+Coupon Savings:     ${savingsAmt > 0 ? `-₹${savingsAmt.toLocaleString('en-IN')} (${appliedPromo?.code})` : '₹0'}
+GST & Taxes (5%):   ₹${gst.toLocaleString('en-IN')}
+--------------------------------------------------------------------------------
+TOTAL AMOUNT PAID:  ₹${totalAmt.toLocaleString('en-IN')}
+PAYMENT METHOD:     ${methodStr}
+PAYMENT STATUS:     Authorized & Settled (Simulated)
+--------------------------------------------------------------------------------
 
-------------------------------------------------------------
+================================================================================
 NOTICE: This is an academic demo simulation transaction.
-        No real money was charged or transferred.
-============================================================
+        No actual money was charged or transferred.
+Thank you for choosing Tourist Hub AI!
+================================================================================
 `;
     const blob = new Blob([textReceipt], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `TouristHub_Demo_Receipt_${bkRef}.txt`;
+    link.download = `TouristHub_Payment_Receipt_${bkRef}.txt`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -482,7 +762,7 @@ NOTICE: This is an academic demo simulation transaction.
           background: '#ffffff',
           borderRadius: '20px',
           width: '100%',
-          maxWidth: step === 'details' ? '620px' : '520px',
+          maxWidth: (step === 'details' || step === 'success') ? '640px' : '520px',
           maxHeight: '92vh',
           overflowY: 'auto',
           boxShadow: '0 25px 70px rgba(0, 0, 0, 0.16)',
@@ -496,13 +776,13 @@ NOTICE: This is an academic demo simulation transaction.
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
           <div>
             <h2 style={{ fontSize: '1.45rem', fontWeight: '800', color: '#0f172a', margin: 0, fontFamily: 'var(--font-serif, sans-serif)' }}>
-              {step === 'details' ? 'Booking Details' : step === 'success' ? 'Payment Confirmed' : step === 'failed' ? 'Payment Status' : 'Payment Options'}
+              {step === 'details' ? 'Booking Details' : step === 'success' ? 'Payment Successful' : step === 'failed' ? 'Payment Status' : 'Payment Options'}
             </h2>
             <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>
               {step === 'details'
                 ? 'Customize your travel details before continuing.'
                 : step === 'success'
-                  ? 'Your demo booking has been successfully recorded.'
+                  ? 'Your payment is confirmed and official booking receipt has been generated.'
                   : step === 'failed'
                     ? 'Simulated payment outcome for testing.'
                     : 'Choose a secure payment method to continue with your booking.'}
@@ -1206,160 +1486,432 @@ NOTICE: This is an academic demo simulation transaction.
           </div>
         )}
 
-        {/* ═══════════════ STEP 3 — SUCCESS RESULT (Section 4) ═══════════════ */}
-        {step === 'success' && (
-          <div style={{ textAlign: 'center', padding: '10px 0' }}>
-            <div
-              style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '50%',
-                background: '#ecfdf5',
-                border: '2px solid #a7f3d0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 14px auto',
-                color: '#059669'
-              }}
-            >
-              <CheckCircle size={36} />
-            </div>
+        {/* ═══════════════ STEP 3 — SUCCESS RESULT & PAYMENT RECEIPT ═══════════════ */}
+        {step === 'success' && (() => {
+          const destination = item?.location || item?.destination_name || (toCity ? `${fromCity} to ${toCity}` : 'Incredible India');
+          const txnId = bookingResult?.transaction?.demo_transaction_id || bookingResult?.transaction_id || `DEMO_TXN_${Date.now()}`;
+          const bkRef = bookingResult?.booking_reference || (bookingResult?.booking_id ? `TH-BK-${bookingResult.booking_id}` : `TH-BK-${Date.now().toString().slice(-6)}`);
+          const recNo = `REC-${new Date().getFullYear()}-${String(bookingResult?.transaction?.payment_record_id || bookingResult?.booking_id || '82941').padStart(6, '0')}`;
+          const upiAppName = upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI';
+          const methodStr = payMethod === 'UPI' ? `UPI (${upiAppName})` : payMethod === 'CARD' ? 'Debit/Credit Card' : `Net Banking (${selBank})`;
+          const travelDates = bookingType === 'hotel' ? `${checkIn} to ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate;
+          const formattedDate = new Date(bookingResult?.transaction?.timestamp || Date.now()).toLocaleString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
 
-            <h3 style={{ fontSize: '1.4rem', color: '#065f46', fontWeight: '800', margin: '0 0 6px 0' }}>
-              Demo Payment Successful
-            </h3>
-
-            {/* Disclaimer Callout */}
-            <div
-              style={{
-                background: '#eff6ff',
-                border: '1px solid #bfdbfe',
-                borderRadius: '8px',
-                padding: '8px 12px',
-                color: '#1e40af',
-                fontSize: '0.8rem',
-                fontWeight: '600',
-                marginBottom: '18px'
-              }}
-            >
-              This is a simulated transaction. No real money was charged.
-            </div>
-
-            {/* Receipt Summary Voucher */}
-            <div
-              style={{
-                background: '#f8fafc',
-                borderRadius: '12px',
-                border: '1px solid #e2e8f0',
-                padding: '16px',
-                textAlign: 'left',
-                marginBottom: '20px'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '12px' }}>
-                <div>
-                  <div style={{ fontSize: '0.68rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Booking Reference</div>
-                  <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0284c7' }}>
-                    {bookingResult?.booking_reference || `TH-BK-${bookingResult?.booking_id || '9821'}`}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '0.68rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Demo Transaction ID</div>
-                  <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#334155' }}>
-                    {bookingResult?.transaction?.demo_transaction_id || bookingResult?.transaction_id || `DEMO_TXN_${Date.now()}`}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.82rem', marginBottom: '12px' }}>
-                <div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Trip / Item</div>
-                  <div style={{ fontWeight: '700', color: '#0f172a' }}>{tripName}</div>
-                </div>
-                <div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Payment Method</div>
-                  <div style={{ fontWeight: '700', color: '#0f172a' }}>
-                    {payMethod} ({payMethod === 'UPI' ? (upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI') : payMethod === 'CARD' ? 'Card' : selBank})
-                  </div>
-                </div>
-                <div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Travel Date</div>
-                  <div style={{ fontWeight: '700', color: '#0f172a' }}>
-                    {bookingType === 'hotel' ? `${checkIn} to ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Travelers</div>
-                  <div style={{ fontWeight: '700', color: '#0f172a' }}>{guests} Person(s)</div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '10px', fontWeight: '800', fontSize: '0.98rem' }}>
-                <span>Amount Paid (Demo)</span>
-                <span style={{ color: '#059669' }}>₹{totalAmt.toLocaleString('en-IN')}</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  navigate('/dashboard');
+          return (
+            <div className="animate-fade-in" style={{ padding: '6px 0' }}>
+              {/* 1. TOP CELEBRATORY SUCCESS BANNER */}
+              <div
+                style={{
+                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                  border: '1.5px solid #a7f3d0',
+                  borderRadius: '16px',
+                  padding: '16px 18px',
+                  marginBottom: '18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '14px',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.12)'
                 }}
-                className="btn btn-primary"
-                style={{ width: '100%', justifyContent: 'center', fontWeight: '700', borderRadius: '10px', height: '44px' }}
               >
-                View Booking in Dashboard
-              </button>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <button
-                  type="button"
-                  onClick={handleDownloadReceipt}
+                <div
                   style={{
-                    background: '#f8fafc',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '10px',
-                    padding: '9px 12px',
-                    fontSize: '0.8rem',
-                    fontWeight: '700',
-                    color: '#334155',
-                    cursor: 'pointer',
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    background: '#059669',
+                    color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px'
+                    flexShrink: 0,
+                    boxShadow: '0 4px 12px rgba(5, 150, 105, 0.35)'
                   }}
                 >
-                  <Download size={15} /> Download Receipt
-                </button>
+                  <CheckCircle2 size={30} />
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    navigate('/explore');
-                  }}
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid #0084ff',
-                    borderRadius: '10px',
-                    padding: '9px 12px',
-                    fontSize: '0.8rem',
-                    fontWeight: '700',
-                    color: '#0084ff',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Back to Explore
-                </button>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#065f46', margin: 0 }}>
+                      Your Payment is Successful!
+                    </h3>
+                    <span
+                      style={{
+                        background: '#059669',
+                        color: '#ffffff',
+                        fontSize: '0.68rem',
+                        fontWeight: '700',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        letterSpacing: '0.5px'
+                      }}
+                    >
+                      CONFIRMED
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.82rem', color: '#047857', margin: '4px 0 0 0' }}>
+                    Thank you! Your travel booking has been confirmed. Below is your official payment receipt.
+                  </p>
+                </div>
+              </div>
+
+              {/* 2. AUTHENTIC PAYMENT RECEIPT CARD */}
+              <div
+                id="touristhub-receipt-view"
+                style={{
+                  background: '#ffffff',
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '14px',
+                  boxShadow: '0 6px 24px rgba(0, 0, 0, 0.06)',
+                  overflow: 'hidden',
+                  marginBottom: '18px'
+                }}
+              >
+                {/* Top Gradient Ribbon */}
+                <div style={{ height: '5px', background: 'linear-gradient(90deg, #0284c7 0%, #10b981 100%)' }} />
+
+                <div style={{ padding: '20px 22px' }}>
+                  {/* Receipt Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1.5px solid #f1f5f9', paddingBottom: '14px', marginBottom: '14px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Receipt size={20} color="#0284c7" />
+                        <span style={{ fontSize: '1.05rem', fontWeight: '900', color: '#0f172a', letterSpacing: '0.5px' }}>
+                          TOURIST HUB AI
+                        </span>
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '2px', fontWeight: '500' }}>
+                        Official Payment Receipt & Travel Voucher
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          background: '#ecfdf5',
+                          border: '1.5px solid #10b981',
+                          color: '#065f46',
+                          borderRadius: '6px',
+                          padding: '4px 10px',
+                          fontSize: '0.74rem',
+                          fontWeight: '800',
+                          letterSpacing: '0.5px',
+                          textTransform: 'uppercase'
+                        }}
+                      >
+                        <CheckCircle size={13} color="#10b981" /> PAID (DEMO)
+                      </span>
+                      <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '4px' }}>
+                        GSTIN: 29AAACT9821K1ZZ
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Receipt Metadata Grid (Receipt No, Date, Ref ID, Txn ID) */}
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '10px',
+                      padding: '12px 14px',
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(2, 1fr)',
+                      gap: '10px',
+                      marginBottom: '16px'
+                    }}
+                  >
+                    <div>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', display: 'block' }}>
+                        Receipt Number
+                      </span>
+                      <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{recNo}</strong>
+                    </div>
+
+                    <div>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', display: 'block' }}>
+                        Payment Date & Time
+                      </span>
+                      <strong style={{ fontSize: '0.82rem', color: '#0f172a' }}>{formattedDate}</strong>
+                    </div>
+
+                    <div>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', display: 'block' }}>
+                        Booking Reference
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <strong style={{ fontSize: '0.88rem', color: '#0284c7' }}>{bkRef}</strong>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(bkRef, 'ref')}
+                          title="Copy Booking Reference"
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '2px',
+                            cursor: 'pointer',
+                            color: copiedField === 'ref' ? '#059669' : '#94a3b8',
+                            display: 'inline-flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          {copiedField === 'ref' ? <Check size={13} /> : <Copy size={13} />}
+                        </button>
+                        {copiedField === 'ref' && <span style={{ fontSize: '0.65rem', color: '#059669', fontWeight: '700' }}>Copied!</span>}
+                      </div>
+                    </div>
+
+                    <div>
+                      <span style={{ fontSize: '0.68rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', display: 'block' }}>
+                        Transaction ID (Demo)
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '0.78rem', color: '#334155', fontFamily: 'monospace', fontWeight: '600' }}>
+                          {txnId.length > 20 ? `${txnId.slice(0, 18)}...` : txnId}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(txnId, 'txn')}
+                          title="Copy Transaction ID"
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '2px',
+                            cursor: 'pointer',
+                            color: copiedField === 'txn' ? '#059669' : '#94a3b8',
+                            display: 'inline-flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          {copiedField === 'txn' ? <Check size={13} /> : <Copy size={13} />}
+                        </button>
+                        {copiedField === 'txn' && <span style={{ fontSize: '0.65rem', color: '#059669', fontWeight: '700' }}>Copied!</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2-Column Details: Customer vs Trip */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px', fontSize: '0.82rem' }}>
+                    {/* Billed To */}
+                    <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '8px', padding: '10px 12px' }}>
+                      <div style={{ fontSize: '0.68rem', color: '#0284c7', textTransform: 'uppercase', fontWeight: '800', marginBottom: '4px' }}>
+                        Billed To
+                      </div>
+                      <div style={{ fontWeight: '800', color: '#0f172a' }}>
+                        {user?.name || user?.full_name || 'Traveler'}
+                      </div>
+                      <div style={{ color: '#64748b', fontSize: '0.78rem', wordBreak: 'break-all' }}>
+                        {user?.email || 'traveler@example.com'}
+                      </div>
+                      {user?.phone && (
+                        <div style={{ color: '#64748b', fontSize: '0.76rem', marginTop: '2px' }}>
+                          Phone: {user.phone}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Reservation Item */}
+                    <div style={{ background: '#ffffff', border: '1px solid #f1f5f9', borderRadius: '8px', padding: '10px 12px' }}>
+                      <div style={{ fontSize: '0.68rem', color: '#0284c7', textTransform: 'uppercase', fontWeight: '800', marginBottom: '4px' }}>
+                        Reservation
+                      </div>
+                      <div style={{ fontWeight: '800', color: '#0f172a' }}>{tripName}</div>
+                      <div style={{ color: '#64748b', fontSize: '0.78rem' }}>📍 {destination}</div>
+                      <div style={{ color: '#64748b', fontSize: '0.76rem', marginTop: '2px' }}>
+                        📅 {travelDates} • 👥 {guests} Person{guests > 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Perforated Divider */}
+                  <div
+                    style={{
+                      borderTop: '1.5px dashed #cbd5e1',
+                      margin: '12px 0 14px 0',
+                      position: 'relative'
+                    }}
+                  />
+
+                  {/* Line Items & Financial Breakdown */}
+                  <div style={{ marginBottom: '14px' }}>
+                    <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#475569', textTransform: 'uppercase', marginBottom: '8px' }}>
+                      Payment Breakdown
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', color: '#475569', marginBottom: '6px' }}>
+                      <span>Base Fare / Booking Fee</span>
+                      <span>₹{baseAmount.toLocaleString('en-IN')}</span>
+                    </div>
+
+                    {savingsAmt > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', color: '#059669', fontWeight: '700', marginBottom: '6px' }}>
+                        <span>Coupon Discount ({appliedPromo?.code})</span>
+                        <span>− ₹{savingsAmt.toLocaleString('en-IN')}</span>
+                      </div>
+                    )}
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', color: '#475569', marginBottom: '10px' }}>
+                      <span>GST & Platform Taxes (5%)</span>
+                      <span>+ ₹{gst.toLocaleString('en-IN')}</span>
+                    </div>
+
+                    {/* Grand Total Row */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        background: '#f0fdf4',
+                        border: '1.5px solid #86efac',
+                        borderRadius: '8px',
+                        padding: '10px 14px'
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontSize: '0.68rem', color: '#047857', textTransform: 'uppercase', fontWeight: '800' }}>
+                          Total Paid ({methodStr})
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: '#059669' }}>
+                          Transaction Status: Authorized & Settled
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '1.35rem', fontWeight: '900', color: '#065f46', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                        <IndianRupee size={20} />{totalAmt.toLocaleString('en-IN')}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Academic Project Simulation Notice */}
+                  <div
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      padding: '8px 12px',
+                      fontSize: '0.72rem',
+                      color: '#64748b',
+                      textAlign: 'center',
+                      lineHeight: 1.4
+                    }}
+                  >
+                    🔒 <strong>Academic Demo Mode:</strong> This receipt is generated for simulated testing. No real money was charged or transferred.
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. RECEIPT ACTION BUTTONS */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* Row 1: Print & Download */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={handlePrintReceipt}
+                    style={{
+                      background: '#0084ff',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '10px',
+                      padding: '11px 14px',
+                      fontSize: '0.85rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      boxShadow: '0 3px 10px rgba(0, 132, 255, 0.25)',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(0.94)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
+                  >
+                    <Printer size={16} /> Print / Save as PDF
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleDownloadReceipt}
+                    style={{
+                      background: '#ffffff',
+                      border: '1.5px solid #cbd5e1',
+                      borderRadius: '10px',
+                      padding: '11px 14px',
+                      fontSize: '0.85rem',
+                      fontWeight: '700',
+                      color: '#334155',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#ffffff'; }}
+                  >
+                    <Download size={16} /> Download Receipt
+                  </button>
+                </div>
+
+                {/* Row 2: View in Dashboard & Back to Explore */}
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      navigate('/dashboard');
+                    }}
+                    style={{
+                      background: '#f1f5f9',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '10px',
+                      padding: '10px 14px',
+                      fontSize: '0.84rem',
+                      fontWeight: '700',
+                      color: '#0f172a',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#e2e8f0'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
+                  >
+                    View in My Bookings <ArrowRight size={15} />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    style={{
+                      background: 'none',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '10px',
+                      padding: '10px 14px',
+                      fontSize: '0.84rem',
+                      fontWeight: '600',
+                      color: '#64748b',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ═══════════════ STEP 4 — FAILED RESULT (Section 4) ═══════════════ */}
         {step === 'failed' && (

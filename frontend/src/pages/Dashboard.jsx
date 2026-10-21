@@ -15,7 +15,9 @@ import {
   CheckCircle,
   AlertCircle,
   ExternalLink,
-  Settings
+  Settings,
+  Receipt,
+  Download
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -59,6 +61,64 @@ export default function Dashboard() {
     } catch (err) {
       console.error('Delete plan error:', err);
     }
+  };
+
+  const downloadBookingReceipt = (b) => {
+    const itemName = b.package_title || b.destination_name || b.hotel_name || b.transport_provider || 'Travel Booking';
+    const bkRef = `TH-BK-${b.id}`;
+    const txnId = b.transaction_id || `DEMO_TXN_${b.id}_PAID`;
+    const recNo = `REC-${new Date(b.created_at || Date.now()).getFullYear()}-${String(b.id).padStart(6, '0')}`;
+    const nowStr = new Date(b.created_at || Date.now()).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'medium' });
+
+    const textReceipt = `
+================================================================================
+                    TOURIST HUB AI — OFFICIAL PAYMENT RECEIPT
+                         Incredible India Travel Companion
+================================================================================
+RECEIPT NO:         ${recNo}
+BOOKING REFERENCE:  ${bkRef}
+DEMO TXN ID:        ${txnId}
+DATE & TIME:        ${nowStr}
+PAYMENT STATUS:     PAID • DEMO SIMULATION
+
+--------------------------------------------------------------------------------
+CUSTOMER DETAILS:
+--------------------------------------------------------------------------------
+Name:               ${user?.name || user?.full_name || 'Valued Traveler'}
+Email:              ${user?.email || 'traveler@touristhub.ai'}
+
+--------------------------------------------------------------------------------
+RESERVATION DETAILS:
+--------------------------------------------------------------------------------
+Service / Item:     ${itemName}
+Booking Type:       ${b.booking_type || 'Package'}
+Travel Date:        ${new Date(b.travel_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
+Travelers / Guests: ${b.people_count} Person(s)
+Special Requests:   ${b.special_requests || 'None'}
+
+--------------------------------------------------------------------------------
+FINANCIAL BREAKDOWN:
+--------------------------------------------------------------------------------
+Total Amount Paid:  ₹${Number(b.total_amount).toLocaleString('en-IN')}
+Payment Method:     ${b.payment_method || 'UPI / Online'}
+Payment Status:     Authorized & Settled (Simulated)
+--------------------------------------------------------------------------------
+
+================================================================================
+NOTICE: This is an academic demo simulation transaction.
+        No actual money was charged or transferred.
+Thank you for choosing Tourist Hub AI!
+================================================================================
+`;
+    const blob = new Blob([textReceipt], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `TouristHub_Payment_Receipt_${bkRef}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -261,8 +321,19 @@ export default function Dashboard() {
                           <div style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary)', marginBottom: '8px' }}>
                             ₹{Number(b.total_amount).toLocaleString('en-IN')}
                           </div>
-                          <div style={{ fontSize: '0.82rem', color: '#16a34a', fontWeight: '600' }}>
-                            ✓ Customer Support Assigned
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
+                            <div style={{ fontSize: '0.82rem', color: '#16a34a', fontWeight: '600' }}>
+                              ✓ Confirmed
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => downloadBookingReceipt(b)}
+                              className="btn btn-secondary btn-sm"
+                              style={{ fontSize: '0.74rem', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                              title="Download Official Payment Receipt"
+                            >
+                              <Receipt size={13} color="#0284c7" /> Receipt
+                            </button>
                           </div>
                         </div>
                       </div>
