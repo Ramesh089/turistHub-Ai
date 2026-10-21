@@ -88,7 +88,7 @@ async function initDatabase() {
           }
         }
       }
-      console.log('✅ All 14 application tables verified.');
+      console.log('✅ All 15 application tables verified.');
     }
 
     // 2. Safe Column Additions for backward/forward compatibility

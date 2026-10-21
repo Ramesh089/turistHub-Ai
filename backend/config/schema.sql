@@ -305,3 +305,23 @@ CREATE TABLE IF NOT EXISTS reviews (
   CONSTRAINT fk_reviews_destination FOREIGN KEY (destination_id) REFERENCES tourist_places(id) ON DELETE CASCADE,
   CONSTRAINT fk_reviews_package FOREIGN KEY (package_id) REFERENCES travel_packages(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 15. payments (Demo Payment Simulations)
+CREATE TABLE IF NOT EXISTS payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  booking_id INT NOT NULL,
+  user_id INT NOT NULL,
+  demo_transaction_id VARCHAR(100) NOT NULL UNIQUE,
+  payment_method VARCHAR(50) NOT NULL,
+  payment_submethod VARCHAR(50) NULL,
+  amount DECIMAL(10,2) NOT NULL,
+  currency VARCHAR(10) DEFAULT 'INR',
+  payment_status ENUM('demo_success', 'demo_failed', 'demo_cancelled') NOT NULL DEFAULT 'demo_success',
+  is_demo TINYINT(1) DEFAULT 1,
+  error_reason VARCHAR(255) NULL,
+  metadata JSON NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_payments_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE,
+  CONSTRAINT fk_payments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

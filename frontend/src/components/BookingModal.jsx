@@ -3,33 +3,58 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
-  X, ShieldCheck, CheckCircle, IndianRupee, Calendar, Users, Tag,
-  CreditCard, QrCode, Building2, Lock, ArrowRight, Download, Sparkles,
-  Clock, Hotel, Bus, Package, ChevronLeft, Wifi, Coffee, Utensils,
-  Wind, Star, MapPin, Smartphone, AlertCircle, Gift
+  X,
+  ShieldCheck,
+  Shield,
+  CheckCircle,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+  IndianRupee,
+  Calendar,
+  Users,
+  Tag,
+  CreditCard,
+  QrCode,
+  Building2,
+  Lock,
+  ArrowRight,
+  Download,
+  Clock,
+  Hotel,
+  Bus,
+  Package,
+  ChevronLeft,
+  Wifi,
+  Coffee,
+  Utensils,
+  Wind,
+  Star,
+  MapPin,
+  Gift,
+  RotateCcw
 } from 'lucide-react';
 
-// ─── Available promo codes (these are also validated server-side) ─────────────
+// ─── Available promotional discount codes ─────────────────────────────────────
 const PROMOS = [
-  { code: 'NAMASTE10',    label: '10% off',         hint: '10% on any booking' },
-  { code: 'AIPLAN1500',   label: '₹1,500 off',      hint: 'AI Itinerary reward' },
-  { code: 'INCREDIBLE2026', label: '₹2,000 off',    hint: 'Incredible India special' },
-  { code: 'FIRSTTRIP',   label: '₹500 off',         hint: 'First booking discount' },
+  { code: 'NAMASTE10', label: '10% off', hint: '10% on any booking' },
+  { code: 'AIPLAN1500', label: '₹1,500 off', hint: 'AI Itinerary reward' },
+  { code: 'INCREDIBLE2026', label: '₹2,000 off', hint: 'Incredible India special' },
+  { code: 'FIRSTTRIP', label: '₹1,000 off', hint: 'First booking voucher' }
 ];
 
-// ─── Seat layout for buses / trains ──────────────────────────────────────────
-const BOOKED_SEATS = [3, 7, 12, 15, 19, 24, 28]; // pre-booked seat numbers
+// Pre-booked seat numbers for transport
+const BOOKED_SEATS = [3, 7, 12, 15, 19, 24, 28];
 
 function SeatMap({ totalSeats = 40, selectedSeats, onToggle }) {
   const rows = Math.ceil(totalSeats / 4);
   return (
     <div>
-      {/* Legend */}
       <div style={{ display: 'flex', gap: 16, fontSize: '0.75rem', marginBottom: 10, flexWrap: 'wrap' }}>
         {[
           { color: '#e0f2fe', border: '#0284c7', label: 'Available' },
           { color: '#0284c7', border: '#0284c7', label: 'Selected', textColor: '#fff' },
-          { color: '#f1f5f9', border: '#cbd5e1', label: 'Booked' },
+          { color: '#f1f5f9', border: '#cbd5e1', label: 'Booked' }
         ].map(({ color, border, label, textColor }) => (
           <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <span style={{ width: 14, height: 14, borderRadius: 3, background: color, border: `1.5px solid ${border}`, color: textColor, display: 'inline-block' }} />
@@ -38,7 +63,6 @@ function SeatMap({ totalSeats = 40, selectedSeats, onToggle }) {
         ))}
       </div>
 
-      {/* Driver cabin label */}
       <div style={{ textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8', marginBottom: 8, letterSpacing: 1 }}>
         — DRIVER CABIN —
       </div>
@@ -62,7 +86,8 @@ function SeatMap({ totalSeats = 40, selectedSeats, onToggle }) {
                     onClick={() => !isBooked && onToggle(seat)}
                     title={isBooked ? 'Seat booked' : `Seat ${seat}`}
                     style={{
-                      width: 34, height: 34,
+                      width: 34,
+                      height: 34,
                       borderRadius: 6,
                       fontSize: '0.7rem',
                       fontWeight: 700,
@@ -70,7 +95,7 @@ function SeatMap({ totalSeats = 40, selectedSeats, onToggle }) {
                       background: isBooked ? '#f1f5f9' : isSelected ? '#0284c7' : '#e0f2fe',
                       color: isBooked ? '#94a3b8' : isSelected ? '#fff' : '#0369a1',
                       cursor: isBooked ? 'not-allowed' : 'pointer',
-                      transition: 'all 0.15s',
+                      transition: 'all 0.15s'
                     }}
                   >
                     {seat}
@@ -85,41 +110,72 @@ function SeatMap({ totalSeats = 40, selectedSeats, onToggle }) {
   );
 }
 
-// ─── ROOM OPTION CARD ─────────────────────────────────────────────────────────
 function RoomCard({ room, selected, onSelect }) {
-  const amenityIcons = { WiFi: <Wifi size={13} />, Breakfast: <Coffee size={13} />, AC: <Wind size={13} />, Meals: <Utensils size={13} /> };
+  const amenityIcons = {
+    WiFi: <Wifi size={13} />,
+    Breakfast: <Coffee size={13} />,
+    AC: <Wind size={13} />,
+    Meals: <Utensils size={13} />
+  };
   return (
     <div
       onClick={() => onSelect(room)}
       style={{
         border: selected ? '2.5px solid #0284c7' : '1.5px solid #e2e8f0',
-        borderRadius: 12, padding: '14px 16px', cursor: 'pointer',
+        borderRadius: 12,
+        padding: '14px 16px',
+        cursor: 'pointer',
         background: selected ? '#f0f9ff' : '#fff',
         transition: 'all 0.18s',
         position: 'relative'
       }}
     >
       {selected && (
-        <span style={{
-          position: 'absolute', top: 10, right: 10,
-          background: '#0284c7', color: '#fff',
-          borderRadius: '50%', width: 20, height: 20,
-          display: 'flex', alignItems: 'center', justifyContent: 'center'
-        }}>
+        <span
+          style={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            background: '#0284c7',
+            color: '#fff',
+            borderRadius: '50%',
+            width: 20,
+            height: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
           <CheckCircle size={14} />
         </span>
       )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
         <strong style={{ fontSize: '0.93rem', color: '#0f172a' }}>{room.name}</strong>
         <span style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0284c7' }}>
-          ₹{room.price.toLocaleString('en-IN')}<span style={{ fontSize: '0.7rem', fontWeight: 500, color: '#64748b' }}>/night</span>
+          ₹{room.price.toLocaleString('en-IN')}
+          <span style={{ fontSize: '0.7rem', fontWeight: 500, color: '#64748b' }}>/night</span>
         </span>
       </div>
       <div style={{ fontSize: '0.78rem', color: '#475569', marginBottom: 8 }}>{room.desc}</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        {room.amenities.map(a => (
-          <span key={a} style={{ display: 'flex', alignItems: 'center', gap: 3, background: '#f0f9ff', border: '1px solid #bae6fd', padding: '2px 8px', borderRadius: 20, fontSize: '0.72rem', color: '#0369a1', fontWeight: 600 }}>
-            {amenityIcons[a] || null}{a}
+        {room.amenities.map((a) => (
+          <span
+            key={a}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+              background: '#f0f9ff',
+              border: '1px solid #bae6fd',
+              padding: '2px 8px',
+              borderRadius: 20,
+              fontSize: '0.72rem',
+              color: '#0369a1',
+              fontWeight: 600
+            }}
+          >
+            {amenityIcons[a] || null}
+            {a}
           </span>
         ))}
       </div>
@@ -127,111 +183,130 @@ function RoomCard({ room, selected, onSelect }) {
   );
 }
 
-// ─── UPI DEEP LINK helpers ───────────────────────────────────────────────────
-function buildUpiLink(app, amount, ref) {
-  const upiId = 'touristhub@okhdfcbank';
-  const name = 'Tourist AI Hub';
-  const note = `Booking Ref ${ref}`;
-  const base = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-  const appLinks = {
-    gpay:    `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-    phonepe: `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-    paytm:   `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-    bhim:    `bhim://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-  };
-  return appLinks[app] || base;
+// ─── AUTHENTIC BRAND SVG LOGOS (Matching Reference Image 1) ─────────────────
+function GooglePayLogo() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+      <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+      <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+      <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+      <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+    </svg>
+  );
 }
 
-// ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
-/**
- * Universal BookingModal
- * Props:
- *   bookingType  – 'hotel' | 'transport' | 'package'
- *   item         – the hotel / transport / package object
- *   initialPlan  – (optional) AI plan for pre-fill
- *   onClose      – close handler
- *   onComplete   – called with booking result after success
- */
-export default function BookingModal({ bookingType = 'package', item, initialPlan = null, onClose, onComplete }) {
+function PhonePeLogo() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 36 36" fill="none">
+      <rect width="36" height="36" rx="9" fill="#5F259F"/>
+      <path d="M18.2 8H12v20h4.2v-6.2h2.2c4.3 0 7.4-2.8 7.4-6.9s-3.1-6.9-7.4-6.9zm0 9.8h-2.2v-5.8h2.2c2.2 0 3.6 1.2 3.6 2.9s-1.4 2.9-3.6 2.9z" fill="#ffffff"/>
+      <path d="M20 15l6 13h-4.2L16.5 17" fill="#ffffff"/>
+    </svg>
+  );
+}
+
+function PaytmLogo() {
+  return (
+    <svg width="34" height="24" viewBox="0 0 68 28" fill="none">
+      <rect width="68" height="28" rx="6" fill="#ffffff"/>
+      <text x="4" y="20" fill="#002970" fontSize="16" fontWeight="900" fontFamily="sans-serif" letterSpacing="-0.5">pay</text>
+      <text x="34" y="20" fill="#00BAF2" fontSize="16" fontWeight="900" fontFamily="sans-serif" letterSpacing="-0.5">tm</text>
+    </svg>
+  );
+}
+
+function BhimUpiLogo() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 40 32" fill="none">
+      <path d="M20 2L32 16L20 30L8 16L20 2Z" fill="#F47920"/>
+      <path d="M20 7L28 16L20 25L12 16L20 7Z" fill="#00843D"/>
+      <path d="M17 12h6v8h-6z" fill="#ffffff"/>
+    </svg>
+  );
+}
+
+// ─── UNIVERSAL BOOKING & PAYMENT MODAL COMPONENT ─────────────────────────────
+export default function BookingModal({
+  bookingType = 'package',
+  item,
+  initialPlan = null,
+  onClose,
+  onComplete
+}) {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
-  // ── wizard steps ─────────────────────────────────────────
-  const [step, setStep] = useState('details');  // details → payment → success
+  // Wizard Steps: 'details' -> 'payment' -> 'success' | 'failed' | 'cancelled'
+  const [step, setStep] = useState('details');
 
-  // ── common state ─────────────────────────────────────────
-  const [checkIn,  setCheckIn]  = useState(initialPlan?.travel_date || new Date().toISOString().split('T')[0]);
+  // Common dates & guest state
+  const [checkIn, setCheckIn] = useState(initialPlan?.travel_date || new Date().toISOString().split('T')[0]);
   const [checkOut, setCheckOut] = useState(() => {
     const d = new Date(initialPlan?.travel_date || new Date());
     d.setDate(d.getDate() + (initialPlan?.days || item?.duration_days || 2));
     return d.toISOString().split('T')[0];
   });
-  const [guests,      setGuests]      = useState(initialPlan?.people || 2);
+  const [guests, setGuests] = useState(initialPlan?.people || 2);
   const [specialReqs, setSpecialReqs] = useState('');
 
-  // ── hotel state ───────────────────────────────────────────
+  // Hotel rooms
   const hotelRooms = [
     { id: 'standard', name: 'Standard Room', price: item?.price_per_night || 2500, desc: 'Comfortable double bed, city view, 200 sq ft', amenities: ['WiFi', 'AC'] },
-    { id: 'deluxe',   name: 'Deluxe Room',   price: Math.round((item?.price_per_night || 2500) * 1.4), desc: 'King bed, garden/pool view, 280 sq ft, bathtub', amenities: ['WiFi', 'AC', 'Breakfast'] },
-    { id: 'suite',    name: 'Heritage Suite', price: Math.round((item?.price_per_night || 2500) * 2.2), desc: 'Separate living room, premium decor, 400 sq ft, butler', amenities: ['WiFi', 'AC', 'Breakfast', 'Meals'] },
+    { id: 'deluxe', name: 'Deluxe Room', price: Math.round((item?.price_per_night || 2500) * 1.4), desc: 'King bed, garden/pool view, 280 sq ft, bathtub', amenities: ['WiFi', 'AC', 'Breakfast'] },
+    { id: 'suite', name: 'Heritage Suite', price: Math.round((item?.price_per_night || 2500) * 2.2), desc: 'Separate living room, premium decor, 400 sq ft, butler', amenities: ['WiFi', 'AC', 'Breakfast', 'Meals'] }
   ];
   const [selectedRoom, setSelectedRoom] = useState(hotelRooms[0]);
   const nights = Math.max(1, Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000));
 
-  // ── transport state ───────────────────────────────────────
+  // Transport state
   const [fromCity, setFromCity] = useState(item?.from_city || 'Bengaluru');
-  const [toCity,   setToCity]   = useState(item?.to_city   || item?.route?.split(' → ')[1] || 'Mysore');
+  const [toCity, setToCity] = useState(item?.to_city || item?.route?.split(' → ')[1] || 'Mysore');
   const [travelDate, setTravelDate] = useState(initialPlan?.travel_date || new Date().toISOString().split('T')[0]);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const toggleSeat = useCallback((n) => {
-    setSelectedSeats(prev =>
-      prev.includes(n) ? prev.filter(s => s !== n) : prev.length < guests ? [...prev, n] : prev
+    setSelectedSeats((prev) =>
+      prev.includes(n) ? prev.filter((s) => s !== n) : prev.length < guests ? [...prev, n] : prev
     );
   }, [guests]);
 
-  // ── package state ─────────────────────────────────────────
+  // Package state
   const [pkgTravelDate, setPkgTravelDate] = useState(initialPlan?.travel_date || new Date().toISOString().split('T')[0]);
 
-  // ── coupon state ──────────────────────────────────────────
-  const [couponInput,  setCouponInput]  = useState(initialPlan ? 'AIPLAN1500' : '');
+  // Coupons
+  const [couponInput, setCouponInput] = useState(initialPlan ? 'AIPLAN1500' : '');
   const [appliedPromo, setAppliedPromo] = useState(null);
-  const [discountAmt,  setDiscountAmt]  = useState(0);
-  const [couponErr,    setCouponErr]    = useState('');
+  const [discountAmt, setDiscountAmt] = useState(0);
+  const [couponErr, setCouponErr] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
 
-  // ── payment state ─────────────────────────────────────────
-  const [payMethod, setPayMethod] = useState('UPI');
-  const [upiApp,    setUpiApp]    = useState('gpay');
-  const [cardNo,    setCardNo]    = useState('');
-  const [cardName,  setCardName]  = useState(user?.name || '');
-  const [expiry,    setExpiry]    = useState('');
-  const [cvv,       setCvv]       = useState('');
-  const [selBank,   setSelBank]   = useState('SBI');
+  // Payment method & simulation state
+  const [payMethod, setPayMethod] = useState('UPI'); // 'UPI' | 'CARD' | 'NETBANKING'
+  const [upiApp, setUpiApp] = useState('gpay'); // 'gpay' | 'phonepe' | 'paytm' | 'bhim'
+  const [cardNo, setCardNo] = useState('4532 8921 4820 9012');
+  const [cardName, setCardName] = useState(user?.name || user?.full_name || 'Aarav Sharma');
+  const [expiry, setExpiry] = useState('08/28');
+  const [cvv, setCvv] = useState('782');
+  const [selBank, setSelBank] = useState('SBI');
+
+  // Academic Simulation Scenarios: 'success' | 'failure' | 'cancel'
+  const [simScenario, setSimScenario] = useState('success');
+
   const [processing, setProcessing] = useState(false);
   const [bookingResult, setBookingResult] = useState(null);
-  const [countdown, setCountdown] = useState(899);
 
-  // ── auto apply coupon from AI planner ────────────────────
+  // Auto-apply promo from AI Planner
   useEffect(() => {
     if (initialPlan) applyPromo('AIPLAN1500');
   }, []);
 
-  // ── countdown when on payment page ───────────────────────
-  useEffect(() => {
-    if (step === 'payment' && countdown > 0) {
-      const t = setInterval(() => setCountdown(c => c - 1), 1000);
-      return () => clearInterval(t);
-    }
-  }, [step, countdown]);
-
-  // ── price calculations ────────────────────────────────────
+  // Price calculations
   const baseAmount = (() => {
     if (bookingType === 'hotel') return selectedRoom.price * nights * guests;
     if (bookingType === 'transport') return (item?.price || 1200) * (selectedSeats.length || guests);
     return (item?.price || 9999) * guests; // package
   })();
-  const gst        = Math.round((baseAmount - discountAmt) * 0.05);
-  const totalAmt   = Math.max(baseAmount - discountAmt + gst, 0);
+  const gst = Math.round((baseAmount - discountAmt) * 0.05);
+  const totalAmt = Math.max(baseAmount - discountAmt + gst, 0);
   const savingsAmt = discountAmt;
 
   const applyPromo = async (codeOverride) => {
@@ -259,661 +334,1211 @@ export default function BookingModal({ bookingType = 'package', item, initialPla
     setCouponErr('');
   };
 
-  // Format countdown as mm:ss
-  const fmtTime = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-
-  // ── booking ref ───────────────────────────────────────────
-  const bookingRef = `TH${Date.now().toString().slice(-7)}`;
-
-  // ── complete payment ──────────────────────────────────────
-  const handlePay = async () => {
-    if (!isAuthenticated) { navigate('/login'); return; }
-    if (payMethod === 'UPI') {
-      // Open UPI app deep link — real UPI redirect
-      const link = buildUpiLink(upiApp, totalAmt, bookingRef);
-      window.location.href = link;
-      // Small delay then record booking (assume user came back)
-      setTimeout(async () => {
-        await saveBooking();
-      }, 3000);
-      return;
-    }
-    await saveBooking();
-  };
-
-  const saveBooking = async () => {
-    setProcessing(true);
-    try {
-      await new Promise(r => setTimeout(r, 1200));
-      const payload = {
-        booking_type:   bookingType,
-        package_id:     bookingType === 'package'   ? item?.id   : null,
-        hotel_id:       bookingType === 'hotel'      ? item?.id   : null,
-        transport_id:   bookingType === 'transport'  ? item?.id   : null,
-        travel_date:    bookingType === 'hotel' ? checkIn : bookingType === 'transport' ? travelDate : pkgTravelDate,
-        check_in:       checkIn,
-        check_out:      checkOut,
-        people_count:   guests,
-        total_amount:   totalAmt,
-        discount_amount: discountAmt,
-        discount_code:  appliedPromo?.code || null,
-        payment_method: payMethod,
-        special_requests: specialReqs,
-        seats:          selectedSeats.join(','),
-        room_type:      selectedRoom?.id || null,
-      };
-      const res = await api.post('/bookings', payload);
-      if (res.data.success) {
-        setBookingResult(res.data);
-        setStep('success');
-        if (onComplete) onComplete(res.data);
-      }
-    } catch (err) {
-      console.error('Booking error:', err);
-      // Still show success for demo/UPI redirect case
-      setBookingResult({ booking_id: bookingRef, transaction_id: `TXN-${payMethod}-${bookingRef}` });
-      setStep('success');
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  // ── type label & icon ─────────────────────────────────────
-  const typeLabel = bookingType === 'hotel' ? 'Hotel Booking' : bookingType === 'transport' ? 'Vehicle Booking' : 'Package Booking';
-  const typeIcon  = bookingType === 'hotel' ? <Hotel size={18} /> : bookingType === 'transport' ? <Bus size={18} /> : <Package size={18} />;
-
-  // ── validation before proceeding ─────────────────────────
   const canProceed = () => {
     if (bookingType === 'transport' && selectedSeats.length === 0) return false;
     return true;
   };
 
-  return (
-    <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
-      background: 'rgba(15, 23, 42, 0.75)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '16px', backdropFilter: 'blur(4px)'
-    }}>
-      <div style={{
-        background: '#fff', borderRadius: 20, width: '100%', maxWidth: 660,
-        maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(2,132,199,0.18)',
-        animation: 'fadeUp 0.25s ease'
-      }}>
+  // ─── EXECUTE DUMMY PAYMENT SIMULATION ──────────────────────────────────────
+  const handleSimulatePayment = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setProcessing(true);
 
-        {/* ── HEADER ─────────────────────────────────────────── */}
-        <div style={{
-          background: 'linear-gradient(135deg, #0284c7, #0369a1)',
-          borderRadius: '20px 20px 0 0', padding: '18px 24px',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          borderBottom: '3px solid #10b981'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-              {step === 'success' ? <CheckCircle size={20} /> : step === 'payment' ? <Lock size={20} /> : typeIcon}
-            </div>
-            <div>
-              <div style={{ color: '#fff', fontWeight: 700, fontSize: '1rem', fontFamily: 'var(--font-serif)' }}>
-                {step === 'success' ? '✅ Booking Confirmed!' : step === 'payment' ? 'Secure Payment Gateway' : typeLabel}
-              </div>
-              <div style={{ color: '#bae6fd', fontSize: '0.72rem' }}>Tourist AI Hub • SSL Secured</div>
-            </div>
+    try {
+      // Artificial delay for realistic UI feedback
+      await new Promise((r) => setTimeout(r, 1200));
+
+      const upiAppName = upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI';
+      const subMethodName = payMethod === 'UPI' ? upiAppName : payMethod === 'CARD' ? 'Visa / Mastercard Debit' : `${selBank} Net Banking`;
+
+      const payload = {
+        booking_type: bookingType,
+        package_id: bookingType === 'package' ? item?.id : null,
+        hotel_id: bookingType === 'hotel' ? item?.id : null,
+        transport_id: bookingType === 'transport' ? item?.id : null,
+        travel_date: bookingType === 'hotel' ? checkIn : bookingType === 'transport' ? travelDate : pkgTravelDate,
+        return_date: checkOut,
+        check_in: checkIn,
+        check_out: checkOut,
+        people_count: guests,
+        total_amount: totalAmt,
+        discount_amount: discountAmt,
+        discount_code: appliedPromo?.code || null,
+        payment_method: payMethod,
+        payment_submethod: subMethodName,
+        special_requests: specialReqs,
+        scenario: simScenario
+      };
+
+      const res = await api.post('/payments/checkout-and-simulate', payload);
+
+      setBookingResult(res.data);
+
+      if (res.data.payment_status === 'demo_success') {
+        setStep('success');
+        if (onComplete) onComplete(res.data);
+      } else if (res.data.payment_status === 'demo_failed') {
+        setStep('failed');
+      } else if (res.data.payment_status === 'demo_cancelled') {
+        setStep('cancelled');
+      }
+    } catch (err) {
+      console.error('Simulation error:', err);
+      const resData = err.response?.data;
+      if (simScenario === 'failure') {
+        setBookingResult(resData || {
+          booking_reference: `TH-BK-${Date.now().toString().slice(-6)}`,
+          transaction: {
+            demo_transaction_id: `DEMO_TXN_${Date.now()}_FAIL`,
+            amount: totalAmt,
+            status: 'demo_failed',
+            disclaimer: 'This is a simulated transaction. No real money was charged.'
+          }
+        });
+        setStep('failed');
+      } else {
+        alert(resData?.message || 'Payment simulation error. Please try again.');
+      }
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  // ─── DOWNLOAD DEMO RECEIPT ────────────────────────────────────────────────
+  const handleDownloadReceipt = () => {
+    const tripName = item?.name || item?.title || item?.provider || 'Tourist Booking';
+    const destination = item?.location || item?.destination_name || 'Incredible India';
+    const txnId = bookingResult?.transaction?.demo_transaction_id || `DEMO_TXN_${Date.now()}`;
+    const bkRef = bookingResult?.booking_reference || `TH-BK-${bookingResult?.booking_id || '9821'}`;
+    const upiAppName = upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI';
+    const methodStr = payMethod === 'UPI' ? `UPI (${upiAppName})` : payMethod === 'CARD' ? 'Debit/Credit Card' : `Net Banking (${selBank})`;
+
+    const textReceipt = `
+============================================================
+              TOURIST HUB AI — DEMO PAYMENT RECEIPT
+             Incredible India Safe Travel Companion
+============================================================
+Receipt No:     REC-${Date.now().toString().slice(-6)}
+Booking Ref:    ${bkRef}
+Demo Txn ID:    ${txnId}
+Date & Time:    ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+
+CUSTOMER DETAILS:
+Name:           ${user?.name || user?.full_name || 'Demo Traveler'}
+Email:          ${user?.email || 'traveler@example.com'}
+
+BOOKING DETAILS:
+Service / Trip: ${tripName}
+Destination:    ${destination}
+Travel Date:    ${bookingType === 'hotel' ? `${checkIn} to ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate}
+Guests / Seats: ${guests} Person(s)
+
+FINANCIAL BREAKDOWN:
+Base Amount:    ₹${baseAmount.toLocaleString('en-IN')}
+Coupon Savings: ${savingsAmt > 0 ? `-₹${savingsAmt.toLocaleString('en-IN')} (${appliedPromo?.code})` : '₹0'}
+GST & Taxes:    ₹${gst.toLocaleString('en-IN')}
+Total Paid:     ₹${totalAmt.toLocaleString('en-IN')}
+Payment Method: ${methodStr}
+Payment Status: SUCCESS (DEMO SIMULATION)
+
+------------------------------------------------------------
+NOTICE: This is an academic demo simulation transaction.
+        No real money was charged or transferred.
+============================================================
+`;
+    const blob = new Blob([textReceipt], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `TouristHub_Demo_Receipt_${bkRef}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const tripName = item?.name || item?.title || item?.provider || 'Tourist Booking';
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        background: 'rgba(15, 23, 42, 0.65)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '16px',
+        backdropFilter: 'blur(5px)',
+        overflowY: 'auto'
+      }}
+    >
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: '20px',
+          width: '100%',
+          maxWidth: step === 'details' ? '620px' : '520px',
+          maxHeight: '92vh',
+          overflowY: 'auto',
+          boxShadow: '0 25px 70px rgba(0, 0, 0, 0.16)',
+          border: '1px solid #e2e8f0',
+          padding: '24px 28px',
+          position: 'relative',
+          transition: 'all 0.25s ease'
+        }}
+      >
+        {/* ═══════════════ TOP HEADER & CLOSE (Matching Image 1) ═══════════════ */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+          <div>
+            <h2 style={{ fontSize: '1.45rem', fontWeight: '800', color: '#0f172a', margin: 0, fontFamily: 'var(--font-serif, sans-serif)' }}>
+              {step === 'details' ? 'Booking Details' : step === 'success' ? 'Payment Confirmed' : step === 'failed' ? 'Payment Status' : 'Payment Options'}
+            </h2>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '4px 0 0 0' }}>
+              {step === 'details'
+                ? 'Customize your travel details before continuing.'
+                : step === 'success'
+                  ? 'Your demo booking has been successfully recorded.'
+                  : step === 'failed'
+                    ? 'Simulated payment outcome for testing.'
+                    : 'Choose a secure payment method to continue with your booking.'}
+            </p>
           </div>
-          {step !== 'success' && (
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#bae6fd', cursor: 'pointer' }}>
-              <X size={22} />
-            </button>
-          )}
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={processing}
+            title="Close"
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '8px',
+              border: 'none',
+              background: '#f8fafc',
+              color: '#64748b',
+              cursor: processing ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 0.15s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#0f172a'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#64748b'; }}
+          >
+            <X size={18} />
+          </button>
         </div>
 
-        {/* ── STEP INDICATOR ───────────────────────────────────── */}
-        {step !== 'success' && (
-          <div style={{ display: 'flex', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
-            {['details', 'payment'].map((s, i) => (
-              <div key={s} style={{
-                flex: 1, padding: '10px 0', textAlign: 'center',
-                fontSize: '0.78rem', fontWeight: 700,
-                color: step === s ? '#0284c7' : step === 'success' || (s === 'details' && step === 'payment') ? '#10b981' : '#94a3b8',
-                borderBottom: step === s ? '3px solid #0284c7' : '3px solid transparent',
-              }}>
-                {i + 1}. {s === 'details' ? 'Booking Details' : 'Payment'}
-              </div>
-            ))}
-          </div>
-        )}
-
-        <div style={{ padding: '24px 26px' }}>
-
-          {/* ═══════════════ STEP 1 — DETAILS ════════════════════ */}
-          {step === 'details' && (
-            <div>
-
-              {/* HOTEL DETAILS */}
-              {bookingType === 'hotel' && (
-                <div>
-                  <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 18 }}>
-                    <img src={item?.image_url} alt={item?.name} style={{ width: 72, height: 60, objectFit: 'cover', borderRadius: 10 }} onError={e => e.target.style.display='none'} />
-                    <div>
-                      <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0f172a' }}>{item?.name}</div>
-                      <div style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <MapPin size={12} />{item?.location}
-                        <Star size={12} fill="#f59e0b" color="#f59e0b" style={{ marginLeft: 8 }} />{item?.rating}
-                      </div>
+        {/* ═══════════════ STEP 1 — BOOKING DETAILS ═══════════════ */}
+        {step === 'details' && (
+          <div>
+            {/* HOTEL DETAILS */}
+            {bookingType === 'hotel' && (
+              <div>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 18 }}>
+                  <img src={item?.image_url} alt={item?.name} style={{ width: 72, height: 60, objectFit: 'cover', borderRadius: 10 }} onError={(e) => { e.target.style.display = 'none'; }} />
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0f172a' }}>{item?.name}</div>
+                    <div style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <MapPin size={12} />{item?.location}
+                      <Star size={12} fill="#f59e0b" color="#f59e0b" style={{ marginLeft: 8 }} />{item?.rating}
                     </div>
-                  </div>
-
-                  {/* Check-in / out */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                    <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Check-In</label>
-                      <input type="date" value={checkIn} min={new Date().toISOString().split('T')[0]}
-                        onChange={e => setCheckIn(e.target.value)} className="form-control" />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Check-Out</label>
-                      <input type="date" value={checkOut} min={checkIn}
-                        onChange={e => setCheckOut(e.target.value)} className="form-control" />
-                    </div>
-                  </div>
-
-                  {/* Guests */}
-                  <div style={{ marginBottom: 18 }}>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Guests</label>
-                    <select value={guests} onChange={e => setGuests(Number(e.target.value))} className="form-control">
-                      {[1,2,3,4,5,6].map(n => <option key={n} value={n}>{n} Guest{n > 1 ? 's' : ''}</option>)}
-                    </select>
-                  </div>
-
-                  {/* Room selection */}
-                  <div style={{ marginBottom: 18 }}>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>Select Room Type</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                      {hotelRooms.map(room => (
-                        <RoomCard key={room.id} room={room} selected={selectedRoom?.id === room.id} onSelect={setSelectedRoom} />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#f0f9ff', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.85rem', color: '#0369a1' }}>
-                    🛏️ <strong>{selectedRoom.name}</strong> × {nights} night{nights > 1 ? 's' : ''} × {guests} guest{guests > 1 ? 's' : ''}
-                    &nbsp;= <strong>₹{baseAmount.toLocaleString('en-IN')}</strong>
                   </div>
                 </div>
-              )}
 
-              {/* TRANSPORT DETAILS */}
-              {bookingType === 'transport' && (
-                <div>
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
-                    <div style={{ background: '#e0f2fe', borderRadius: 10, padding: 10, color: '#0284c7' }}><Bus size={22} /></div>
-                    <div>
-                      <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>{item?.provider}</div>
-                      <div style={{ fontSize: '0.82rem', color: '#64748b' }}>{item?.transport_type} • {item?.duration}</div>
-                    </div>
-                    <span style={{ marginLeft: 'auto', fontWeight: 800, fontSize: '1.15rem', color: '#0284c7' }}>₹{item?.price}/seat</span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Check-In</label>
+                    <input type="date" value={checkIn} min={new Date().toISOString().split('T')[0]} onChange={(e) => setCheckIn(e.target.value)} className="form-control" />
                   </div>
-
-                  {/* From / To */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 10, alignItems: 'center', marginBottom: 14 }}>
-                    <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>From City</label>
-                      <input className="form-control" value={fromCity} onChange={e => setFromCity(e.target.value)} placeholder="Bengaluru" />
-                    </div>
-                    <ArrowRight size={20} color="#0284c7" />
-                    <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>To City</label>
-                      <input className="form-control" value={toCity} onChange={e => setToCity(e.target.value)} placeholder="Mysore" />
-                    </div>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Check-Out</label>
+                    <input type="date" value={checkOut} min={checkIn} onChange={(e) => setCheckOut(e.target.value)} className="form-control" />
                   </div>
+                </div>
 
-                  {/* Date & departure */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
-                    <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Travel Date</label>
-                      <input type="date" value={travelDate} min={new Date().toISOString().split('T')[0]}
-                        onChange={e => setTravelDate(e.target.value)} className="form-control" />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Departure</label>
-                      <input className="form-control" value={item?.departure_time || '06:30 AM'} readOnly style={{ background: '#f8fafc' }} />
-                    </div>
+                <div style={{ marginBottom: 18 }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Guests</label>
+                  <select value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="form-control">
+                    {[1, 2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n} Guest{n > 1 ? 's' : ''}</option>)}
+                  </select>
+                </div>
+
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a', marginBottom: 10 }}>Select Room Type</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {hotelRooms.map((room) => (
+                      <RoomCard key={room.id} room={room} selected={selectedRoom?.id === room.id} onSelect={setSelectedRoom} />
+                    ))}
                   </div>
+                </div>
 
-                  {/* Seat Map */}
-                  <div style={{ background: '#f8fafc', border: '1px solid #bae6fd', borderRadius: 12, padding: 16, marginBottom: 14 }}>
-                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0369a1', marginBottom: 12 }}>
-                      Select Seats ({selectedSeats.length}/{guests} required)
-                      {selectedSeats.length > 0 && (
-                        <span style={{ background: '#0284c7', color: '#fff', borderRadius: 20, padding: '2px 8px', fontSize: '0.7rem', marginLeft: 8 }}>
-                          Seats: {selectedSeats.sort((a,b)=>a-b).join(', ')}
-                        </span>
-                      )}
-                    </div>
-                    <SeatMap totalSeats={40} selectedSeats={selectedSeats} onToggle={toggleSeat} />
-                    {selectedSeats.length < guests && (
-                      <div style={{ marginTop: 10, fontSize: '0.78rem', color: '#b45309', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <AlertCircle size={13} /> Please select {guests - selectedSeats.length} more seat{guests - selectedSeats.length > 1 ? 's' : ''}
-                      </div>
+                <div style={{ background: '#f0f9ff', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.85rem', color: '#0369a1' }}>
+                  🛏️ <strong>{selectedRoom.name}</strong> × {nights} night{nights > 1 ? 's' : ''} × {guests} guest{guests > 1 ? 's' : ''} = <strong>₹{baseAmount.toLocaleString('en-IN')}</strong>
+                </div>
+              </div>
+            )}
+
+            {/* TRANSPORT DETAILS */}
+            {bookingType === 'transport' && (
+              <div>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
+                  <div style={{ background: '#e0f2fe', borderRadius: 10, padding: 10, color: '#0284c7' }}><Bus size={22} /></div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>{item?.provider}</div>
+                    <div style={{ fontSize: '0.82rem', color: '#64748b' }}>{item?.transport_type} • {item?.duration}</div>
+                  </div>
+                  <span style={{ marginLeft: 'auto', fontWeight: 800, fontSize: '1.15rem', color: '#0284c7' }}>₹{item?.price}/seat</span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 10, alignItems: 'center', marginBottom: 14 }}>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>From City</label>
+                    <input className="form-control" value={fromCity} onChange={(e) => setFromCity(e.target.value)} placeholder="Bengaluru" />
+                  </div>
+                  <ArrowRight size={20} color="#0284c7" />
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>To City</label>
+                    <input className="form-control" value={toCity} onChange={(e) => setToCity(e.target.value)} placeholder="Mysore" />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Travel Date</label>
+                    <input type="date" value={travelDate} min={new Date().toISOString().split('T')[0]} onChange={(e) => setTravelDate(e.target.value)} className="form-control" />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Departure</label>
+                    <input className="form-control" value={item?.departure_time || '06:30 AM'} readOnly style={{ background: '#f8fafc' }} />
+                  </div>
+                </div>
+
+                <div style={{ background: '#f8fafc', border: '1px solid #bae6fd', borderRadius: 12, padding: 16, marginBottom: 14 }}>
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0369a1', marginBottom: 12 }}>
+                    Select Seats ({selectedSeats.length}/{guests} required)
+                    {selectedSeats.length > 0 && (
+                      <span style={{ background: '#0284c7', color: '#fff', borderRadius: 20, padding: '2px 8px', fontSize: '0.7rem', marginLeft: 8 }}>
+                        Seats: {selectedSeats.sort((a, b) => a - b).join(', ')}
+                      </span>
                     )}
                   </div>
-
-                  <div style={{ background: '#f0f9ff', borderRadius: 10, padding: '10px 16px', fontSize: '0.85rem', color: '#0369a1', marginBottom: 14 }}>
-                    🎫 {selectedSeats.length || guests} seat{(selectedSeats.length || guests) > 1 ? 's' : ''} × ₹{item?.price || 1200} = <strong>₹{baseAmount.toLocaleString('en-IN')}</strong>
-                  </div>
+                  <SeatMap totalSeats={40} selectedSeats={selectedSeats} onToggle={toggleSeat} />
                 </div>
-              )}
-
-              {/* PACKAGE DETAILS */}
-              {bookingType === 'package' && (
-                <div>
-                  <div style={{ marginBottom: 14 }}>
-                    <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
-                      {item?.duration_days}D/{item?.duration_nights || item?.duration_days - 1}N
-                    </span>
-                    <h3 style={{ fontSize: '1.2rem', margin: '8px 0 4px', color: '#0f172a' }}>{item?.title}</h3>
-                    <div style={{ fontSize: '0.82rem', color: '#64748b' }}>by <strong style={{ color: '#0369a1' }}>{item?.company_name}</strong></div>
-                  </div>
-
-                  {/* Inclusions */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16, fontSize: '0.76rem' }}>
-                    <span style={{ background: '#f0f9ff', padding: '3px 8px', borderRadius: 6, border: '1px solid #bae6fd', color: '#0369a1' }}>🏨 {item?.hotel_type || 'Deluxe Hotel'}</span>
-                    <span style={{ background: '#f0f9ff', padding: '3px 8px', borderRadius: 6, border: '1px solid #bae6fd', color: '#0369a1' }}>🚗 {item?.transport_type || 'AC Cab'}</span>
-                    {item?.food_included && <span style={{ background: '#ecfdf5', padding: '3px 8px', borderRadius: 6, border: '1px solid #a7f3d0', color: '#047857' }}>🍽️ Meals Included</span>}
-                    {item?.guide_included && <span style={{ background: '#ecfdf5', padding: '3px 8px', borderRadius: 6, border: '1px solid #a7f3d0', color: '#047857' }}>🧭 Guide Included</span>}
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
-                    <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Travel Date</label>
-                      <input type="date" value={pkgTravelDate} min={new Date().toISOString().split('T')[0]}
-                        onChange={e => setPkgTravelDate(e.target.value)} className="form-control" />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Travelers</label>
-                      <select value={guests} onChange={e => setGuests(Number(e.target.value))} className="form-control">
-                        {[1,2,3,4,5,6,8,10].map(n => <option key={n} value={n}>{n} Person{n > 1 ? 's' : ''}</option>)}
-                      </select>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── SPECIAL REQUESTS (common) ────────────────────── */}
-              <div style={{ marginBottom: 18 }}>
-                <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Special Requests (optional)</label>
-                <input className="form-control" value={specialReqs} onChange={e => setSpecialReqs(e.target.value)}
-                  placeholder="e.g. Vegetarian meals, wheelchair access, early check-in..." />
               </div>
+            )}
 
-              {/* ── COUPON & DISCOUNTS ───────────────────────────── */}
-              <div style={{ background: '#ecfdf5', border: '1px dashed #10b981', borderRadius: 12, padding: 16, marginBottom: 18 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#065f46', fontSize: '0.88rem', marginBottom: 10 }}>
-                  <Gift size={16} color="#10b981" /> Coupons & Exclusive Offers
+            {/* PACKAGE DETAILS */}
+            {bookingType === 'package' && (
+              <div>
+                <div style={{ marginBottom: 14 }}>
+                  <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
+                    {item?.duration_days}D/{item?.duration_nights || item?.duration_days - 1}N
+                  </span>
+                  <h3 style={{ fontSize: '1.2rem', margin: '8px 0 4px', color: '#0f172a' }}>{item?.title}</h3>
+                  <div style={{ fontSize: '0.82rem', color: '#64748b' }}>by <strong style={{ color: '#0369a1' }}>{item?.company_name || 'Tourist Hub AI Verified Partner'}</strong></div>
                 </div>
 
-                {appliedPromo ? (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#d1fae5', padding: '8px 12px', borderRadius: 8 }}>
-                    <span style={{ fontSize: '0.85rem', color: '#065f46', fontWeight: 600 }}>
-                      ✓ <strong>{appliedPromo.code}</strong> applied — saved ₹{appliedPromo.discount.toLocaleString('en-IN')}
-                    </span>
-                    <button type="button" onClick={removePromo} style={{ background: 'none', border: 'none', color: '#b91c1c', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>
-                      Remove ✕
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
-                      <input className="form-control" value={couponInput}
-                        onChange={e => setCouponInput(e.target.value.toUpperCase())}
-                        placeholder="Enter coupon code" style={{ fontSize: '0.85rem' }} />
-                      <button type="button" onClick={() => applyPromo()}
-                        disabled={couponLoading || !couponInput} className="btn btn-secondary btn-sm" style={{ flexShrink: 0 }}>
-                        {couponLoading ? '...' : 'Apply'}
-                      </button>
-                    </div>
-                    {couponErr && <div style={{ fontSize: '0.78rem', color: '#b91c1c', marginBottom: 8 }}>{couponErr}</div>}
-                    {/* Quick apply chips */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {PROMOS.map(p => (
-                        <button key={p.code} type="button" onClick={() => applyPromo(p.code)}
-                          style={{ fontSize: '0.72rem', background: '#fff', border: '1px solid #10b981', padding: '3px 10px', borderRadius: 20, cursor: 'pointer', color: '#065f46', fontWeight: 600 }}>
-                          🏷️ <strong>{p.code}</strong> ({p.label})
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* ── PRICE SUMMARY ─────────────────────────────────── */}
-              <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 16px', border: '1px solid #e2e8f0', marginBottom: 20 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', color: '#64748b', marginBottom: 5 }}>
-                  <span>Subtotal</span>
-                  <span>₹{baseAmount.toLocaleString('en-IN')}</span>
-                </div>
-                {savingsAmt > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', color: '#059669', fontWeight: 700, marginBottom: 5 }}>
-                    <span>🎉 Coupon Discount</span>
-                    <span>− ₹{savingsAmt.toLocaleString('en-IN')}</span>
-                  </div>
-                )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', color: '#64748b', marginBottom: 10 }}>
-                  <span>GST & Tourism Cess (5%)</span>
-                  <span>+ ₹{gst.toLocaleString('en-IN')}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: 10 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
                   <div>
-                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Total Payable</div>
-                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0284c7', display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <IndianRupee size={18} />{totalAmt.toLocaleString('en-IN')}
-                    </div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Travel Date</label>
+                    <input type="date" value={pkgTravelDate} min={new Date().toISOString().split('T')[0]} onChange={(e) => setPkgTravelDate(e.target.value)} className="form-control" />
                   </div>
-                  {savingsAmt > 0 && (
-                    <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0', padding: '4px 10px', borderRadius: 20, fontSize: '0.74rem', fontWeight: 700 }}>
-                      You save ₹{savingsAmt.toLocaleString('en-IN')}
-                    </span>
-                  )}
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Travelers</label>
+                    <select value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="form-control">
+                      {[1, 2, 3, 4, 5, 6, 8, 10].map((n) => <option key={n} value={n}>{n} Person{n > 1 ? 's' : ''}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
+            )}
 
-              <button
-                onClick={() => { if (!canProceed()) return; setStep('payment'); }}
-                disabled={!canProceed()}
-                className="btn btn-green btn-lg"
-                style={{ width: '100%', justifyContent: 'center', fontWeight: 700, opacity: canProceed() ? 1 : 0.6 }}
-              >
-                Proceed to Payment <ArrowRight size={18} />
-              </button>
+            {/* SPECIAL REQUESTS */}
+            <div style={{ marginBottom: 18 }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Special Requests (optional)</label>
+              <input className="form-control" value={specialReqs} onChange={(e) => setSpecialReqs(e.target.value)} placeholder="e.g. Vegetarian meals, early check-in..." />
             </div>
-          )}
 
-          {/* ═══════════════ STEP 2 — PAYMENT ═══════════════════ */}
-          {step === 'payment' && (
-            <div>
-              {/* Security + timer */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '10px 14px', borderRadius: 8, marginBottom: 18, fontSize: '0.8rem' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#166534', fontWeight: 600 }}>
-                  <Lock size={13} /> 256-bit SSL Encrypted Payment
-                </span>
-                <span style={{ color: '#047857', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <Clock size={13} /> Session: {fmtTime(countdown)}
-                </span>
+            {/* COUPONS */}
+            <div style={{ background: '#ecfdf5', border: '1px dashed #10b981', borderRadius: 12, padding: 14, marginBottom: 18 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, color: '#065f46', fontSize: '0.85rem', marginBottom: 8 }}>
+                <Gift size={16} color="#10b981" /> Apply Coupon
               </div>
 
-              {/* Summary pill */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+              {appliedPromo ? (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#d1fae5', padding: '8px 12px', borderRadius: 8 }}>
+                  <span style={{ fontSize: '0.82rem', color: '#065f46', fontWeight: 600 }}>
+                    ✓ <strong>{appliedPromo.code}</strong> applied — saved ₹{appliedPromo.discount.toLocaleString('en-IN')}
+                  </span>
+                  <button type="button" onClick={removePromo} style={{ background: 'none', border: 'none', color: '#b91c1c', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>
+                    Remove ✕
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input className="form-control" value={couponInput} onChange={(e) => setCouponInput(e.target.value.toUpperCase())} placeholder="e.g. AIPLAN1500" style={{ fontSize: '0.85rem' }} />
+                  <button type="button" onClick={() => applyPromo()} disabled={couponLoading || !couponInput} className="btn btn-secondary btn-sm" style={{ flexShrink: 0 }}>
+                    {couponLoading ? '...' : 'Apply'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* PRICE BREAKDOWN */}
+            <div style={{ background: '#f8fafc', borderRadius: 12, padding: '14px 16px', border: '1px solid #e2e8f0', marginBottom: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', color: '#64748b', marginBottom: 5 }}>
+                <span>Subtotal</span>
+                <span>₹{baseAmount.toLocaleString('en-IN')}</span>
+              </div>
+              {savingsAmt > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.86rem', color: '#059669', fontWeight: 700, marginBottom: 5 }}>
+                  <span>Coupon Discount</span>
+                  <span>− ₹{savingsAmt.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', color: '#64748b', marginBottom: 10 }}>
+                <span>GST (5%)</span>
+                <span>+ ₹{gst.toLocaleString('en-IN')}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: 10 }}>
                 <div>
-                  <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Paying for: <strong>{item?.name || item?.title || item?.provider}</strong></div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0284c7', display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Total Payable</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0284c7', display: 'flex', alignItems: 'center', gap: 2 }}>
                     <IndianRupee size={18} />{totalAmt.toLocaleString('en-IN')}
                   </div>
                 </div>
-                <button onClick={() => setStep('details')} style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '0.82rem', cursor: 'pointer', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <ChevronLeft size={14} /> Modify
-                </button>
+                {savingsAmt > 0 && (
+                  <span style={{ background: '#ecfdf5', color: '#065f46', border: '1px solid #a7f3d0', padding: '3px 8px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700 }}>
+                    Saved ₹{savingsAmt.toLocaleString('en-IN')}
+                  </span>
+                )}
               </div>
+            </div>
 
-              {/* Payment method tabs */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 18 }}>
+            <button
+              type="button"
+              onClick={() => { if (!canProceed()) return; setStep('payment'); }}
+              disabled={!canProceed()}
+              className="btn btn-green btn-lg"
+              style={{ width: '100%', justifyContent: 'center', fontWeight: 700, borderRadius: '10px' }}
+            >
+              Proceed to Payment Options <ArrowRight size={18} />
+            </button>
+          </div>
+        )}
+
+        {/* ═══════════════ STEP 2 — PAYMENT OPTIONS (Image 1 Redesign) ═══════════════ */}
+        {step === 'payment' && (
+          <div>
+            {/* 1. Security Banner (Light-blue banner containing shield icon, matching Image 1) */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '10px',
+                padding: '10px 14px',
+                marginBottom: '16px'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={18} color="#0284c7" />
+                <span style={{ fontSize: '0.82rem', fontWeight: '600', color: '#1e40af' }}>
+                  Demo Mode — No Real Money Will Be Charged
+                </span>
+              </div>
+              <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#0284c7', letterSpacing: '0.5px' }}>
+                Tourist Hub AI
+              </span>
+            </div>
+
+            {/* 2. Compact Booking Summary Pill */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '8px 12px',
+                background: '#f8fafc',
+                borderRadius: '10px',
+                border: '1px solid #e2e8f0',
+                marginBottom: '16px'
+              }}
+            >
+              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '65%' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block' }}>Booking For:</span>
+                <strong style={{ fontSize: '0.84rem', color: '#0f172a' }}>{tripName}</strong>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <button
+                  type="button"
+                  onClick={() => setStep('details')}
+                  disabled={processing}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#0284c7',
+                    fontSize: '0.75rem',
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                    padding: 0,
+                    marginBottom: '2px'
+                  }}
+                >
+                  &larr; Modify
+                </button>
+                <div style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0284c7' }}>
+                  ₹{totalAmt.toLocaleString('en-IN')}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Payment Method Tabs (3 Horizontally Aligned, matching Image 1) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '18px' }}>
+              {[
+                { key: 'UPI', label: 'UPI / QR', Icon: QrCode },
+                { key: 'CARD', label: 'Debit/Credit', Icon: CreditCard },
+                { key: 'NETBANKING', label: 'Net Banking', Icon: Building2 }
+              ].map(({ key, label, Icon }) => {
+                const isActive = payMethod === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setPayMethod(key)}
+                    disabled={processing}
+                    style={{
+                      padding: '13px 6px',
+                      borderRadius: '12px',
+                      cursor: processing ? 'not-allowed' : 'pointer',
+                      border: isActive ? '2px solid #0084ff' : '1px solid #e2e8f0',
+                      background: isActive ? '#eff6ff' : '#ffffff',
+                      color: isActive ? '#0084ff' : '#475569',
+                      fontWeight: '700',
+                      fontSize: '0.82rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <Icon size={20} color={isActive ? '#0084ff' : '#64748b'} />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* ─── TAB 1: UPI / QR (Matching Image 1) ───────────────── */}
+            {payMethod === 'UPI' && (
+              <div>
+                <div style={{ marginBottom: '12px' }}>
+                  <h4 style={{ fontSize: '0.96rem', fontWeight: '800', color: '#0f172a', margin: '0 0 2px 0' }}>
+                    Choose UPI App
+                  </h4>
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0 }}>
+                    Simulate a payment using your preferred option
+                  </p>
+                </div>
+
+                {/* 4 UPI Selectable App Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', marginBottom: '16px' }}>
+                  {[
+                    { key: 'gpay', label: 'Google Pay', Logo: GooglePayLogo },
+                    { key: 'phonepe', label: 'PhonePe', Logo: PhonePeLogo },
+                    { key: 'paytm', label: 'Paytm', Logo: PaytmLogo },
+                    { key: 'bhim', label: 'BHIM UPI', Logo: BhimUpiLogo }
+                  ].map(({ key, label, Logo }) => {
+                    const isSelected = upiApp === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setUpiApp(key)}
+                        disabled={processing}
+                        style={{
+                          padding: '10px 4px',
+                          borderRadius: '12px',
+                          border: isSelected ? '2px solid #0084ff' : '1px solid #e2e8f0',
+                          background: isSelected ? '#eff6ff' : '#ffffff',
+                          cursor: processing ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.15s ease',
+                          boxShadow: isSelected ? '0 2px 8px rgba(0, 132, 255, 0.15)' : 'none'
+                        }}
+                      >
+                        <Logo />
+                        <span style={{ fontSize: '0.72rem', fontWeight: '700', color: isSelected ? '#0084ff' : '#334155' }}>
+                          {label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* QR Code Container (White rounded box with shadow, central UPI badge) */}
+                <div
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #f1f5f9',
+                    borderRadius: '16px',
+                    padding: '16px 14px',
+                    textAlign: 'center',
+                    marginBottom: '16px'
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'inline-block',
+                      background: '#ffffff',
+                      padding: '12px',
+                      borderRadius: '14px',
+                      border: '1px solid #e2e8f0',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.05)'
+                    }}
+                  >
+                    <svg width="138" height="138" viewBox="0 0 100 100">
+                      {/* Corner Position Detection Squares */}
+                      <rect x="4" y="4" width="24" height="24" fill="#0f172a" rx="4"/>
+                      <rect x="8" y="8" width="16" height="16" fill="#fff" rx="2"/>
+                      <rect x="12" y="12" width="8" height="8" fill="#0f172a" rx="1"/>
+
+                      <rect x="72" y="4" width="24" height="24" fill="#0f172a" rx="4"/>
+                      <rect x="76" y="8" width="16" height="16" fill="#fff" rx="2"/>
+                      <rect x="80" y="12" width="8" height="8" fill="#0f172a" rx="1"/>
+
+                      <rect x="4" y="72" width="24" height="24" fill="#0f172a" rx="4"/>
+                      <rect x="8" y="76" width="16" height="16" fill="#fff" rx="2"/>
+                      <rect x="12" y="80" width="8" height="8" fill="#0f172a" rx="1"/>
+
+                      {/* Timing markers */}
+                      {[32, 38, 44, 50, 56, 62].map((x) => (
+                        <rect key={`tx-${x}`} x={x} y="14" width="4" height="4" fill={x % 12 === 0 ? '#0f172a' : '#94a3b8'} rx="1" />
+                      ))}
+                      {[32, 38, 44, 50, 56, 62].map((y) => (
+                        <rect key={`ty-${y}`} x="14" y={y} width="4" height="4" fill={y % 12 === 0 ? '#0f172a' : '#94a3b8'} rx="1" />
+                      ))}
+
+                      {/* Data Pattern Matrix Elements */}
+                      {[
+                        [32,32],[36,32],[40,32],[56,32],[60,32],[64,32],[72,32],[76,32],[80,32],
+                        [32,36],[44,36],[56,36],[68,36],[72,36],[80,36],[88,36],
+                        [36,40],[40,40],[60,40],[64,40],[84,40],[88,40],
+                        [72,44],[76,44],[88,44],
+                        [32,56],[36,56],[64,56],[68,56],[76,56],[80,56],[88,56],
+                        [40,60],[44,60],[60,60],[72,60],[84,60],
+                        [32,64],[36,64],[56,64],[68,64],[72,64],[80,64],[88,64],
+                        [32,72],[40,72],[56,72],[60,72],[64,72],[72,72],[80,72],[88,72],
+                        [36,76],[44,76],[64,76],[68,76],[76,76],[84,76],
+                        [32,80],[36,80],[40,80],[56,80],[68,80],[72,80],[80,80],[88,80],
+                        [36,84],[44,84],[56,84],[60,84],[64,84],[80,84],[84,84],[88,84],
+                        [32,88],[40,88],[68,88],[76,88],[84,88]
+                      ].map(([x, y], idx) => (
+                        <rect key={idx} x={x} y={y} width="3.5" height="3.5" fill="#0f172a" rx="0.8" />
+                      ))}
+
+                      {/* Central UPI Badge Emblem matching Image 1 */}
+                      <rect x="34" y="42" width="32" height="16" rx="4" fill="#ffffff" stroke="#e2e8f0" strokeWidth="1" />
+                      <text x="43" y="53.5" fill="#00843D" fontSize="7.5" fontWeight="900" fontFamily="sans-serif">UPI</text>
+                      <path d="M57 46l3 8h-2.5l-3-8z" fill="#F47920"/>
+                      <path d="M54 46l3 8h-2.5l-3-8z" fill="#00843D"/>
+                    </svg>
+                  </div>
+
+                  <div style={{ fontSize: '0.84rem', fontWeight: '600', color: '#1e293b', marginTop: '10px' }}>
+                    Scan with any UPI app to pay ₹{totalAmt.toLocaleString('en-IN')}
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '3px' }}>
+                    Demo QR — Not a real payment QR code.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ─── TAB 2: DEBIT / CREDIT CARD ───────────────────────── */}
+            {payMethod === 'CARD' && (
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <h4 style={{ fontSize: '0.92rem', fontWeight: '700', color: '#0f172a', margin: '0 0 2px 0' }}>
+                    Enter Card Details
+                  </h4>
+                  <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0 }}>
+                    Demo card simulation (any test numbers work safely)
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>
+                      Cardholder Name
+                    </label>
+                    <input
+                      className="form-control"
+                      value={cardName}
+                      onChange={(e) => setCardName(e.target.value)}
+                      placeholder="e.g. Aarav Sharma"
+                      style={{ fontSize: '0.85rem', padding: '8px 12px' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>
+                      Card Number
+                    </label>
+                    <input
+                      className="form-control"
+                      value={cardNo}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19);
+                        setCardNo(v);
+                      }}
+                      placeholder="4532 •••• •••• 8921"
+                      maxLength={19}
+                      style={{ fontFamily: 'monospace', letterSpacing: '1px', fontSize: '0.88rem', padding: '8px 12px' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                    <div>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>
+                        Expiry (MM/YY)
+                      </label>
+                      <input
+                        className="form-control"
+                        value={expiry}
+                        onChange={(e) => {
+                          let v = e.target.value.replace(/\D/g, '');
+                          if (v.length >= 2) v = `${v.slice(0, 2)}/${v.slice(2, 4)}`;
+                          setExpiry(v);
+                        }}
+                        placeholder="08/28"
+                        maxLength={5}
+                        style={{ fontSize: '0.85rem', padding: '8px 12px' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>
+                        CVV / CVC
+                      </label>
+                      <input
+                        className="form-control"
+                        type="password"
+                        value={cvv}
+                        onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                        placeholder="782"
+                        maxLength={4}
+                        style={{ fontSize: '0.85rem', padding: '8px 12px' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: '10px', fontSize: '0.7rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <Lock size={12} /> Test Simulation: No actual card data is collected, transmitted, or saved.
+                </div>
+              </div>
+            )}
+
+            {/* ─── TAB 3: NET BANKING ───────────────────────────────── */}
+            {payMethod === 'NETBANKING' && (
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
+                <div style={{ marginBottom: '12px' }}>
+                  <h4 style={{ fontSize: '0.92rem', fontWeight: '700', color: '#0f172a', margin: '0 0 2px 0' }}>
+                    Select Your Bank
+                  </h4>
+                  <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0 }}>
+                    Simulate an instant net banking authorization
+                  </p>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
+                  {['SBI', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Kotak Bank', 'PNB'].map((bank) => {
+                    const isSelected = selBank === bank;
+                    return (
+                      <button
+                        key={bank}
+                        type="button"
+                        onClick={() => setSelBank(bank)}
+                        style={{
+                          padding: '10px 6px',
+                          borderRadius: '10px',
+                          border: isSelected ? '2px solid #0084ff' : '1px solid #e2e8f0',
+                          background: isSelected ? '#eff6ff' : '#ffffff',
+                          color: isSelected ? '#0084ff' : '#334155',
+                          fontWeight: '700',
+                          fontSize: '0.78rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {bank}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div style={{ fontSize: '0.72rem', color: '#64748b', background: '#eff6ff', padding: '8px 12px', borderRadius: '8px' }}>
+                  Selected: <strong>{selBank}</strong> (Simulated internet banking confirmation)
+                </div>
+              </div>
+            )}
+
+            {/* 4. Academic Demo Test-Mode Selector (Required by Section 4) */}
+            <div
+              style={{
+                background: '#f8fafc',
+                border: '1px dashed #cbd5e1',
+                borderRadius: '10px',
+                padding: '8px 12px',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '8px'
+              }}
+            >
+              <span style={{ fontSize: '0.74rem', fontWeight: '700', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                ⚡ Test Mode:
+              </span>
+              <div style={{ display: 'flex', gap: '6px' }}>
                 {[
-                  { key: 'UPI',        label: 'UPI / QR',     Icon: QrCode },
-                  { key: 'CARD',       label: 'Debit/Credit',  Icon: CreditCard },
-                  { key: 'NETBANKING', label: 'Net Banking',   Icon: Building2 },
-                ].map(({ key, label, Icon }) => (
-                  <button key={key} type="button" onClick={() => setPayMethod(key)} style={{
-                    padding: '11px 6px', borderRadius: 10, cursor: 'pointer',
-                    border: payMethod === key ? '2px solid #0284c7' : '1.5px solid #e2e8f0',
-                    background: payMethod === key ? '#e0f2fe' : '#fff',
-                    color: payMethod === key ? '#0369a1' : '#475569',
-                    fontWeight: 700, fontSize: '0.8rem',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                    transition: 'all 0.15s'
-                  }}>
-                    <Icon size={20} color={payMethod === key ? '#0284c7' : '#64748b'} />
-                    {label}
+                  { key: 'success', label: '✅ Success', color: '#059669' },
+                  { key: 'failure', label: '❌ Simulate Failure', color: '#dc2626' },
+                  { key: 'cancel', label: '⏸️ Cancel', color: '#d97706' }
+                ].map((sc) => (
+                  <button
+                    key={sc.key}
+                    type="button"
+                    onClick={() => setSimScenario(sc.key)}
+                    disabled={processing}
+                    style={{
+                      background: simScenario === sc.key ? sc.color : '#ffffff',
+                      color: simScenario === sc.key ? '#ffffff' : '#475569',
+                      border: simScenario === sc.key ? `1.5px solid ${sc.color}` : '1px solid #cbd5e1',
+                      borderRadius: '16px',
+                      padding: '3px 8px',
+                      fontSize: '0.7rem',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    {sc.label}
                   </button>
                 ))}
               </div>
+            </div>
 
-              {/* ─── UPI PANEL ──────────────────────────────── */}
-              {payMethod === 'UPI' && (
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 18 }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#0f172a', marginBottom: 14, textAlign: 'center' }}>
-                    Choose UPI App — will open directly on your phone
-                  </div>
+            {/* 5. Full-Width Blue Pay Button (Matching Image 1) */}
+            <button
+              type="button"
+              onClick={handleSimulatePayment}
+              disabled={processing}
+              style={{
+                width: '100%',
+                height: '48px',
+                borderRadius: '10px',
+                border: 'none',
+                background: simScenario === 'failure' ? '#dc2626' : simScenario === 'cancel' ? '#d97706' : '#0084ff',
+                color: '#ffffff',
+                fontWeight: '700',
+                fontSize: '0.98rem',
+                cursor: processing ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 14px rgba(0, 132, 255, 0.25)',
+                transition: 'all 0.15s ease'
+              }}
+              onMouseEnter={(e) => {
+                if (!processing) e.currentTarget.style.filter = 'brightness(0.94)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.filter = 'none';
+              }}
+            >
+              {processing ? (
+                <>
+                  <span
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid #ffffff',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      display: 'inline-block',
+                      animation: 'spin 0.8s linear infinite'
+                    }}
+                  />
+                  <span>Processing your demo payment...</span>
+                </>
+              ) : simScenario === 'failure' ? (
+                <>
+                  <XCircle size={18} />
+                  <span>Simulate Payment Failure • ₹{totalAmt.toLocaleString('en-IN')}</span>
+                </>
+              ) : simScenario === 'cancel' ? (
+                <>
+                  <AlertCircle size={18} />
+                  <span>Simulate Payment Cancellation</span>
+                </>
+              ) : (
+                <>
+                  <Shield size={18} />
+                  <span>Simulate Payment • ₹{totalAmt.toLocaleString('en-IN')}</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
 
-                  {/* App selector */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 18 }}>
-                    {[
-                      { key: 'gpay',    label: 'Google Pay',   color: '#4285f4', emoji: '💙' },
-                      { key: 'phonepe', label: 'PhonePe',       color: '#5f259f', emoji: '💜' },
-                      { key: 'paytm',   label: 'Paytm',         color: '#00b9f5', emoji: '💎' },
-                      { key: 'bhim',    label: 'BHIM UPI',      color: '#1a237e', emoji: '🇮🇳' },
-                    ].map(({ key, label, color, emoji }) => (
-                      <button key={key} type="button" onClick={() => setUpiApp(key)} style={{
-                        padding: '10px 4px', borderRadius: 10, cursor: 'pointer',
-                        border: upiApp === key ? `2.5px solid ${color}` : '1.5px solid #e2e8f0',
-                        background: upiApp === key ? `${color}18` : '#fff',
-                        fontWeight: 700, fontSize: '0.72rem', color: upiApp === key ? color : '#475569',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                        transition: 'all 0.15s'
-                      }}>
-                        <span style={{ fontSize: '1.4rem' }}>{emoji}</span>{label}
-                        {upiApp === key && <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'block' }} />}
-                      </button>
-                    ))}
-                  </div>
+        {/* ═══════════════ STEP 3 — SUCCESS RESULT (Section 4) ═══════════════ */}
+        {step === 'success' && (
+          <div style={{ textAlign: 'center', padding: '10px 0' }}>
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: '#ecfdf5',
+                border: '2px solid #a7f3d0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 14px auto',
+                color: '#059669'
+              }}
+            >
+              <CheckCircle size={36} />
+            </div>
 
-                  {/* QR Code (decorative, realistic style) */}
-                  <div style={{ textAlign: 'center', marginBottom: 14 }}>
-                    <div style={{ display: 'inline-block', background: '#fff', padding: 12, borderRadius: 12, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                      <svg width="130" height="130" viewBox="0 0 100 100">
-                        {/* Corner squares */}
-                        <rect x="2" y="2" width="26" height="26" fill="#0284c7" rx="3"/>
-                        <rect x="6" y="6" width="18" height="18" fill="#fff" rx="2"/>
-                        <rect x="10" y="10" width="10" height="10" fill="#0284c7" rx="1"/>
+            <h3 style={{ fontSize: '1.4rem', color: '#065f46', fontWeight: '800', margin: '0 0 6px 0' }}>
+              Demo Payment Successful
+            </h3>
 
-                        <rect x="72" y="2" width="26" height="26" fill="#0284c7" rx="3"/>
-                        <rect x="76" y="6" width="18" height="18" fill="#fff" rx="2"/>
-                        <rect x="80" y="10" width="10" height="10" fill="#0284c7" rx="1"/>
+            {/* Disclaimer Callout */}
+            <div
+              style={{
+                background: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                color: '#1e40af',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                marginBottom: '18px'
+              }}
+            >
+              This is a simulated transaction. No real money was charged.
+            </div>
 
-                        <rect x="2" y="72" width="26" height="26" fill="#0284c7" rx="3"/>
-                        <rect x="6" y="76" width="18" height="18" fill="#fff" rx="2"/>
-                        <rect x="10" y="80" width="10" height="10" fill="#0284c7" rx="1"/>
-
-                        {/* Data pattern */}
-                        {[32,38,42,54,60,66].map(x => [32,36,44,50,58,64,70].map(y => (
-                          (x + y) % 9 < 5 && <rect key={`${x}-${y}`} x={x} y={y} width="5" height="5" fill="#0f172a" rx="1"/>
-                        )))}
-                        {/* Tourist hub logo center */}
-                        <circle cx="50" cy="50" r="7" fill="#fff" stroke="#0284c7" strokeWidth="1.5"/>
-                        <text x="50" y="54" textAnchor="middle" fontSize="8" fill="#0284c7" fontWeight="bold">TH</text>
-                      </svg>
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 8 }}>
-                      Scan with any UPI app to pay ₹{totalAmt.toLocaleString('en-IN')}
-                    </div>
-                  </div>
-
-                  {/* UPI ID display */}
-                  <div style={{ background: '#e0f2fe', borderRadius: 8, padding: '8px 14px', textAlign: 'center', fontSize: '0.85rem', color: '#0369a1', fontWeight: 700 }}>
-                    UPI ID: touristhub@okhdfcbank
-                  </div>
-                  <div style={{ textAlign: 'center', fontSize: '0.72rem', color: '#94a3b8', marginTop: 6 }}>
-                    Clicking "Pay Now" will open the selected UPI app on your device
+            {/* Receipt Summary Voucher */}
+            <div
+              style={{
+                background: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                padding: '16px',
+                textAlign: 'left',
+                marginBottom: '20px'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '10px', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ fontSize: '0.68rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Booking Reference</div>
+                  <div style={{ fontSize: '1rem', fontWeight: '800', color: '#0284c7' }}>
+                    {bookingResult?.booking_reference || `TH-BK-${bookingResult?.booking_id || '9821'}`}
                   </div>
                 </div>
-              )}
-
-              {/* ─── CARD PANEL ─────────────────────────────── */}
-              {payMethod === 'CARD' && (
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 18 }}>
-                  {/* Visual card */}
-                  <div style={{
-                    background: 'linear-gradient(135deg, #0284c7, #065f46)',
-                    borderRadius: 14, padding: '18px 20px', color: '#fff', marginBottom: 18,
-                    boxShadow: '0 6px 20px rgba(2,132,199,0.3)'
-                  }}>
-                    <div style={{ fontSize: '0.72rem', letterSpacing: 2, opacity: 0.8, marginBottom: 16 }}>TOURIST AI HUB CARD</div>
-                    <div style={{ fontSize: '1.1rem', letterSpacing: 4, fontFamily: 'monospace', marginBottom: 16 }}>
-                      {cardNo.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim() || '•••• •••• •••• ••••'}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', opacity: 0.85 }}>
-                      <span>{cardName || 'CARD HOLDER'}</span>
-                      <span>{expiry || 'MM/YY'}</span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <div>
-                      <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Cardholder Name</label>
-                      <input className="form-control" value={cardName} onChange={e => setCardName(e.target.value)} placeholder="Name as on card" />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Card Number (RuPay / Visa / Mastercard)</label>
-                      <input className="form-control" value={cardNo}
-                        onChange={e => setCardNo(e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0,19))}
-                        placeholder="1234 5678 9012 3456" maxLength={19} style={{ fontFamily: 'monospace', letterSpacing: 1 }} />
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                      <div>
-                        <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Expiry (MM/YY)</label>
-                        <input className="form-control" value={expiry}
-                          onChange={e => { let v = e.target.value.replace(/\D/g,''); if (v.length>=2) v = v.slice(0,2)+'/'+v.slice(2,4); setExpiry(v); }}
-                          placeholder="MM/YY" maxLength={5} />
-                      </div>
-                      <div>
-                        <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>CVV / CVC</label>
-                        <input className="form-control" type="password" value={cvv}
-                          onChange={e => setCvv(e.target.value.replace(/\D/g,'').slice(0,4))}
-                          placeholder="•••" maxLength={4} />
-                      </div>
-                    </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.68rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>Demo Transaction ID</div>
+                  <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#334155' }}>
+                    {bookingResult?.transaction?.demo_transaction_id || bookingResult?.transaction_id || `DEMO_TXN_${Date.now()}`}
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* ─── NET BANKING PANEL ───────────────────────── */}
-              {payMethod === 'NETBANKING' && (
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 20, marginBottom: 18 }}>
-                  <label style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 8 }}>Select Your Bank</label>
-
-                  {/* Bank grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 14 }}>
-                    {['SBI','HDFC','ICICI','Axis Bank','PNB','Kotak'].map(bank => (
-                      <button key={bank} type="button" onClick={() => setSelBank(bank)} style={{
-                        padding: '10px 6px', borderRadius: 8, cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700,
-                        border: selBank === bank ? '2px solid #0284c7' : '1.5px solid #e2e8f0',
-                        background: selBank === bank ? '#e0f2fe' : '#fff',
-                        color: selBank === bank ? '#0284c7' : '#475569'
-                      }}>{bank}</button>
-                    ))}
-                  </div>
-
-                  <div style={{ background: '#fffbeb', borderRadius: 8, padding: '10px 14px', fontSize: '0.8rem', color: '#92400e', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                    <AlertCircle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
-                    You will be securely redirected to <strong>{selBank}</strong> internet banking portal to authorize this ₹{totalAmt.toLocaleString('en-IN')} payment.
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.82rem', marginBottom: '12px' }}>
+                <div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Trip / Item</div>
+                  <div style={{ fontWeight: '700', color: '#0f172a' }}>{tripName}</div>
+                </div>
+                <div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Payment Method</div>
+                  <div style={{ fontWeight: '700', color: '#0f172a' }}>
+                    {payMethod} ({payMethod === 'UPI' ? (upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI') : payMethod === 'CARD' ? 'Card' : selBank})
                   </div>
                 </div>
-              )}
+                <div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Travel Date</div>
+                  <div style={{ fontWeight: '700', color: '#0f172a' }}>
+                    {bookingType === 'hotel' ? `${checkIn} to ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>Travelers</div>
+                  <div style={{ fontWeight: '700', color: '#0f172a' }}>{guests} Person(s)</div>
+                </div>
+              </div>
 
-              {/* Pay button */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: '10px', fontWeight: '800', fontSize: '0.98rem' }}>
+                <span>Amount Paid (Demo)</span>
+                <span style={{ color: '#059669' }}>₹{totalAmt.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button
                 type="button"
-                onClick={handlePay}
-                disabled={processing}
-                className="btn btn-green btn-lg"
-                style={{ width: '100%', justifyContent: 'center', fontWeight: 800 }}
+                onClick={() => {
+                  onClose();
+                  navigate('/dashboard');
+                }}
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center', fontWeight: '700', borderRadius: '10px', height: '44px' }}
               >
-                {processing ? (
-                  <>
-                    <span style={{ width: 16, height: 16, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />
-                    Processing Payment...
-                  </>
-                ) : payMethod === 'UPI' ? (
-                  <><Smartphone size={17} /> Pay ₹{totalAmt.toLocaleString('en-IN')} via {upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI'}</>
-                ) : (
-                  <><Lock size={16} /> Pay Securely ₹{totalAmt.toLocaleString('en-IN')}</>
-                )}
+                View Booking in Dashboard
               </button>
 
-              <div style={{ textAlign: 'center', marginTop: 10, fontSize: '0.72rem', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
-                <ShieldCheck size={12} color="#10b981" /> Powered by RBI-regulated payment gateway • PCI-DSS compliant
-              </div>
-            </div>
-          )}
-
-          {/* ═══════════════ STEP 3 — SUCCESS ════════════════════ */}
-          {step === 'success' && (
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ width: 70, height: 70, borderRadius: '50%', background: '#ecfdf5', border: '2px solid #a7f3d0', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', color: '#059669' }}>
-                <CheckCircle size={38} />
-              </div>
-              <h3 style={{ fontSize: '1.5rem', color: '#065f46', marginBottom: 6 }}>🎉 Booking Confirmed!</h3>
-              <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: 22 }}>
-                Your booking is confirmed. A confirmation SMS and email will be sent shortly.
-              </p>
-
-              {/* Voucher */}
-              <div style={{ background: '#f8fafc', borderRadius: 14, border: '1px solid #e2e8f0', padding: 20, textAlign: 'left', marginBottom: 22 }}>
-                {/* Booking ID */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: 12, marginBottom: 14 }}>
-                  <div>
-                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Booking ID</div>
-                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0284c7' }}>{bookingResult?.booking_id || bookingRef}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Transaction ID</div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155' }}>{bookingResult?.transaction_id || `TXN-${payMethod}-${bookingRef}`}</div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, fontSize: '0.84rem', marginBottom: 14 }}>
-                  <div>
-                    <div style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Booking</div>
-                    <div style={{ fontWeight: 700, color: '#0f172a' }}>{item?.name || item?.title || item?.provider}</div>
-                  </div>
-                  {bookingType === 'hotel' && <div>
-                    <div style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Room</div>
-                    <div style={{ fontWeight: 700 }}>{selectedRoom?.name}</div>
-                  </div>}
-                  {bookingType === 'transport' && <div>
-                    <div style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Seats</div>
-                    <div style={{ fontWeight: 700 }}>#{selectedSeats.join(', ')}</div>
-                  </div>}
-                  <div>
-                    <div style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Date</div>
-                    <div style={{ fontWeight: 700 }}>{bookingType === 'hotel' ? `${checkIn} → ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate}</div>
-                  </div>
-                  <div>
-                    <div style={{ color: '#94a3b8', fontSize: '0.7rem' }}>Payment</div>
-                    <div style={{ fontWeight: 700 }}>{payMethod}</div>
-                  </div>
-                </div>
-
-                {savingsAmt > 0 && (
-                  <div style={{ background: '#ecfdf5', borderRadius: 8, padding: '6px 12px', fontSize: '0.8rem', color: '#047857', fontWeight: 600, marginBottom: 12 }}>
-                    🎁 You saved ₹{savingsAmt.toLocaleString('en-IN')} with coupon <strong>{appliedPromo?.code}</strong>
-                  </div>
-                )}
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #e2e8f0', paddingTop: 10, fontWeight: 800, fontSize: '0.95rem' }}>
-                  <span>Total Paid</span>
-                  <span style={{ color: '#059669', fontSize: '1.15rem' }}>₹{totalAmt.toLocaleString('en-IN')}</span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button type="button" onClick={() => window.print()} className="btn btn-secondary" style={{ flex: 1 }}>
-                  <Download size={15} /> Print Voucher
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={handleDownloadReceipt}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '10px',
+                    padding: '9px 12px',
+                    fontSize: '0.8rem',
+                    fontWeight: '700',
+                    color: '#334155',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Download size={15} /> Download Receipt
                 </button>
-                <button type="button" onClick={() => { onClose(); navigate('/dashboard'); }} className="btn btn-green" style={{ flex: 1 }}>
-                  My Trips →
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    navigate('/explore');
+                  }}
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #0084ff',
+                    borderRadius: '10px',
+                    padding: '9px 12px',
+                    fontSize: '0.8rem',
+                    fontWeight: '700',
+                    color: '#0084ff',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Back to Explore
                 </button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+
+        {/* ═══════════════ STEP 4 — FAILED RESULT (Section 4) ═══════════════ */}
+        {step === 'failed' && (
+          <div style={{ textAlign: 'center', padding: '10px 0' }}>
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: '#fef2f2',
+                border: '2px solid #fecaca',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 14px auto',
+                color: '#dc2626'
+              }}
+            >
+              <XCircle size={36} />
+            </div>
+
+            <h3 style={{ fontSize: '1.4rem', color: '#991b1b', fontWeight: '800', margin: '0 0 6px 0' }}>
+              Demo Payment Failed
+            </h3>
+
+            <div
+              style={{
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '8px',
+                padding: '8px 12px',
+                color: '#991b1b',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                marginBottom: '16px'
+              }}
+            >
+              Simulated failure scenario: The transaction was declined by the simulated bank network. No real money was charged.
+            </div>
+
+            <div
+              style={{
+                background: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                padding: '14px',
+                textAlign: 'left',
+                fontSize: '0.82rem',
+                marginBottom: '20px'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Booking Reference:</span>
+                <span style={{ fontWeight: '700' }}>{bookingResult?.booking_reference || `TH-BK-${bookingResult?.booking_id || 'DEMO'}`}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Simulated Transaction ID:</span>
+                <span style={{ fontWeight: '700' }}>{bookingResult?.transaction?.demo_transaction_id || 'DEMO_TXN_FAILED'}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Attempted Amount:</span>
+                <span style={{ fontWeight: '700', color: '#dc2626' }}>₹{totalAmt.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setSimScenario('success');
+                  setStep('payment');
+                }}
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center', fontWeight: '700', borderRadius: '10px', height: '44px' }}
+              >
+                <RotateCcw size={16} /> Retry Payment
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStep('details')}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  padding: '9px 12px',
+                  fontSize: '0.82rem',
+                  fontWeight: '700',
+                  color: '#475569',
+                  cursor: 'pointer'
+                }}
+              >
+                Back to Booking Details
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════════ STEP 5 — CANCELLED RESULT (Section 4) ═══════════════ */}
+        {step === 'cancelled' && (
+          <div style={{ textAlign: 'center', padding: '10px 0' }}>
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '50%',
+                background: '#fffbeb',
+                border: '2px solid #fde68a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 14px auto',
+                color: '#d97706'
+              }}
+            >
+              <AlertCircle size={36} />
+            </div>
+
+            <h3 style={{ fontSize: '1.4rem', color: '#92400e', fontWeight: '800', margin: '0 0 6px 0' }}>
+              Payment Cancelled
+            </h3>
+
+            <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0 0 16px 0' }}>
+              The demo transaction was cancelled by user. Your booking details and selected trip are preserved.
+            </p>
+
+            <div
+              style={{
+                background: '#f8fafc',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                padding: '14px',
+                textAlign: 'left',
+                fontSize: '0.82rem',
+                marginBottom: '20px'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ color: '#64748b' }}>Item / Package:</span>
+                <span style={{ fontWeight: '700' }}>{tripName}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Total Preserved:</span>
+                <span style={{ fontWeight: '700', color: '#0284c7' }}>₹{totalAmt.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setSimScenario('success');
+                  setStep('payment');
+                }}
+                className="btn btn-primary"
+                style={{ width: '100%', justifyContent: 'center', fontWeight: '700', borderRadius: '10px', height: '44px' }}
+              >
+                Return to Payment
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStep('details')}
+                style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  padding: '9px 12px',
+                  fontSize: '0.82rem',
+                  fontWeight: '700',
+                  color: '#475569',
+                  cursor: 'pointer'
+                }}
+              >
+                Back to Booking Details
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
