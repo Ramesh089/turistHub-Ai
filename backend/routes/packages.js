@@ -90,6 +90,10 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Required package details missing.' });
     }
 
+    const actsArray = Array.isArray(activities)
+      ? activities
+      : (typeof activities === 'string' && activities.trim() ? activities.split(',').map(s => s.trim()) : []);
+
     const [result] = await pool.query(`
       INSERT INTO travel_packages (
         destination_id, title, company_name, duration_days, duration_nights,
@@ -101,7 +105,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       duration_days, duration_nights || (duration_days - 1), price,
       transport_type || 'AC Transport', hotel_type || 'Comfort Heritage Hotel',
       food_included !== false, guide_included !== false,
-      JSON.stringify(activities || []), description || '', image_url || ''
+      JSON.stringify(actsArray), description || '', image_url || ''
     ]);
 
     return res.status(201).json({ success: true, message: 'Package created successfully.', packageId: result.insertId });

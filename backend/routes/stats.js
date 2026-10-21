@@ -10,6 +10,9 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
     const [userCount] = await pool.query("SELECT COUNT(*) as total FROM users WHERE role IN ('Tourist', 'User')");
     const [destCount] = await pool.query('SELECT COUNT(*) as total FROM tourist_places');
     const [pkgCount] = await pool.query('SELECT COUNT(*) as total FROM travel_packages');
+    const [hotelCount] = await pool.query('SELECT COUNT(*) as total FROM hotels');
+    const [guideCount] = await pool.query('SELECT COUNT(*) as total FROM guides');
+    const [transportCount] = await pool.query('SELECT COUNT(*) as total FROM transport');
     const [bookingCount] = await pool.query('SELECT COUNT(*) as total, COALESCE(SUM(total_amount), 0) as total_revenue FROM bookings');
     const [reviewCount] = await pool.query('SELECT COUNT(*) as total FROM reviews');
 
@@ -43,6 +46,9 @@ router.get('/dashboard', authenticateToken, requireAdmin, async (req, res) => {
         total_tourists: userCount[0].total,
         total_destinations: destCount[0].total,
         total_packages: pkgCount[0].total,
+        total_hotels: hotelCount[0].total,
+        total_guides: guideCount[0].total,
+        total_transport: transportCount[0].total,
         total_bookings: bookingCount[0].total,
         total_revenue: parseFloat(bookingCount[0].total_revenue),
         total_reviews: reviewCount[0].total,

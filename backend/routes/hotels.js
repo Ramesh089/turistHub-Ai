@@ -106,6 +106,10 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Required hotel details are missing.' });
     }
 
+    const amenArray = Array.isArray(amenities)
+      ? amenities
+      : (typeof amenities === 'string' && amenities.trim() ? amenities.split(',').map(s => s.trim()) : []);
+
     const [result] = await pool.query(`
       INSERT INTO hotels (
         destination_id, name, location, price_per_night, rating,
@@ -118,7 +122,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       parseFloat(price_per_night),
       parseFloat(rating) || 4.5,
       room_type,
-      JSON.stringify(amenities || []),
+      JSON.stringify(amenArray),
       contact || 'N/A',
       image_url || '',
       address || location
