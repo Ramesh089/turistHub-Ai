@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import PackageCard from '../components/PackageCard';
 import BookingModal from '../components/BookingModal';
-import { Package, Search, Filter, Calendar, Users, IndianRupee, ShieldCheck } from 'lucide-react';
+import { Package, Search, Filter, Calendar, Users, IndianRupee, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 
 export default function Packages() {
@@ -21,6 +21,7 @@ export default function Packages() {
 
   // Payment Gateway Modal
   const [bookingPkg, setBookingPkg] = useState(null);
+  const [paymentSuccessMsg, setPaymentSuccessMsg] = useState(null);
 
   useEffect(() => {
     async function loadPackages() {
@@ -146,12 +147,58 @@ export default function Packages() {
         )}
       </div>
 
+      {paymentSuccessMsg && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '24px',
+            right: '24px',
+            zIndex: 99999,
+            background: '#ffffff',
+            border: '2px solid #10b981',
+            borderRadius: '14px',
+            padding: '16px 20px',
+            boxShadow: '0 12px 36px rgba(0,0,0,0.18)',
+            maxWidth: '440px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px',
+            animation: 'fadeIn 0.3s ease'
+          }}
+        >
+          <div style={{ background: '#ecfdf5', color: '#059669', borderRadius: '50%', padding: '6px', flexShrink: 0 }}>
+            <CheckCircle2 size={24} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, color: '#065f46', fontSize: '1rem' }}>🎉 Payment Successful!</div>
+            <div style={{ fontSize: '0.84rem', color: '#334155', marginTop: '2px' }}>
+              Your booking <strong>{paymentSuccessMsg.booking_reference || `TH-BK-${paymentSuccessMsg.booking_id}`}</strong> has been confirmed.
+            </div>
+            <div style={{ marginTop: '8px' }}>
+              <Link to="/dashboard" style={{ fontSize: '0.82rem', color: '#0284c7', fontWeight: 800, textDecoration: 'underline' }}>
+                View Booking & Receipt in Dashboard &rarr;
+              </Link>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setPaymentSuccessMsg(null)}
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.1rem', padding: '0 4px' }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {bookingPkg && (
         <BookingModal
           bookingType="package"
           item={bookingPkg}
           onClose={() => setBookingPkg(null)}
-          onComplete={() => setBookingPkg(null)}
+          onComplete={(data) => {
+            setPaymentSuccessMsg(data);
+            setBookingPkg(null);
+          }}
         />
       )}
     </div>

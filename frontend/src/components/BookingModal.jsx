@@ -384,7 +384,8 @@ export default function BookingModal({
 
       if (res.data.payment_status === 'demo_success') {
         setStep('success');
-        if (onComplete) onComplete(res.data);
+        // Keep modal open so the user can inspect the "Payment Successful" confirmation and receipt.
+        // onComplete will be called when the user finishes viewing and closes or navigates.
       } else if (res.data.payment_status === 'demo_failed') {
         setStep('failed');
       } else if (res.data.payment_status === 'demo_cancelled') {
@@ -410,6 +411,13 @@ export default function BookingModal({
     } finally {
       setProcessing(false);
     }
+  };
+
+  const handleModalClose = () => {
+    if (step === 'success' && onComplete && bookingResult) {
+      onComplete(bookingResult);
+    }
+    onClose();
   };
 
   const copyToClipboard = (text, fieldName) => {
@@ -791,7 +799,7 @@ Thank you for choosing Tourist Hub AI!
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleModalClose}
             disabled={processing}
             title="Close"
             style={{
@@ -1866,7 +1874,7 @@ Thank you for choosing Tourist Hub AI!
                   <button
                     type="button"
                     onClick={() => {
-                      onClose();
+                      handleModalClose();
                       navigate('/dashboard');
                     }}
                     style={{
@@ -1891,7 +1899,7 @@ Thank you for choosing Tourist Hub AI!
 
                   <button
                     type="button"
-                    onClick={onClose}
+                    onClick={handleModalClose}
                     style={{
                       background: 'none',
                       border: '1px solid #e2e8f0',
@@ -1905,7 +1913,7 @@ Thank you for choosing Tourist Hub AI!
                     onMouseEnter={(e) => { e.currentTarget.style.background = '#f8fafc'; }}
                     onMouseLeave={(e) => { e.currentTarget.style.background = 'none'; }}
                   >
-                    Close
+                    Done / Close
                   </button>
                 </div>
               </div>

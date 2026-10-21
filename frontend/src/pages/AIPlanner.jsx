@@ -1092,9 +1092,17 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
           item={bookingModalPkg}
           initialPlan={planResult}
           onClose={() => setBookingModalPkg(null)}
-          onComplete={() => {
+          onComplete={(data) => {
             setSavedSuccess(true);
             setBookingModalPkg(null);
+            setChatMessages((prev) => [
+              ...prev,
+              {
+                id: Date.now(),
+                sender: 'ai',
+                text: `🎉 **Payment Successful!**\n\nYour trip booking for **${planResult?.destination_name || bookingModalPkg?.title || 'your destination'}** has been confirmed!\n\n• **Booking Reference:** \`${data?.booking_reference || (data?.booking_id ? `TH-BK-${data.booking_id}` : 'TH-BK-CONFIRMED')}\`\n• **Transaction ID:** \`${data?.transaction?.demo_transaction_id || 'DEMO_TXN_SUCCESS'}\`\n• **Amount Paid:** ₹${Number(data?.transaction?.amount || data?.total_amount || 0).toLocaleString('en-IN')}\n\nYou can view your official receipt and trip details anytime in your **Dashboard**! Have an incredible journey! ✈️🏖️`
+              }
+            ]);
           }}
         />
       )}

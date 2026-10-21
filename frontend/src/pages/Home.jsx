@@ -18,7 +18,8 @@ import {
   ArrowRight,
   Award,
   HeartHandshake,
-  Tag
+  Tag,
+  CheckCircle2
 } from 'lucide-react';
 
 export default function Home() {
@@ -31,6 +32,7 @@ export default function Home() {
   const [quickDest, setQuickDest] = useState('Mysore (Mysuru)');
   const [quickDays, setQuickDays] = useState(3);
   const [selectedBookingPkg, setSelectedBookingPkg] = useState(null);
+  const [paymentSuccessMsg, setPaymentSuccessMsg] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -699,12 +701,58 @@ export default function Home() {
         </div>
       </section>
 
+      {paymentSuccessMsg && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '24px',
+            right: '24px',
+            zIndex: 99999,
+            background: '#ffffff',
+            border: '2px solid #10b981',
+            borderRadius: '14px',
+            padding: '16px 20px',
+            boxShadow: '0 12px 36px rgba(0,0,0,0.18)',
+            maxWidth: '440px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px',
+            animation: 'fadeIn 0.3s ease'
+          }}
+        >
+          <div style={{ background: '#ecfdf5', color: '#059669', borderRadius: '50%', padding: '6px', flexShrink: 0 }}>
+            <CheckCircle2 size={24} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontWeight: 800, color: '#065f46', fontSize: '1rem' }}>🎉 Payment Successful!</div>
+            <div style={{ fontSize: '0.84rem', color: '#334155', marginTop: '2px' }}>
+              Your booking <strong>{paymentSuccessMsg.booking_reference || `TH-BK-${paymentSuccessMsg.booking_id}`}</strong> has been confirmed.
+            </div>
+            <div style={{ marginTop: '8px' }}>
+              <Link to="/dashboard" style={{ fontSize: '0.82rem', color: '#0284c7', fontWeight: 800, textDecoration: 'underline' }}>
+                View Booking & Receipt in Dashboard &rarr;
+              </Link>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setPaymentSuccessMsg(null)}
+            style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.1rem', padding: '0 4px' }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Payment Gateway Modal (Integrated directly on Home for any package selection) */}
       {selectedBookingPkg && (
         <PaymentModal
           pkg={selectedBookingPkg}
           onClose={() => setSelectedBookingPkg(null)}
-          onBookingComplete={() => {}}
+          onBookingComplete={(data) => {
+            setPaymentSuccessMsg(data);
+            setSelectedBookingPkg(null);
+          }}
         />
       )}
     </div>
