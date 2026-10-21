@@ -67,41 +67,75 @@ router.put('/profile', authenticateToken, async (req, res) => {
   try {
     const { name, phone, avatar_url } = req.body;
 
-    if (!name) {
+    if (!name || !name.trim()) {
       return res.status(400).json({ success: false, message: 'Name is required.' });
     }
 
+    // Check writable columns to avoid attempting to write to VIRTUAL GENERATED columns like `name` or `avatar_url`
     const [cols] = await pool.query(
-      "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'"
+      "SELECT COLUMN_NAME, EXTRA FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'"
     ).catch(() => [[]]);
-    const colSet = new Set(cols.map(c => c.COLUMN_NAME));
+    const writableCols = new Set(
+      cols
+        .filter(c => !c.EXTRA || !c.EXTRA.toUpperCase().includes('GENERATED'))
+        .map(c => c.COLUMN_NAME)
+    );
 
-    const updates = ['full_name = ?', 'phone = ?'];
-    const params = [name.trim(), phone || null];
+    const updates = [];
+    const params = [];
 
-    if (colSet.has('name')) {
+    // full_name is the real column, name is virtual generated
+    if (writableCols.has('full_name')) {
+      updates.push('full_name = ?');
+      params.push(name.trim());
+    } else if (writableCols.has('name')) {
       updates.push('name = ?');
       params.push(name.trim());
     }
-    if (colSet.has('profile_image_url')) {
-      updates.push('profile_image_url = ?');
-      params.push(avatar_url || null);
-    }
-    if (colSet.has('avatar_url')) {
-      updates.push('avatar_url = ?');
-      params.push(avatar_url || null);
+
+    if (writableCols.has('phone')) {
+      updates.push('phone = ?');
+      params.push(phone ? phone.trim() : null);
     }
 
-    params.push(req.user.id);
-    await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+    if (avatar_url !== undefined) {
+      if (writableCols.has('profile_image_url')) {
+        updates.push('profile_image_url = ?');
+        params.push(avatar_url ? avatar_url.trim() : null);
+      } else if (writableCols.has('avatar_url')) {
+        updates.push('avatar_url = ?');
+        params.push(avatar_url ? avatar_url.trim() : null);
+      }
+    }
+
+    if (updates.length > 0) {
+      params.push(req.user.id);
+      await pool.query(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+    }
+
+    // Retrieve fresh user record to return to frontend
+    const [userRows] = await pool.query('SELECT * FROM users WHERE id = ?', [req.user.id]);
+    const rawUser = userRows[0] || {};
+    const updatedUser = {
+      id: rawUser.id,
+      name: rawUser.name || rawUser.full_name || name.trim(),
+      full_name: rawUser.full_name || rawUser.name || name.trim(),
+      email: rawUser.email,
+      phone: rawUser.phone,
+      role: rawUser.role,
+      avatar_url: rawUser.avatar_url || rawUser.profile_image_url || null,
+      profile_image_url: rawUser.profile_image_url || rawUser.avatar_url || null,
+      created_at: rawUser.created_at
+    };
 
     return res.json({
       success: true,
-      message: 'Profile updated successfully.'
+      message: 'Profile updated successfully.',
+      user: updatedUser
     });
   } catch (error) {
     console.error('Update Profile Error:', error);
-    return res.status(500).json({ success: false, message: 'Error updating user profile.' });
+    return res.status(500).json({ success: false, message: error.sqlMessage || 'Error updating user profile.' });
   }
 });
 
@@ -168,7 +202,7 @@ router.put('/preferences', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Update Preferences Error:', error);
-    return res.status(500).json({ success: false, message: 'Error saving preferences.' });
+    return res.status(500).json({ success: false, message: error.sqlMessage || 'Error saving preferences.' });
   }
 });
 

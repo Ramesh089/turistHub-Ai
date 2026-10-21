@@ -27,14 +27,20 @@ export default function Profile() {
     async function loadPreferences() {
       try {
         const res = await api.get('/users/profile');
-        if (res.data.success && res.data.preferences) {
-          const p = res.data.preferences;
-          if (p.travel_type) setTravelType(p.travel_type);
-          if (p.budget_range) setBudgetRange(p.budget_range);
-          if (p.preferred_transport) setPreferredTransport(p.preferred_transport);
-          if (p.food_preference) setFoodPreference(p.food_preference);
-          if (p.preferred_duration) setDuration(p.preferred_duration);
-          if (p.interests && Array.isArray(p.interests)) setInterests(p.interests);
+        if (res.data?.success) {
+          if (res.data.user) {
+            setName(res.data.user.name || res.data.user.full_name || '');
+            setPhone(res.data.user.phone || '');
+          }
+          if (res.data.preferences) {
+            const p = res.data.preferences;
+            if (p.travel_type) setTravelType(p.travel_type);
+            if (p.budget_range) setBudgetRange(p.budget_range);
+            if (p.preferred_transport) setPreferredTransport(p.preferred_transport);
+            if (p.food_preference) setFoodPreference(p.food_preference);
+            if (p.preferred_duration) setDuration(p.preferred_duration);
+            if (p.interests && Array.isArray(p.interests)) setInterests(p.interests);
+          }
         }
       } catch (err) {
         console.error('Load profile error:', err);
@@ -58,8 +64,12 @@ export default function Profile() {
 
     try {
       // 1. Update Profile
-      await api.put('/users/profile', { name, phone });
-      updateUser({ name, phone });
+      const profRes = await api.put('/users/profile', { name, phone });
+      if (profRes.data?.user) {
+        updateUser(profRes.data.user);
+      } else {
+        updateUser({ name, phone });
+      }
 
       // 2. Update Preferences
       await api.put('/users/preferences', {
@@ -74,7 +84,8 @@ export default function Profile() {
       setStatusMsg({ type: 'success', text: 'Profile and travel preferences updated successfully!' });
     } catch (err) {
       console.error('Update profile error:', err);
-      setStatusMsg({ type: 'error', text: 'Failed to update profile settings.' });
+      const errMsg = err.response?.data?.message || 'Failed to update profile settings.';
+      setStatusMsg({ type: 'error', text: errMsg });
     } finally {
       setSaving(false);
     }
