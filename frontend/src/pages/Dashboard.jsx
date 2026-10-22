@@ -17,8 +17,15 @@ import {
   ExternalLink,
   Settings,
   Receipt,
-  Download
+  Download,
+  Train,
+  Bus,
+  Plane,
+  Car,
+  Ticket,
+  XCircle
 } from 'lucide-react';
+import TicketModal from '../components/transport/TicketModal';
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -29,6 +36,62 @@ export default function Dashboard() {
   const [bookings, setBookings] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [cancellingId, setCancellingId] = useState(null);
+
+  const fetchBookings = async () => {
+    try {
+      const bookingsRes = await api.get('/bookings/my-bookings');
+      if (bookingsRes.data.success) setBookings(bookingsRes.data.bookings);
+    } catch (err) {
+      console.error('Failed to reload bookings:', err);
+    }
+  };
+
+  useEffect(() => {
+    async function loadDashboardData() {
+      setLoading(true);
+      try {
+        const [plansRes, bookingsRes, recsRes] = await Promise.all([
+          api.get('/ai/my-plans'),
+          api.get('/bookings/my-bookings'),
+          api.post('/ai/recommend', {})
+        ]);
+
+        if (plansRes.data.success) setPlans(plansRes.data.plans);
+        if (bookingsRes.data.success) setBookings(bookingsRes.data.bookings);
+        if (recsRes.data.success) setRecommendations(recsRes.data.recommendations.slice(0, 4));
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDashboardData();
+  }, []);
+
+  const handleCancelTransportBooking = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to cancel this transport booking? Any applicable refund will be processed to your original payment method.')) {
+      return;
+    }
+    setCancellingId(bookingId);
+    try {
+      const res = await api.post(`/transport/bookings/${bookingId}/cancel`, {
+        reason: 'Traveler requested cancellation via Tourist Hub dashboard'
+      });
+      if (res.data.success) {
+        alert(`Booking cancelled successfully. Refund of ₹${Number(res.data.refund_amount || 0).toLocaleString('en-IN')} has been initiated (${res.data.refund_percentage}% refund per policy).`);
+        fetchBookings();
+      } else {
+        alert(res.data.message || 'Failed to cancel booking.');
+      }
+    } catch (err) {
+      console.error('Cancel booking error:', err);
+      alert(err.response?.data?.message || 'Error cancelling booking.');
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   useEffect(() => {
     async function loadDashboardData() {
@@ -281,58 +344,145 @@ Thank you for choosing Tourist Hub AI!
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {bookings.map((b) => (
-                      <div key={b.id} className="card dashboard-item-card">
-                        <div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px', flexWrap: 'wrap' }}>
-                            <span style={{
-                              fontSize: '0.75rem',
-                              fontWeight: '700',
-                              padding: '3px 8px',
-                              borderRadius: '4px',
-                              background: b.status === 'Confirmed' ? '#dcfce7' : b.status === 'Pending' ? '#fef3c7' : '#fee2e2',
-                              color: b.status === 'Confirmed' ? '#166534' : b.status === 'Pending' ? '#92400e' : '#991b1b'
-                            }}>
-                              {b.status}
-                            </span>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>Booking #{b.id}</span>
+                    {bookings.map((b) => {
+                      const isTransport = b.booking_type === 'transport' || Boolean(b.transport_id) || Boolean(b.transport_provider);
+                      const isCancelled = b.status === 'Cancelled';
+                      const details = b.booking_details || {};
+
+                      return (
+                        <div key={b.id} className="card dashboard-item-card" style={{ borderLeft: isTransport ? '4px solid #0284c7' : '4px solid #d97706' }}>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                              <span style={{
+                                fontSize: '0.75rem',
+                                fontWeight: '700',
+                                padding: '3px 8px',
+                                borderRadius: '4px',
+                                background: isCancelled ? '#fee2e2' : b.status === 'Confirmed' ? '#dcfce7' : '#fef3c7',
+                                color: isCancelled ? '#991b1b' : b.status === 'Confirmed' ? '#166534' : '#92400e'
+                              }}>
+                                {b.status}
+                              </span>
+
+                              {isTransport && (
+                                <span style={{
+                                  fontSize: '0.75rem',
+                                  fontWeight: '800',
+                                  padding: '3px 10px',
+                                  borderRadius: '20px',
+                                  background: '#e0f2fe',
+                                  color: '#0369a1',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 5
+                                }}>
+                                  {b.transport_type === 'Train' && <Train size={13} />}
+                                  {b.transport_type === 'Bus' && <Bus size={13} />}
+                                  {b.transport_type === 'Flight' && <Plane size={13} />}
+                                  {b.transport_type === 'Private Driver' && <Car size={13} />}
+                                  {b.transport_type || 'Transit'}
+                                </span>
+                              )}
+
+                              <span style={{ fontSize: '0.8rem', color: 'var(--slate)', fontWeight: 600 }}>
+                                PNR / Ref: <strong style={{ color: '#0f172a' }}>{b.booking_reference || `TH-BK-${b.id}`}</strong>
+                              </span>
+                            </div>
+
+                            <h3 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>
+                              {b.transport_provider || b.package_title || b.destination_name || 'Custom Travel Package'}
+                              {b.transport_number && <span style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600 }}> ({b.transport_number})</span>}
+                            </h3>
+
+                            {isTransport && b.transport_from && (
+                              <div style={{ fontSize: '0.88rem', color: '#0284c7', fontWeight: 700, marginBottom: 4 }}>
+                                {b.transport_from} &rarr; {b.transport_to}
+                              </div>
+                            )}
+
+                            <div style={{ fontSize: '0.85rem', color: '#475569' }}>
+                              Travel Date: <strong>{new Date(b.travel_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</strong> • Travelers: <strong>{b.people_count || 1}</strong>
+                            </div>
+
+                            {/* Transport specific details */}
+                            {isTransport && (
+                              <div style={{ fontSize: '0.8rem', color: '#334155', marginTop: 4, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                                {details.seats && details.seats.length > 0 && (
+                                  <span>Allocated Seats: <strong style={{ color: '#0284c7' }}>{details.seats.join(', ')}</strong></span>
+                                )}
+                                {details.coach_class && (
+                                  <span>Class: <strong>{details.coach_class}</strong></span>
+                                )}
+                                {details.boarding_point && (
+                                  <span>Boarding: <strong>{details.boarding_point}</strong></span>
+                                )}
+                                {details.pickup_location && (
+                                  <span>Pickup: <strong>{details.pickup_location}</strong></span>
+                                )}
+                              </div>
+                            )}
+
+                            {isCancelled && b.refund_amount > 0 && (
+                              <div style={{ marginTop: 6, fontSize: '0.8rem', color: '#b91c1c', background: '#fef2f2', padding: '4px 10px', borderRadius: 6, display: 'inline-block' }}>
+                                Refund Amount: <strong>₹{Number(b.refund_amount).toLocaleString('en-IN')}</strong> ({b.refund_status || 'Processed'})
+                              </div>
+                            )}
+
+                            {b.special_requests && (
+                              <div style={{ fontSize: '0.8rem', color: 'var(--slate)', marginTop: '4px', fontStyle: 'italic' }}>
+                                Note: "{b.special_requests}"
+                              </div>
+                            )}
                           </div>
 
-                          <h3 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>
-                            {b.package_title || b.destination_name || 'Custom Travel Package'}
-                          </h3>
-                          <div style={{ fontSize: '0.85rem', color: '#475569' }}>
-                            Travel Date: <strong>{new Date(b.travel_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}</strong> • Travelers: <strong>{b.people_count}</strong>
-                          </div>
-                          {b.special_requests && (
-                            <div style={{ fontSize: '0.8rem', color: 'var(--slate)', marginTop: '4px', fontStyle: 'italic' }}>
-                              Note: "{b.special_requests}"
+                          <div className="dashboard-card-action">
+                            <span style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>Total Paid / Amount</span>
+                            <div style={{ fontSize: '1.4rem', fontWeight: '800', color: isCancelled ? '#94a3b8' : 'var(--primary)', marginBottom: '8px', textDecoration: isCancelled ? 'line-through' : 'none' }}>
+                              ₹{Number(b.total_amount).toLocaleString('en-IN')}
                             </div>
-                          )}
-                        </div>
 
-                        <div className="dashboard-card-action">
-                          <span style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>Total Paid / Amount</span>
-                          <div style={{ fontSize: '1.4rem', fontWeight: '800', color: 'var(--primary)', marginBottom: '8px' }}>
-                            ₹{Number(b.total_amount).toLocaleString('en-IN')}
-                          </div>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
-                            <div style={{ fontSize: '0.82rem', color: '#16a34a', fontWeight: '600' }}>
-                              ✓ Confirmed
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', flexWrap: 'wrap' }}>
+                              {/* View / Print Ticket */}
+                              {isTransport && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedTicket(b)}
+                                  className="btn btn-primary btn-sm"
+                                  style={{ fontSize: '0.76rem', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                                  title="View Official Travel E-Ticket / Boarding Pass"
+                                >
+                                  <Ticket size={14} /> View Ticket
+                                </button>
+                              )}
+
+                              <button
+                                type="button"
+                                onClick={() => downloadBookingReceipt(b)}
+                                className="btn btn-secondary btn-sm"
+                                style={{ fontSize: '0.74rem', padding: '5px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                title="Download Official Payment Receipt"
+                              >
+                                <Receipt size={13} color="#0284c7" /> Receipt
+                              </button>
+
+                              {/* Cancel Booking button */}
+                              {isTransport && !isCancelled && (
+                                <button
+                                  type="button"
+                                  disabled={cancellingId === b.id}
+                                  onClick={() => handleCancelTransportBooking(b.id)}
+                                  className="btn btn-secondary btn-sm"
+                                  style={{ fontSize: '0.74rem', padding: '5px 10px', color: '#b91c1c', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                  title="Cancel Transport Booking"
+                                >
+                                  <XCircle size={13} /> Cancel
+                                </button>
+                              )}
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => downloadBookingReceipt(b)}
-                              className="btn btn-secondary btn-sm"
-                              style={{ fontSize: '0.74rem', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                              title="Download Official Payment Receipt"
-                            >
-                              <Receipt size={13} color="#0284c7" /> Receipt
-                            </button>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -375,6 +525,13 @@ Thank you for choosing Tourist Hub AI!
           </div>
         )}
       </div>
+
+      {selectedTicket && (
+        <TicketModal
+          ticket={selectedTicket}
+          onClose={() => setSelectedTicket(null)}
+        />
+      )}
     </div>
   );
 }

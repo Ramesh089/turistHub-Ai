@@ -125,7 +125,9 @@ router.get('/my-bookings', authenticateToken, async (req, res) => {
              pkg.title as package_title, pkg.image_url as package_image, pkg.company_name,
              p.name as destination_name,
              h.name as hotel_name,
-             t.provider as transport_provider, t.transport_type,
+             t.provider as transport_provider, t.transport_type, t.service_number as transport_number,
+             t.from_city as transport_from, t.to_city as transport_to, t.vehicle_model as transport_vehicle,
+             t.cancellation_policy as transport_cancellation_policy,
              g.name as guide_name
       FROM bookings b
       LEFT JOIN travel_packages pkg ON b.package_id = pkg.id
@@ -137,7 +139,15 @@ router.get('/my-bookings', authenticateToken, async (req, res) => {
       ORDER BY b.created_at DESC
     `, [req.user.id]);
 
-    return res.json({ success: true, count: rows.length, bookings: rows });
+    const formatted = rows.map(r => {
+      let details = r.booking_details;
+      if (typeof details === 'string') {
+        try { details = JSON.parse(details); } catch (e) { details = null; }
+      }
+      return { ...r, booking_details: details };
+    });
+
+    return res.json({ success: true, count: formatted.length, bookings: formatted });
   } catch (error) {
     console.error('Get My Bookings Error:', error);
     return res.status(500).json({ success: false, message: 'Failed to retrieve bookings.' });

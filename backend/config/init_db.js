@@ -161,6 +161,32 @@ async function initDatabase() {
     await addColumnIfNotExists(connection, 'reviews', 'review_text', 'TEXT NULL');
     await addColumnIfNotExists(connection, 'reviews', 'package_id', 'INT NULL');
 
+    // Transport platform columns
+    await addColumnIfNotExists(connection, 'transport', 'from_city', 'VARCHAR(150) NULL');
+    await addColumnIfNotExists(connection, 'transport', 'to_city', 'VARCHAR(150) NULL');
+    await addColumnIfNotExists(connection, 'transport', 'service_number', 'VARCHAR(100) NULL');
+    await addColumnIfNotExists(connection, 'transport', 'vehicle_model', 'VARCHAR(150) NULL');
+    await addColumnIfNotExists(connection, 'transport', 'class_options', 'JSON NULL');
+    await addColumnIfNotExists(connection, 'transport', 'boarding_points', 'JSON NULL');
+    await addColumnIfNotExists(connection, 'transport', 'dropping_points', 'JSON NULL');
+    await addColumnIfNotExists(connection, 'transport', 'amenities', 'JSON NULL');
+    await addColumnIfNotExists(connection, 'transport', 'luggage_capacity', 'VARCHAR(150) NULL');
+    await addColumnIfNotExists(connection, 'transport', 'seats_total', 'INT DEFAULT 40');
+    await addColumnIfNotExists(connection, 'transport', 'rating', 'DECIMAL(3,2) DEFAULT 4.80');
+    await addColumnIfNotExists(connection, 'transport', 'reviews_count', 'INT DEFAULT 85');
+    await addColumnIfNotExists(connection, 'transport', 'driver_name', 'VARCHAR(150) NULL');
+    await addColumnIfNotExists(connection, 'transport', 'driver_phone', 'VARCHAR(50) NULL');
+    await addColumnIfNotExists(connection, 'transport', 'driver_rating', 'DECIMAL(3,2) DEFAULT 4.80');
+    await addColumnIfNotExists(connection, 'transport', 'cancellation_policy', 'TEXT NULL');
+    await addColumnIfNotExists(connection, 'transport', 'airline_logo', 'VARCHAR(500) NULL');
+
+    // Bookings ticket extensions
+    await addColumnIfNotExists(connection, 'bookings', 'booking_reference', 'VARCHAR(100) NULL');
+    await addColumnIfNotExists(connection, 'bookings', 'booking_details', 'JSON NULL');
+    await addColumnIfNotExists(connection, 'bookings', 'cancellation_reason', 'VARCHAR(255) NULL');
+    await addColumnIfNotExists(connection, 'bookings', 'refund_amount', 'DECIMAL(10,2) DEFAULT 0.00');
+    await addColumnIfNotExists(connection, 'bookings', 'refund_status', "VARCHAR(50) DEFAULT 'None'");
+
     console.log('✅ Column inspection and synchronization completed.');
 
     // 3. Master Catalogue Data Seeding (Only if empty)
