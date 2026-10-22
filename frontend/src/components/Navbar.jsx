@@ -17,7 +17,8 @@ import {
   Hotel,
   UserCheck,
   Car,
-  Users
+  Users,
+  BarChart3
 } from 'lucide-react';
 
 import BrandLogo from './BrandLogo';
@@ -121,6 +122,30 @@ export default function Navbar() {
             overflowX: 'auto',
             scrollbarWidth: 'none'
           }} className="desktop-nav">
+            <button
+              type="button"
+              onClick={() => navigate('/admin?tab=analytics')}
+              style={{
+                border: 'none',
+                background: currentAdminTab === 'analytics' ? '#ffffff' : 'transparent',
+                color: currentAdminTab === 'analytics' ? '#0284c7' : '#64748b',
+                boxShadow: currentAdminTab === 'analytics' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                fontWeight: currentAdminTab === 'analytics' ? '700' : '600',
+                fontSize: '0.8rem',
+                padding: '6px 11px',
+                borderRadius: '999px',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              <BarChart3 size={14} color={currentAdminTab === 'analytics' ? '#0284c7' : '#94a3b8'} />
+              Analytics
+            </button>
+
             <button
               type="button"
               onClick={() => navigate('/admin?tab=overview')}
@@ -528,6 +553,27 @@ export default function Navbar() {
                   </div>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => { navigate('/admin?tab=analytics'); setMobileMenuOpen(false); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
+                  background: currentAdminTab === 'analytics' ? '#e0f2fe' : 'transparent',
+                  color: currentAdminTab === 'analytics' ? '#0369a1' : '#334155',
+                  border: 'none',
+                  textAlign: 'left',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  fontSize: '0.88rem'
+                }}
+              >
+                <BarChart3 size={16} color="#0284c7" /> Data Analytics
+              </button>
 
               <button
                 type="button"

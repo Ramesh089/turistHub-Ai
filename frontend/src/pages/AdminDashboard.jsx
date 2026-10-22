@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import AnalyticsDashboard from '../components/AnalyticsDashboard';
 import {
   ShieldCheck,
   Users,
@@ -30,7 +31,8 @@ import {
   Filter,
   RefreshCw,
   ChevronDown,
-  Sparkles
+  Sparkles,
+  BarChart3
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -1036,6 +1038,7 @@ export default function AdminDashboard() {
           marginBottom: '24px'
         }}>
           {[
+            { id: 'analytics', label: 'Data Analytics', count: 'Live', icon: BarChart3, activeColor: '#0284c7' },
             { id: 'overview', label: 'Recent Bookings', count: allBookings.length, icon: CalendarCheck, activeColor: '#0284c7' },
             { id: 'destinations', label: 'Destinations', count: allDestinations.length, icon: Compass, activeColor: '#ea580c' },
             { id: 'packages', label: 'Tour Packages', count: allPackages.length, icon: Package, activeColor: '#0284c7' },
@@ -1084,6 +1087,13 @@ export default function AdminDashboard() {
             );
           })}
         </div>
+
+        {/* Tab 0: Data Analytics Dashboard */}
+        {activeTab === 'analytics' && (
+          <div className="animate-fade-in" style={{ marginBottom: '24px' }}>
+            <AnalyticsDashboard />
+          </div>
+        )}
 
         {/* Tab 1: Bookings Management */}
         {activeTab === 'overview' && (
