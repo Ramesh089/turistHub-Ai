@@ -65,41 +65,41 @@ export default function Navbar() {
 
   return (
     <nav style={{
-      background: isAdminPortal ? '#0f172a' : 'rgba(255, 255, 255, 0.96)',
+      background: 'rgba(255, 255, 255, 0.97)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
-      borderBottom: isAdminPortal ? '1px solid rgba(56, 189, 248, 0.2)' : '1px solid rgba(2, 132, 199, 0.14)',
+      borderBottom: '1px solid rgba(2, 132, 199, 0.12)',
       position: 'sticky',
       top: 0,
       zIndex: 900,
-      boxShadow: isAdminPortal ? '0 4px 20px rgba(0, 0, 0, 0.35)' : '0 4px 20px rgba(2, 132, 199, 0.05)',
-      transition: 'all 0.3s ease'
+      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.04)',
+      transition: 'all 0.25s ease'
     }}>
       <div className="container" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: '16px',
-        minHeight: '76px'
+        minHeight: '74px'
       }}>
         {/* Brand Logo - In admin portal, links to /admin and shows Admin Portal badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <BrandLogo to={isAdminPortal ? "/admin" : "/"} light={isAdminPortal} />
+          <BrandLogo to={isAdminPortal ? "/admin" : "/"} light={false} />
           {isAdminPortal && (
             <span style={{
-              background: 'rgba(56, 189, 248, 0.15)',
-              color: '#38bdf8',
+              background: '#e0f2fe',
+              color: '#0369a1',
               fontSize: '0.72rem',
               fontWeight: '800',
-              letterSpacing: '0.6px',
-              padding: '4px 10px',
+              letterSpacing: '0.5px',
+              padding: '4px 9px',
               borderRadius: '6px',
-              border: '1px solid rgba(56, 189, 248, 0.35)',
+              border: '1px solid rgba(2, 132, 199, 0.25)',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '5px'
             }}>
-              <ShieldCheck size={14} color="#38bdf8" /> ADMIN PORTAL
+              <ShieldCheck size={14} color="#0284c7" /> ADMIN
             </span>
           )}
         </div>
@@ -107,29 +107,41 @@ export default function Navbar() {
         {/* Center Navigation */}
         {isAdminPortal ? (
           /* ========================================================= */
-          /* ADMIN PORTAL NAVIGATION - ALL TOURIST PAGES ARE REMOVED   */
+          /* ADMIN PORTAL NAVIGATION - CLEAN, NEVER-WRAPPING PILL BAR  */
           /* ========================================================= */
-          <div style={{ display: 'none', alignItems: 'center', gap: '4px', justifyContent: 'center', flexWrap: 'wrap' }} className="desktop-nav">
+          <div style={{
+            display: 'none',
+            alignItems: 'center',
+            gap: '2px',
+            background: '#f1f5f9',
+            padding: '3px 6px',
+            borderRadius: '999px',
+            border: '1px solid #e2e8f0',
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
+            scrollbarWidth: 'none'
+          }} className="desktop-nav">
             <button
               type="button"
               onClick={() => navigate('/admin?tab=overview')}
               style={{
                 border: 'none',
-                background: currentAdminTab === 'overview' ? 'rgba(56, 189, 248, 0.18)' : 'transparent',
-                color: currentAdminTab === 'overview' ? '#38bdf8' : '#94a3b8',
-                fontWeight: '700',
-                fontSize: '0.82rem',
-                padding: '7px 12px',
-                borderRadius: '8px',
+                background: currentAdminTab === 'overview' ? '#ffffff' : 'transparent',
+                color: currentAdminTab === 'overview' ? '#0284c7' : '#64748b',
+                boxShadow: currentAdminTab === 'overview' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                fontWeight: currentAdminTab === 'overview' ? '700' : '600',
+                fontSize: '0.8rem',
+                padding: '6px 11px',
+                borderRadius: '999px',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-                borderBottom: currentAdminTab === 'overview' ? '2px solid #38bdf8' : '2px solid transparent'
+                gap: '5px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
               }}
             >
-              <CalendarCheck size={14} color={currentAdminTab === 'overview' ? '#38bdf8' : '#94a3b8'} />
+              <CalendarCheck size={14} color={currentAdminTab === 'overview' ? '#0284c7' : '#94a3b8'} />
               Bookings
             </button>
 
@@ -138,21 +150,22 @@ export default function Navbar() {
               onClick={() => navigate('/admin?tab=destinations')}
               style={{
                 border: 'none',
-                background: currentAdminTab === 'destinations' ? 'rgba(245, 158, 11, 0.18)' : 'transparent',
-                color: currentAdminTab === 'destinations' ? '#fbbf24' : '#94a3b8',
-                fontWeight: '700',
-                fontSize: '0.82rem',
-                padding: '7px 12px',
-                borderRadius: '8px',
+                background: currentAdminTab === 'destinations' ? '#ffffff' : 'transparent',
+                color: currentAdminTab === 'destinations' ? '#d97706' : '#64748b',
+                boxShadow: currentAdminTab === 'destinations' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                fontWeight: currentAdminTab === 'destinations' ? '700' : '600',
+                fontSize: '0.8rem',
+                padding: '6px 11px',
+                borderRadius: '999px',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-                borderBottom: currentAdminTab === 'destinations' ? '2px solid #fbbf24' : '2px solid transparent'
+                gap: '5px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
               }}
             >
-              <Compass size={14} color={currentAdminTab === 'destinations' ? '#fbbf24' : '#94a3b8'} />
+              <Compass size={14} color={currentAdminTab === 'destinations' ? '#d97706' : '#94a3b8'} />
               Destinations
             </button>
 
@@ -161,21 +174,22 @@ export default function Navbar() {
               onClick={() => navigate('/admin?tab=packages')}
               style={{
                 border: 'none',
-                background: currentAdminTab === 'packages' ? 'rgba(56, 189, 248, 0.18)' : 'transparent',
-                color: currentAdminTab === 'packages' ? '#38bdf8' : '#94a3b8',
-                fontWeight: '700',
-                fontSize: '0.82rem',
-                padding: '7px 12px',
-                borderRadius: '8px',
+                background: currentAdminTab === 'packages' ? '#ffffff' : 'transparent',
+                color: currentAdminTab === 'packages' ? '#0284c7' : '#64748b',
+                boxShadow: currentAdminTab === 'packages' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                fontWeight: currentAdminTab === 'packages' ? '700' : '600',
+                fontSize: '0.8rem',
+                padding: '6px 11px',
+                borderRadius: '999px',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-                borderBottom: currentAdminTab === 'packages' ? '2px solid #38bdf8' : '2px solid transparent'
+                gap: '5px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
               }}
             >
-              <Package size={14} color={currentAdminTab === 'packages' ? '#38bdf8' : '#94a3b8'} />
+              <Package size={14} color={currentAdminTab === 'packages' ? '#0284c7' : '#94a3b8'} />
               Packages
             </button>
 
@@ -184,21 +198,22 @@ export default function Navbar() {
               onClick={() => navigate('/admin?tab=hotels')}
               style={{
                 border: 'none',
-                background: currentAdminTab === 'hotels' ? 'rgba(16, 185, 129, 0.18)' : 'transparent',
-                color: currentAdminTab === 'hotels' ? '#34d399' : '#94a3b8',
-                fontWeight: '700',
-                fontSize: '0.82rem',
-                padding: '7px 12px',
-                borderRadius: '8px',
+                background: currentAdminTab === 'hotels' ? '#ffffff' : 'transparent',
+                color: currentAdminTab === 'hotels' ? '#059669' : '#64748b',
+                boxShadow: currentAdminTab === 'hotels' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                fontWeight: currentAdminTab === 'hotels' ? '700' : '600',
+                fontSize: '0.8rem',
+                padding: '6px 11px',
+                borderRadius: '999px',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-                borderBottom: currentAdminTab === 'hotels' ? '2px solid #34d399' : '2px solid transparent'
+                gap: '5px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
               }}
             >
-              <Hotel size={14} color={currentAdminTab === 'hotels' ? '#34d399' : '#94a3b8'} />
+              <Hotel size={14} color={currentAdminTab === 'hotels' ? '#059669' : '#94a3b8'} />
               Hotels
             </button>
 
@@ -207,21 +222,22 @@ export default function Navbar() {
               onClick={() => navigate('/admin?tab=guides')}
               style={{
                 border: 'none',
-                background: currentAdminTab === 'guides' ? 'rgba(52, 211, 153, 0.18)' : 'transparent',
-                color: currentAdminTab === 'guides' ? '#34d399' : '#94a3b8',
-                fontWeight: '700',
-                fontSize: '0.82rem',
-                padding: '7px 12px',
-                borderRadius: '8px',
+                background: currentAdminTab === 'guides' ? '#ffffff' : 'transparent',
+                color: currentAdminTab === 'guides' ? '#10b981' : '#64748b',
+                boxShadow: currentAdminTab === 'guides' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                fontWeight: currentAdminTab === 'guides' ? '700' : '600',
+                fontSize: '0.8rem',
+                padding: '6px 11px',
+                borderRadius: '999px',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-                borderBottom: currentAdminTab === 'guides' ? '2px solid #34d399' : '2px solid transparent'
+                gap: '5px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
               }}
             >
-              <UserCheck size={14} color={currentAdminTab === 'guides' ? '#34d399' : '#94a3b8'} />
+              <UserCheck size={14} color={currentAdminTab === 'guides' ? '#10b981' : '#94a3b8'} />
               Guides
             </button>
 
@@ -230,21 +246,22 @@ export default function Navbar() {
               onClick={() => navigate('/admin?tab=transport')}
               style={{
                 border: 'none',
-                background: currentAdminTab === 'transport' ? 'rgba(168, 85, 247, 0.18)' : 'transparent',
-                color: currentAdminTab === 'transport' ? '#c084fc' : '#94a3b8',
-                fontWeight: '700',
-                fontSize: '0.82rem',
-                padding: '7px 12px',
-                borderRadius: '8px',
+                background: currentAdminTab === 'transport' ? '#ffffff' : 'transparent',
+                color: currentAdminTab === 'transport' ? '#7c3aed' : '#64748b',
+                boxShadow: currentAdminTab === 'transport' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                fontWeight: currentAdminTab === 'transport' ? '700' : '600',
+                fontSize: '0.8rem',
+                padding: '6px 11px',
+                borderRadius: '999px',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-                borderBottom: currentAdminTab === 'transport' ? '2px solid #c084fc' : '2px solid transparent'
+                gap: '5px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
               }}
             >
-              <Car size={14} color={currentAdminTab === 'transport' ? '#c084fc' : '#94a3b8'} />
+              <Car size={14} color={currentAdminTab === 'transport' ? '#7c3aed' : '#94a3b8'} />
               Transport
             </button>
 
@@ -253,21 +270,22 @@ export default function Navbar() {
               onClick={() => navigate('/admin?tab=users')}
               style={{
                 border: 'none',
-                background: currentAdminTab === 'users' ? 'rgba(148, 163, 184, 0.18)' : 'transparent',
-                color: currentAdminTab === 'users' ? '#f1f5f9' : '#94a3b8',
-                fontWeight: '700',
-                fontSize: '0.82rem',
-                padding: '7px 12px',
-                borderRadius: '8px',
+                background: currentAdminTab === 'users' ? '#ffffff' : 'transparent',
+                color: currentAdminTab === 'users' ? '#0f172a' : '#64748b',
+                boxShadow: currentAdminTab === 'users' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                fontWeight: currentAdminTab === 'users' ? '700' : '600',
+                fontSize: '0.8rem',
+                padding: '6px 11px',
+                borderRadius: '999px',
                 cursor: 'pointer',
-                display: 'flex',
+                display: 'inline-flex',
                 alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease',
-                borderBottom: currentAdminTab === 'users' ? '2px solid #f1f5f9' : '2px solid transparent'
+                gap: '5px',
+                whiteSpace: 'nowrap',
+                transition: 'all 0.15s ease'
               }}
             >
-              <Users size={14} color={currentAdminTab === 'users' ? '#f1f5f9' : '#94a3b8'} />
+              <Users size={14} color={currentAdminTab === 'users' ? '#0f172a' : '#94a3b8'} />
               Users
             </button>
           </div>
@@ -458,12 +476,12 @@ export default function Navbar() {
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           style={{
-            background: isAdminPortal ? '#1e293b' : '#f0f9ff',
-            border: isAdminPortal ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid rgba(2, 132, 199, 0.2)',
+            background: '#f0f9ff',
+            border: '1px solid rgba(2, 132, 199, 0.2)',
             borderRadius: '10px',
             cursor: 'pointer',
             padding: '8px',
-            color: isAdminPortal ? '#38bdf8' : '#0284c7',
+            color: '#0284c7',
             display: 'none'
           }}
           className="mobile-only"
@@ -474,11 +492,11 @@ export default function Navbar() {
 
       {mobileMenuOpen && (
         <div style={{
-          background: isAdminPortal ? '#0f172a' : '#ffffff',
-          color: isAdminPortal ? '#ffffff' : '#0f172a',
-          borderTop: isAdminPortal ? '1px solid rgba(56, 189, 248, 0.2)' : '1px solid rgba(2, 132, 199, 0.15)',
+          background: '#ffffff',
+          color: '#0f172a',
+          borderTop: '1px solid rgba(2, 132, 199, 0.15)',
           padding: '16px',
-          boxShadow: '0 12px 28px rgba(0, 0, 0, 0.25)',
+          boxShadow: '0 12px 28px rgba(0, 0, 0, 0.08)',
           margin: '0 auto 12px auto',
           width: 'calc(100% - 24px)',
           maxWidth: '420px',
@@ -487,25 +505,25 @@ export default function Navbar() {
         }} className="mobile-only">
           {isAdminPortal ? (
             /* ========================================================= */
-            /* ADMIN MOBILE MENU - STRICTLY ADMIN CONTROLS               */
+            /* ADMIN MOBILE MENU - CLEAN LIGHT DESIGN                    */
             /* ========================================================= */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <div style={{
                 padding: '10px 12px',
-                background: 'rgba(56, 189, 248, 0.1)',
+                background: '#f0f9ff',
                 borderRadius: '10px',
                 marginBottom: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                border: '1px solid rgba(56, 189, 248, 0.25)'
+                border: '1px solid rgba(2, 132, 199, 0.2)'
               }}>
-                <ShieldCheck size={20} color="#38bdf8" />
+                <ShieldCheck size={20} color="#0284c7" />
                 <div>
-                  <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#38bdf8' }}>
-                    Administrator Center
+                  <div style={{ fontSize: '0.88rem', fontWeight: '800', color: '#0369a1' }}>
+                    Administrator Workspace
                   </div>
-                  <div style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
                     Logged in as <strong>{user?.name || 'Admin'}</strong>
                   </div>
                 </div>
@@ -520,8 +538,8 @@ export default function Navbar() {
                   gap: '10px',
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  background: currentAdminTab === 'overview' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
-                  color: currentAdminTab === 'overview' ? '#38bdf8' : '#e2e8f0',
+                  background: currentAdminTab === 'overview' ? '#e0f2fe' : 'transparent',
+                  color: currentAdminTab === 'overview' ? '#0369a1' : '#334155',
                   border: 'none',
                   textAlign: 'left',
                   fontWeight: '600',
@@ -529,7 +547,7 @@ export default function Navbar() {
                   fontSize: '0.88rem'
                 }}
               >
-                <CalendarCheck size={16} color="#38bdf8" /> Bookings Management
+                <CalendarCheck size={16} color="#0284c7" /> Bookings Management
               </button>
 
               <button
@@ -541,8 +559,8 @@ export default function Navbar() {
                   gap: '10px',
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  background: currentAdminTab === 'destinations' ? 'rgba(245, 158, 11, 0.2)' : 'transparent',
-                  color: currentAdminTab === 'destinations' ? '#fbbf24' : '#e2e8f0',
+                  background: currentAdminTab === 'destinations' ? '#fef3c7' : 'transparent',
+                  color: currentAdminTab === 'destinations' ? '#92400e' : '#334155',
                   border: 'none',
                   textAlign: 'left',
                   fontWeight: '600',
@@ -550,7 +568,7 @@ export default function Navbar() {
                   fontSize: '0.88rem'
                 }}
               >
-                <Compass size={16} color="#fbbf24" /> Destinations Management
+                <Compass size={16} color="#d97706" /> Destinations Catalogue
               </button>
 
               <button
@@ -562,8 +580,8 @@ export default function Navbar() {
                   gap: '10px',
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  background: currentAdminTab === 'packages' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
-                  color: currentAdminTab === 'packages' ? '#38bdf8' : '#e2e8f0',
+                  background: currentAdminTab === 'packages' ? '#e0f2fe' : 'transparent',
+                  color: currentAdminTab === 'packages' ? '#0369a1' : '#334155',
                   border: 'none',
                   textAlign: 'left',
                   fontWeight: '600',
@@ -571,7 +589,7 @@ export default function Navbar() {
                   fontSize: '0.88rem'
                 }}
               >
-                <Package size={16} color="#38bdf8" /> Tour Packages Inventory
+                <Package size={16} color="#0284c7" /> Tour Packages Inventory
               </button>
 
               <button
@@ -583,8 +601,8 @@ export default function Navbar() {
                   gap: '10px',
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  background: currentAdminTab === 'hotels' ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
-                  color: currentAdminTab === 'hotels' ? '#34d399' : '#e2e8f0',
+                  background: currentAdminTab === 'hotels' ? '#dcfce7' : 'transparent',
+                  color: currentAdminTab === 'hotels' ? '#166534' : '#334155',
                   border: 'none',
                   textAlign: 'left',
                   fontWeight: '600',
@@ -592,7 +610,7 @@ export default function Navbar() {
                   fontSize: '0.88rem'
                 }}
               >
-                <Hotel size={16} color="#34d399" /> Hotels & Stays
+                <Hotel size={16} color="#059669" /> Hotels & Stays
               </button>
 
               <button
@@ -604,8 +622,8 @@ export default function Navbar() {
                   gap: '10px',
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  background: currentAdminTab === 'guides' ? 'rgba(52, 211, 153, 0.2)' : 'transparent',
-                  color: currentAdminTab === 'guides' ? '#34d399' : '#e2e8f0',
+                  background: currentAdminTab === 'guides' ? '#ecfdf5' : 'transparent',
+                  color: currentAdminTab === 'guides' ? '#065f46' : '#334155',
                   border: 'none',
                   textAlign: 'left',
                   fontWeight: '600',
@@ -613,7 +631,7 @@ export default function Navbar() {
                   fontSize: '0.88rem'
                 }}
               >
-                <UserCheck size={16} color="#34d399" /> Tourist Guides
+                <UserCheck size={16} color="#10b981" /> Tourist Guides
               </button>
 
               <button
@@ -625,8 +643,8 @@ export default function Navbar() {
                   gap: '10px',
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  background: currentAdminTab === 'transport' ? 'rgba(168, 85, 247, 0.2)' : 'transparent',
-                  color: currentAdminTab === 'transport' ? '#c084fc' : '#e2e8f0',
+                  background: currentAdminTab === 'transport' ? '#f3e8ff' : 'transparent',
+                  color: currentAdminTab === 'transport' ? '#6b21a8' : '#334155',
                   border: 'none',
                   textAlign: 'left',
                   fontWeight: '600',
@@ -634,7 +652,7 @@ export default function Navbar() {
                   fontSize: '0.88rem'
                 }}
               >
-                <Car size={16} color="#c084fc" /> Transport Routes
+                <Car size={16} color="#7c3aed" /> Transport Routes
               </button>
 
               <button
@@ -646,8 +664,8 @@ export default function Navbar() {
                   gap: '10px',
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  background: currentAdminTab === 'users' ? 'rgba(148, 163, 184, 0.2)' : 'transparent',
-                  color: currentAdminTab === 'users' ? '#f1f5f9' : '#e2e8f0',
+                  background: currentAdminTab === 'users' ? '#f1f5f9' : 'transparent',
+                  color: currentAdminTab === 'users' ? '#0f172a' : '#334155',
                   border: 'none',
                   textAlign: 'left',
                   fontWeight: '600',
@@ -655,10 +673,10 @@ export default function Navbar() {
                   fontSize: '0.88rem'
                 }}
               >
-                <Users size={16} color="#f1f5f9" /> User Accounts
+                <Users size={16} color="#0f172a" /> User Accounts
               </button>
 
-              <hr style={{ border: 'none', borderTop: '1px solid rgba(255, 255, 255, 0.1)', margin: '8px 0' }} />
+              <hr style={{ border: 'none', borderTop: '1px solid #e2e8f0', margin: '8px 0' }} />
 
               <Link
                 to="/profile"
@@ -669,13 +687,13 @@ export default function Navbar() {
                   gap: '10px',
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  color: '#e2e8f0',
+                  color: '#334155',
                   textDecoration: 'none',
                   fontWeight: '600',
                   fontSize: '0.88rem'
                 }}
               >
-                <User size={16} color="#38bdf8" /> Admin Profile & Settings
+                <User size={16} color="#0284c7" /> Admin Profile & Settings
               </Link>
 
               <button
@@ -687,16 +705,16 @@ export default function Navbar() {
                   gap: '10px',
                   padding: '9px 12px',
                   borderRadius: '8px',
-                  color: '#f87171',
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.25)',
+                  color: '#dc2626',
+                  background: '#fee2e2',
+                  border: '1px solid #fecaca',
                   fontWeight: '700',
                   fontSize: '0.88rem',
                   cursor: 'pointer',
                   marginTop: '4px'
                 }}
               >
-                <LogOut size={16} color="#f87171" /> Sign Out
+                <LogOut size={16} color="#dc2626" /> Sign Out
               </button>
             </div>
           ) : (

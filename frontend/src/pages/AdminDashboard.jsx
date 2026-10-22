@@ -27,7 +27,10 @@ import {
   Award,
   X,
   Search,
-  Filter
+  Filter,
+  RefreshCw,
+  ChevronDown,
+  Sparkles
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -35,6 +38,9 @@ export default function AdminDashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'overview';
   const setActiveTab = (tab) => setSearchParams({ tab });
+
+  // Quick Action Dropdown state
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
 
   // Stats
   const [stats, setStats] = useState(null);
@@ -556,92 +562,276 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ background: '#f8fafc', minHeight: '90vh', paddingBottom: '90px' }}>
-      {/* Header */}
-      <div className="page-banner" style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-        color: '#ffffff',
-        borderBottom: '4px solid #f59e0b'
+      {/* Modern Executive Header */}
+      <div style={{
+        background: '#ffffff',
+        borderBottom: '1px solid #e2e8f0',
+        padding: '24px 0 20px',
+        marginBottom: '28px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
       }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '18px', flexWrap: 'wrap' }}>
-            <img
-              src="/logo.png"
-              alt="Tourist AI Hub Logo"
-              className="page-banner-logo"
-              style={{
-                objectFit: 'contain',
-                background: 'rgba(255, 255, 255, 0.1)',
-                padding: '6px',
-                border: '1.5px solid rgba(255, 255, 255, 0.25)',
-                boxShadow: '0 6px 22px rgba(0, 0, 0, 0.4)'
-              }}
-            />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              boxShadow: '0 8px 16px rgba(2, 132, 199, 0.22)'
+            }}>
+              <ShieldCheck size={26} />
+            </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#fbbf24', fontSize: '0.85rem', fontWeight: '700', textTransform: 'uppercase', marginBottom: '6px' }}>
-                <ShieldCheck size={18} /> Administrator Command Center
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  padding: '3px 9px',
+                  borderRadius: '999px',
+                  background: '#e0f2fe',
+                  color: '#0369a1',
+                  fontSize: '0.72rem',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em'
+                }}>
+                  <Sparkles size={12} /> Management Console
+                </span>
+                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>•</span>
+                <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: '500' }}>
+                  Logged in as <strong style={{ color: '#0f172a' }}>{user?.name || user?.fullName || 'Administrator'}</strong>
+                </span>
               </div>
-              <h1 className="page-banner-title">
-                Tourist AI Hub Management Suite
+              <h1 style={{ fontSize: 'clamp(1.35rem, 2.4vw, 1.7rem)', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+                Platform Operations & Inventory
               </h1>
-              <p style={{ color: '#cbd5e1', fontSize: '0.95rem' }}>
-                Logged in as <strong>{user?.name || user?.fullName || 'Administrator'}</strong>. Add and manage tourist guides, packages, hotels, transport options, and Indian destinations.
+              <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '4px 0 0' }}>
+                Live overview of tourist bookings, packages, verified stays, tour guides, and transit across India.
               </p>
             </div>
           </div>
 
-          {/* Quick Action Add Buttons */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {/* Header Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', position: 'relative' }}>
             <button
-              onClick={() => setNewGuideModal(true)}
-              className="btn btn-sm"
-              style={{ background: '#059669', color: '#ffffff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              title="Add a new certified tourist guide"
+              onClick={loadAllData}
+              className="btn"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '7px',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                color: '#334155',
+                fontWeight: '600',
+                fontSize: '0.85rem',
+                padding: '9px 15px',
+                borderRadius: '10px',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}
+              title="Refresh dashboard data"
             >
-              <Plus size={15} /> Add Guide
+              <RefreshCw size={15} />
+              <span>Refresh</span>
             </button>
 
-            <button
-              onClick={() => setNewPkgModal(true)}
-              className="btn btn-primary btn-sm"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              title="Create a new all-inclusive tour package"
-            >
-              <Plus size={15} /> Add Package
-            </button>
+            {/* Quick Add Dropdown */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setQuickAddOpen(!quickAddOpen)}
+                className="btn"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  fontWeight: '700',
+                  fontSize: '0.88rem',
+                  padding: '9px 18px',
+                  borderRadius: '10px',
+                  boxShadow: '0 4px 12px rgba(2, 132, 199, 0.28)',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <Plus size={16} />
+                <span>Quick Create</span>
+                <ChevronDown size={15} style={{ transform: quickAddOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              </button>
 
-            <button
-              onClick={() => setNewHotelModal(true)}
-              className="btn btn-sm"
-              style={{ background: '#0284c7', color: '#ffffff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              title="List a verified hotel or resort"
-            >
-              <Plus size={15} /> Add Hotel
-            </button>
+              {quickAddOpen && (
+                <>
+                  <div
+                    onClick={() => setQuickAddOpen(false)}
+                    style={{ position: 'fixed', inset: 0, zIndex: 90 }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 8px)',
+                    right: 0,
+                    width: '260px',
+                    background: '#ffffff',
+                    borderRadius: '12px',
+                    boxShadow: '0 12px 30px rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.06)',
+                    border: '1px solid #e2e8f0',
+                    padding: '6px',
+                    zIndex: 95,
+                    animation: 'fadeIn 0.15s ease'
+                  }}>
+                    <button
+                      onClick={() => { setNewDestModal(true); setQuickAddOpen(false); }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#ffedd5', color: '#ea580c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Compass size={17} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>New Destination</div>
+                        <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Publish tourist places & spots</div>
+                      </div>
+                    </button>
 
-            <button
-              onClick={() => setNewTransportModal(true)}
-              className="btn btn-sm"
-              style={{ background: '#7c3aed', color: '#ffffff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              title="Add a transit or intercity transport option"
-            >
-              <Plus size={15} /> Add Transport
-            </button>
+                    <button
+                      onClick={() => { setNewPkgModal(true); setQuickAddOpen(false); }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Package size={17} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>New Tour Package</div>
+                        <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Create all-inclusive journeys</div>
+                      </div>
+                    </button>
 
-            <button
-              onClick={() => setNewDestModal(true)}
-              className="btn btn-gold btn-sm"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-              title="Publish a new tourist destination"
-            >
-              <Plus size={15} /> Add Destination
-            </button>
+                    <button
+                      onClick={() => { setNewHotelModal(true); setQuickAddOpen(false); }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#dcfce7', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Hotel size={17} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>New Hotel / Resort</div>
+                        <div style={{ fontSize: '0.74rem', color: '#64748b' }}>List verified accommodations</div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => { setNewGuideModal(true); setQuickAddOpen(false); }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#ccfbf1', color: '#0d9488', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <UserCheck size={17} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>New Tourist Guide</div>
+                        <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Register certified local expert</div>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => { setNewTransportModal(true); setQuickAddOpen(false); }}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '10px 12px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: 'transparent',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#f3e8ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Car size={17} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: '700', color: '#0f172a' }}>New Transport Option</div>
+                        <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Add coach, train, or cab transit</div>
+                      </div>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
       <div className="container">
         {actionMsg && (
-          <div style={{ background: '#dcfce7', color: '#166534', padding: '12px 16px', borderRadius: '8px', marginBottom: '24px', fontWeight: '600', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: '#dcfce7', color: '#166534', padding: '12px 16px', borderRadius: '10px', marginBottom: '20px', fontWeight: '600', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #bbf7d0' }}>
             <span>✓ {actionMsg}</span>
             <button onClick={() => setActionMsg(null)} style={{ background: 'none', border: 'none', color: '#166534', cursor: 'pointer' }}><X size={16} /></button>
           </div>
@@ -649,126 +839,250 @@ export default function AdminDashboard() {
 
         {/* 1. Statistics Cards */}
         {loadingStats ? (
-          <p style={{ textAlign: 'center', padding: '40px 0', color: 'var(--primary)', fontWeight: '600' }}>Loading system metrics...</p>
+          <div style={{ textAlign: 'center', padding: '36px 0', color: '#0284c7', fontWeight: '600' }}>
+            <RefreshCw size={24} className="spin" style={{ marginBottom: '8px' }} />
+            <div>Loading system metrics...</div>
+          </div>
         ) : (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))',
-            gap: '16px',
-            marginBottom: '32px'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 155px), 1fr))',
+            gap: '14px',
+            marginBottom: '26px'
           }}>
-            <div className="card" style={{ padding: '18px 20px', borderLeft: '4px solid #3b82f6' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.76rem', color: 'var(--slate)', textTransform: 'uppercase', fontWeight: '700' }}>Tourists</span>
-                <Users size={18} color="#3b82f6" />
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '16px 18px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em' }}>Tourists</span>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Users size={16} />
+                </div>
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#1e293b', marginTop: '4px' }}>
-                {stats?.total_tourists ?? allUsers.length}
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
+                  {stats?.total_tourists ?? allUsers.length}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: '600', marginTop: '4px' }}>Registered Accounts</div>
               </div>
-              <span style={{ fontSize: '0.74rem', color: '#16a34a' }}>Registered Accounts</span>
             </div>
 
-            <div className="card" style={{ padding: '18px 20px', borderLeft: '4px solid #e65100' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.76rem', color: 'var(--slate)', textTransform: 'uppercase', fontWeight: '700' }}>Destinations</span>
-                <Compass size={18} color="#e65100" />
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '16px 18px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em' }}>Bookings</span>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <CalendarCheck size={16} />
+                </div>
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#e65100', marginTop: '4px' }}>
-                {allDestinations.length}
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
+                  {allBookings.length}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#0284c7', fontWeight: '600', marginTop: '4px' }}>₹{Number(stats?.total_revenue || 0).toLocaleString('en-IN')} Vol.</div>
               </div>
-              <span style={{ fontSize: '0.74rem', color: 'var(--slate)' }}>Indian Tourist Places</span>
             </div>
 
-            <div className="card" style={{ padding: '18px 20px', borderLeft: '4px solid #0284c7' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.76rem', color: 'var(--slate)', textTransform: 'uppercase', fontWeight: '700' }}>Packages</span>
-                <Package size={18} color="#0284c7" />
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '16px 18px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em' }}>Destinations</span>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#ffedd5', color: '#ea580c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Compass size={16} />
+                </div>
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0284c7', marginTop: '4px' }}>
-                {allPackages.length}
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
+                  {allDestinations.length}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '500', marginTop: '4px' }}>Indian Tourist Places</div>
               </div>
-              <span style={{ fontSize: '0.74rem', color: 'var(--slate)' }}>All-Inclusive Tours</span>
             </div>
 
-            <div className="card" style={{ padding: '18px 20px', borderLeft: '4px solid #059669' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.76rem', color: 'var(--slate)', textTransform: 'uppercase', fontWeight: '700' }}>Hotels</span>
-                <Hotel size={18} color="#059669" />
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '16px 18px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em' }}>Packages</span>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Package size={16} />
+                </div>
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#059669', marginTop: '4px' }}>
-                {allHotels.length}
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
+                  {allPackages.length}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '500', marginTop: '4px' }}>All-Inclusive Tours</div>
               </div>
-              <span style={{ fontSize: '0.74rem', color: 'var(--slate)' }}>Verified Stays</span>
             </div>
 
-            <div className="card" style={{ padding: '18px 20px', borderLeft: '4px solid #10b981' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.76rem', color: 'var(--slate)', textTransform: 'uppercase', fontWeight: '700' }}>Guides</span>
-                <UserCheck size={18} color="#10b981" />
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '16px 18px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em' }}>Hotels</span>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#dcfce7', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Hotel size={16} />
+                </div>
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#10b981', marginTop: '4px' }}>
-                {allGuides.length}
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
+                  {allHotels.length}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '500', marginTop: '4px' }}>Verified Stays</div>
               </div>
-              <span style={{ fontSize: '0.74rem', color: 'var(--slate)' }}>Certified Storytellers</span>
             </div>
 
-            <div className="card" style={{ padding: '18px 20px', borderLeft: '4px solid #7c3aed' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.76rem', color: 'var(--slate)', textTransform: 'uppercase', fontWeight: '700' }}>Transit</span>
-                <Car size={18} color="#7c3aed" />
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '16px 18px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em' }}>Guides</span>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#ccfbf1', color: '#0d9488', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <UserCheck size={16} />
+                </div>
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#7c3aed', marginTop: '4px' }}>
-                {allTransport.length}
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
+                  {allGuides.length}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '500', marginTop: '4px' }}>Certified Guides</div>
               </div>
-              <span style={{ fontSize: '0.74rem', color: 'var(--slate)' }}>Trains, Buses & Cabs</span>
             </div>
 
-            <div className="card" style={{ padding: '18px 20px', borderLeft: '4px solid #d97706' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.76rem', color: 'var(--slate)', textTransform: 'uppercase', fontWeight: '700' }}>Bookings</span>
-                <CalendarCheck size={18} color="#d97706" />
+            <div style={{
+              background: '#ffffff',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              padding: '16px 18px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.74rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.04em' }}>Transit</span>
+                <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#f3e8ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Car size={16} />
+                </div>
               </div>
-              <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#d97706', marginTop: '4px' }}>
-                {allBookings.length}
+              <div style={{ marginTop: '10px' }}>
+                <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
+                  {allTransport.length}
+                </div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '500', marginTop: '4px' }}>Trains, Buses & Cabs</div>
               </div>
-              <span style={{ fontSize: '0.74rem', color: '#16a34a' }}>₹{Number(stats?.total_revenue || 0).toLocaleString('en-IN')} Vol.</span>
             </div>
           </div>
         )}
 
-        {/* 2. Admin Navigation Tabs */}
-        <div className="tabs-nav" style={{
+        {/* 2. Admin Segmented Navigation Tabs */}
+        <div style={{
           background: '#ffffff',
-          padding: '8px 16px',
-          borderRadius: '12px',
-          boxShadow: 'var(--shadow-sm)',
+          borderRadius: '14px',
+          border: '1px solid #e2e8f0',
+          padding: '6px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
           display: 'flex',
-          gap: '8px',
+          alignItems: 'center',
+          gap: '4px',
           overflowX: 'auto',
+          scrollbarWidth: 'none',
           WebkitOverflowScrolling: 'touch',
           marginBottom: '24px'
         }}>
-          <button onClick={() => setActiveTab('overview')} className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}>
-            Recent Bookings ({allBookings.length})
-          </button>
-          <button onClick={() => setActiveTab('destinations')} className={`tab-btn ${activeTab === 'destinations' ? 'active' : ''}`}>
-            Destinations ({allDestinations.length})
-          </button>
-          <button onClick={() => setActiveTab('packages')} className={`tab-btn ${activeTab === 'packages' ? 'active' : ''}`}>
-            Tour Packages ({allPackages.length})
-          </button>
-          <button onClick={() => setActiveTab('hotels')} className={`tab-btn ${activeTab === 'hotels' ? 'active' : ''}`}>
-            Hotels & Resorts ({allHotels.length})
-          </button>
-          <button onClick={() => setActiveTab('guides')} className={`tab-btn ${activeTab === 'guides' ? 'active' : ''}`}>
-            Tourist Guides ({allGuides.length})
-          </button>
-          <button onClick={() => setActiveTab('transport')} className={`tab-btn ${activeTab === 'transport' ? 'active' : ''}`}>
-            Transport ({allTransport.length})
-          </button>
-          <button onClick={() => setActiveTab('users')} className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}>
-            Manage Users ({allUsers.length})
-          </button>
+          {[
+            { id: 'overview', label: 'Recent Bookings', count: allBookings.length, icon: CalendarCheck, activeColor: '#0284c7' },
+            { id: 'destinations', label: 'Destinations', count: allDestinations.length, icon: Compass, activeColor: '#ea580c' },
+            { id: 'packages', label: 'Tour Packages', count: allPackages.length, icon: Package, activeColor: '#0284c7' },
+            { id: 'hotels', label: 'Hotels & Stays', count: allHotels.length, icon: Hotel, activeColor: '#059669' },
+            { id: 'guides', label: 'Tourist Guides', count: allGuides.length, icon: UserCheck, activeColor: '#0d9488' },
+            { id: 'transport', label: 'Transport', count: allTransport.length, icon: Car, activeColor: '#7c3aed' },
+            { id: 'users', label: 'User Accounts', count: allUsers.length, icon: Users, activeColor: '#2563eb' }
+          ].map((t) => {
+            const Icon = t.icon;
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                style={{
+                  border: 'none',
+                  background: isActive ? '#f0f9ff' : 'transparent',
+                  color: isActive ? t.activeColor : '#475569',
+                  fontWeight: isActive ? '700' : '600',
+                  fontSize: '0.84rem',
+                  padding: '9px 15px',
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease',
+                  boxShadow: isActive ? 'inset 0 0 0 1.5px rgba(2, 132, 199, 0.2)' : 'none'
+                }}
+              >
+                <Icon size={16} color={isActive ? t.activeColor : '#94a3b8'} />
+                <span>{t.label}</span>
+                <span style={{
+                  fontSize: '0.72rem',
+                  fontWeight: '700',
+                  padding: '2px 8px',
+                  borderRadius: '999px',
+                  background: isActive ? '#0284c7' : '#f1f5f9',
+                  color: isActive ? '#ffffff' : '#64748b',
+                  transition: 'all 0.15s ease'
+                }}>
+                  {t.count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Tab 1: Bookings Management */}
