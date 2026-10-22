@@ -187,9 +187,60 @@ async function initDatabase() {
     await addColumnIfNotExists(connection, 'bookings', 'refund_amount', 'DECIMAL(10,2) DEFAULT 0.00');
     await addColumnIfNotExists(connection, 'bookings', 'refund_status', "VARCHAR(50) DEFAULT 'None'");
 
+    // 3. Multi-Transport Tables Creation
+    console.log('\n🚌 Verifying multi-transport booking tables...');
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS transport_seat_bookings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        transport_id INT NOT NULL,
+        travel_date DATE NOT NULL,
+        seat_number VARCHAR(20) NOT NULL,
+        deck_tier VARCHAR(20) DEFAULT 'lower',
+        seat_type VARCHAR(30) DEFAULT 'standard',
+        coach_class VARCHAR(30) DEFAULT 'standard',
+        booking_id INT NULL,
+        user_id INT NULL,
+        status ENUM('held', 'booked', 'cancelled') NOT NULL DEFAULT 'held',
+        passenger_name VARCHAR(150) NULL,
+        passenger_age INT NULL,
+        passenger_gender VARCHAR(20) NULL,
+        hold_expires_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_transport_date_seat (transport_id, travel_date, seat_number, deck_tier)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    console.log('  ✅ Table transport_seat_bookings verified.');
+
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS transport_driver_bookings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        transport_id INT NOT NULL,
+        booking_id INT NULL,
+        user_id INT NOT NULL,
+        trip_type VARCHAR(100) NOT NULL DEFAULT 'one_way',
+        pickup_location VARCHAR(255) NOT NULL,
+        drop_location VARCHAR(255) NOT NULL,
+        pickup_date DATE NOT NULL,
+        pickup_time VARCHAR(50) NOT NULL,
+        return_date DATE NULL,
+        passengers_count INT DEFAULT 1,
+        luggage_count INT DEFAULT 1,
+        vehicle_category VARCHAR(50) NOT NULL,
+        base_fare DECIMAL(10,2) NOT NULL,
+        toll_taxes DECIMAL(10,2) DEFAULT 0,
+        total_amount DECIMAL(10,2) NOT NULL,
+        driver_assigned_name VARCHAR(150) NULL,
+        driver_assigned_phone VARCHAR(50) NULL,
+        status ENUM('pending', 'confirmed', 'completed', 'cancelled') NOT NULL DEFAULT 'confirmed',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+    console.log('  ✅ Table transport_driver_bookings verified.');
+
     console.log('✅ Column inspection and synchronization completed.');
 
-    // 3. Master Catalogue Data Seeding (Only if empty)
+    // 4. Master Catalogue Data Seeding (Only if empty)
     console.log('\n📊 Checking master catalogue data...');
     const [stateRows] = await connection.query('SELECT COUNT(*) as count FROM states');
     const stateCount = stateRows[0].count;
@@ -211,6 +262,21 @@ async function initDatabase() {
       }
     } else {
       console.log(`ℹ️ Master catalogue already populated (${stateCount} states, ${placeCount} places, ${pkgCount} packages). Preserving existing data.`);
+    }
+
+    // 5. Multi-Transport Catalogue Seeding
+    try {
+      const [tCheck] = await connection.query('SELECT COUNT(*) as count FROM transport WHERE service_number IS NOT NULL');
+      if (tCheck[0].count < 10) {
+        console.log(`🌱 Multi-transport inventory incomplete (found ${tCheck[0].count} services). Seeding full transport fleet...`);
+        const seedTransport = require('./seed_transport_inventory');
+        await seedTransport();
+        console.log('✅ Multi-transport catalogue seeded successfully.');
+      } else {
+        console.log(`ℹ️ Multi-transport catalogue already seeded (${tCheck[0].count} services with schedules & classes).`);
+      }
+    } catch (tErr) {
+      console.warn('⚠️ Multi-transport seeding notice:', tErr.message);
     }
 
     // 4. Optional Demo Users (CLI flag: --with-demo-users)

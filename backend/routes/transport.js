@@ -24,6 +24,60 @@ function calculateDiscount(code, amount) {
   return Math.min(coupon.value, parseFloat(amount));
 }
 
+// Ensure transport tables exist dynamically (Self-healing on production/Render databases)
+async function ensureTransportTables(conn = pool) {
+  try {
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS transport_seat_bookings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        transport_id INT NOT NULL,
+        travel_date DATE NOT NULL,
+        seat_number VARCHAR(20) NOT NULL,
+        deck_tier VARCHAR(20) DEFAULT 'lower',
+        seat_type VARCHAR(30) DEFAULT 'standard',
+        coach_class VARCHAR(30) DEFAULT 'standard',
+        booking_id INT NULL,
+        user_id INT NULL,
+        status ENUM('held', 'booked', 'cancelled') NOT NULL DEFAULT 'held',
+        passenger_name VARCHAR(150) NULL,
+        passenger_age INT NULL,
+        passenger_gender VARCHAR(20) NULL,
+        hold_expires_at TIMESTAMP NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_transport_date_seat (transport_id, travel_date, seat_number, deck_tier)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS transport_driver_bookings (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        transport_id INT NOT NULL,
+        booking_id INT NULL,
+        user_id INT NOT NULL,
+        trip_type VARCHAR(100) NOT NULL DEFAULT 'one_way',
+        pickup_location VARCHAR(255) NOT NULL,
+        drop_location VARCHAR(255) NOT NULL,
+        pickup_date DATE NOT NULL,
+        pickup_time VARCHAR(50) NOT NULL,
+        return_date DATE NULL,
+        passengers_count INT DEFAULT 1,
+        luggage_count INT DEFAULT 1,
+        vehicle_category VARCHAR(50) NOT NULL,
+        base_fare DECIMAL(10,2) NOT NULL,
+        toll_taxes DECIMAL(10,2) DEFAULT 0,
+        total_amount DECIMAL(10,2) NOT NULL,
+        driver_assigned_name VARCHAR(150) NULL,
+        driver_assigned_phone VARCHAR(50) NULL,
+        status ENUM('pending', 'confirmed', 'completed', 'cancelled') NOT NULL DEFAULT 'confirmed',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+  } catch (err) {
+    console.warn('ensureTransportTables notice:', err.message);
+  }
+}
+
 // -------------------------------------------------------------
 // 1. GET /api/transport - Unified Search & Filter for All Modes
 // -------------------------------------------------------------
@@ -203,6 +257,9 @@ router.get('/:id/seats', async (req, res) => {
     }
     const transport = tRows[0];
 
+    // Ensure seat bookings table exists
+    await ensureTransportTables(pool);
+
     // Clean up expired temporary holds
     await pool.query(`
       DELETE FROM transport_seat_bookings 
@@ -250,6 +307,7 @@ router.post('/:id/hold-seats', authenticateToken, async (req, res) => {
     }
 
     await connection.beginTransaction();
+    await ensureTransportTables(connection);
 
     // Clean up expired holds first
     await connection.query(`
@@ -336,6 +394,7 @@ router.post('/driver/book', authenticateToken, async (req, res) => {
     }
 
     await connection.beginTransaction();
+    await ensureTransportTables(connection);
 
     const [tRows] = await connection.query('SELECT * FROM transport WHERE id = ? FOR UPDATE', [transport_id]);
     if (tRows.length === 0) {
@@ -517,6 +576,7 @@ router.post('/:id/book', authenticateToken, async (req, res) => {
     }
 
     await connection.beginTransaction();
+    await ensureTransportTables(connection);
 
     // 1. Fetch transport details with lock
     const [tRows] = await connection.query('SELECT * FROM transport WHERE id = ? FOR UPDATE', [transportId]);
@@ -708,6 +768,7 @@ router.post('/bookings/:id/cancel', authenticateToken, async (req, res) => {
     const { reason = 'Cancelled by passenger' } = req.body;
 
     await connection.beginTransaction();
+    await ensureTransportTables(connection);
 
     // Check booking exists and belongs to user
     const [bRows] = await connection.query('SELECT * FROM bookings WHERE id = ? FOR UPDATE', [bookingId]);
