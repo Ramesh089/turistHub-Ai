@@ -49,7 +49,7 @@ export default function AnalyticsDashboard() {
     try {
       setLoading(true);
       setError(null);
-      const res = await api.get('/api/stats/analytics');
+      const res = await api.get('/stats/analytics');
       if (res.data?.success) {
         setAnalytics(res.data.analytics);
       } else {

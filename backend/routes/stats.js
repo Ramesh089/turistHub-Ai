@@ -170,7 +170,7 @@ router.get('/analytics', authenticateToken, requireAdmin, async (req, res) => {
     const [guideStats] = await pool.query(`
       SELECT 
         COUNT(*) as total_guides,
-        ROUND(AVG(daily_rate), 0) as avg_daily_rate,
+        ROUND(AVG(COALESCE(price_per_day, 1500)), 0) as avg_daily_rate,
         ROUND(AVG(rating), 2) as avg_rating,
         ROUND(AVG(experience_years), 1) as avg_experience
       FROM guides
@@ -179,11 +179,11 @@ router.get('/analytics', authenticateToken, requireAdmin, async (req, res) => {
     // 10. Transport breakdown
     const [transportStats] = await pool.query(`
       SELECT 
-        COALESCE(type, transport_type, 'Transit') as transport_mode,
+        COALESCE(transport_type, 'Transit') as transport_mode,
         COUNT(*) as count,
         ROUND(AVG(price), 0) as avg_price
       FROM transport
-      GROUP BY COALESCE(type, transport_type, 'Transit')
+      GROUP BY COALESCE(transport_type, 'Transit')
     `);
 
     // Calculate derived KPI metrics

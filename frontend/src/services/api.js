@@ -1,4 +1,3 @@
-
 import axios from 'axios';
 
 // Smart resolution of backend API URL:
@@ -23,6 +22,11 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    // Automatically strip redundant '/api' prefix if provided in url
+    if (config.url && config.url.startsWith('/api/')) {
+      config.url = config.url.replace(/^\/api/, '');
+    }
+
     const token = localStorage.getItem('touristhub_token');
 
     if (token) {

@@ -105,6 +105,14 @@ app.get('/api/health/db-seed', async (req, res) => {
   }
 });
 
+// Normalize accidental double /api prefixes e.g. /api/api/* -> /api/*
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api/api/')) {
+    req.url = req.url.replace('/api/api/', '/api/');
+  }
+  next();
+});
+
 // Mount routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
