@@ -29,10 +29,11 @@ import Profile from './pages/Profile';
 function AppContent() {
   const location = useLocation();
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isAdminPortal = location.pathname.startsWith('/admin');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {!isAuthPage && <EmergencyBanner />}
+      {!isAuthPage && !isAdminPortal && <EmergencyBanner />}
       {!isAuthPage && <Navbar />}
 
       <main style={{ flexGrow: 1 }}>
@@ -173,7 +174,7 @@ function AppContent() {
         </Routes>
       </main>
 
-      {!isAuthPage && <Footer />}
+      {!isAuthPage && !isAdminPortal && <Footer />}
     </div>
   );
 }

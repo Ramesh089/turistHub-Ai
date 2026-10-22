@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-export default function BrandLogo({ size = 'default', showTagline = true, light = false }) {
+export default function BrandLogo({ size = 'default', showTagline = true, light = false, to = '/' }) {
   const isLarge = size === 'large';
   const logoSize = isLarge ? 72 : 56;
 
   return (
     <Link
-      to="/"
+      to={to}
       style={{
         display: 'inline-flex',
         alignItems: 'center',

@@ -138,7 +138,51 @@ export default function UserMenu() {
             )}
           </div>
 
-          {/* Navigation Links */}
+          {isAdmin ? (
+            <Link
+              to="/admin"
+              onClick={() => setOpen(false)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                fontSize: '0.84rem',
+                fontWeight: '700',
+                color: '#0284c7',
+                textDecoration: 'none',
+                backgroundColor: 'rgba(2, 132, 199, 0.1)'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(2, 132, 199, 0.18)')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(2, 132, 199, 0.1)')}
+            >
+              <ShieldCheck size={16} color="#0284c7" />
+              <span>Admin Command Center</span>
+            </Link>
+          ) : (
+            <Link
+              to="/dashboard"
+              onClick={() => setOpen(false)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                fontSize: '0.84rem',
+                fontWeight: '500',
+                color: '#334155',
+                textDecoration: 'none'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+            >
+              <LayoutDashboard size={16} color="#0284c7" />
+              <span>My Trips & Itineraries</span>
+            </Link>
+          )}
+
           <Link
             to="/profile"
             onClick={() => setOpen(false)}
@@ -159,49 +203,6 @@ export default function UserMenu() {
             <User size={16} color="#0284c7" />
             <span>Profile & Settings</span>
           </Link>
-
-          <Link
-            to="/dashboard"
-            onClick={() => setOpen(false)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '10px',
-              padding: '8px 10px',
-              borderRadius: '8px',
-              fontSize: '0.84rem',
-              fontWeight: '500',
-              color: '#334155',
-              textDecoration: 'none'
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-          >
-            <LayoutDashboard size={16} color="#0284c7" />
-            <span>My Trips & Itineraries</span>
-          </Link>
-
-          {isAdmin && (
-            <Link
-              to="/admin"
-              onClick={() => setOpen(false)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                padding: '8px 10px',
-                borderRadius: '8px',
-                fontSize: '0.84rem',
-                fontWeight: '600',
-                color: '#5B7CFF',
-                textDecoration: 'none',
-                backgroundColor: 'rgba(91, 124, 255, 0.08)'
-              }}
-            >
-              <ShieldCheck size={16} color="#5B7CFF" />
-              <span>Admin Portal</span>
-            </Link>
-          )}
 
           <div style={{ borderTop: '1px solid #f1f5f9', marginTop: '4px', paddingTop: '6px' }}>
             <button

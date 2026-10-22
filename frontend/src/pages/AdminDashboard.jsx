@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -24,12 +25,16 @@ import {
   Phone,
   Languages,
   Award,
-  X
+  X,
+  Search,
+  Filter
 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'overview';
+  const setActiveTab = (tab) => setSearchParams({ tab });
 
   // Stats
   const [stats, setStats] = useState(null);
@@ -45,12 +50,31 @@ export default function AdminDashboard() {
   const [allBookings, setAllBookings] = useState([]);
   const [states, setStates] = useState([]);
 
-  // Modals
+  // Search & Filter State
+  const [searchBookings, setSearchBookings] = useState('');
+  const [filterBookingStatus, setFilterBookingStatus] = useState('All');
+  const [searchDests, setSearchDests] = useState('');
+  const [searchPkgs, setSearchPkgs] = useState('');
+  const [searchHotels, setSearchHotels] = useState('');
+  const [searchGuides, setSearchGuides] = useState('');
+  const [searchTrans, setSearchTrans] = useState('');
+  const [searchUsers, setSearchUsers] = useState('');
+
+  // Modals & Editing State
   const [newDestModal, setNewDestModal] = useState(false);
+  const [editingDestId, setEditingDestId] = useState(null);
+
   const [newPkgModal, setNewPkgModal] = useState(false);
+  const [editingPkgId, setEditingPkgId] = useState(null);
+
   const [newHotelModal, setNewHotelModal] = useState(false);
+  const [editingHotelId, setEditingHotelId] = useState(null);
+
   const [newGuideModal, setNewGuideModal] = useState(false);
+  const [editingGuideId, setEditingGuideId] = useState(null);
+
   const [newTransportModal, setNewTransportModal] = useState(false);
+  const [editingTransId, setEditingTransId] = useState(null);
 
   // Forms state
   const [newDestData, setNewDestData] = useState({
@@ -252,142 +276,281 @@ export default function AdminDashboard() {
     }
   };
 
-  // --- Creation Handlers ---
-  const handleCreateDestination = async (e) => {
+  // --- Edit Openers ---
+  const handleOpenEditDestination = (d) => {
+    setEditingDestId(d.id);
+    setNewDestData({
+      state_id: d.state_id || 1,
+      name: d.name || '',
+      location: d.location || '',
+      category: d.category || 'Heritage',
+      image_url: d.image_url || '',
+      description: d.description || '',
+      estimated_cost_per_day: d.estimated_cost_per_day || 3000,
+      recommended_duration_days: d.recommended_duration_days || 3
+    });
+    setNewDestModal(true);
+  };
+
+  const handleOpenEditPackage = (pkg) => {
+    setEditingPkgId(pkg.id);
+    setNewPkgData({
+      destination_id: pkg.destination_id || (allDestinations[0]?.id || 1),
+      title: pkg.title || '',
+      company_name: pkg.company_name || 'Incredible South Journeys',
+      duration_days: pkg.duration_days || 3,
+      duration_nights: pkg.duration_nights || 2,
+      price: pkg.price || 9999,
+      transport_type: pkg.transport_type || 'AC Luxury Coach',
+      hotel_type: pkg.hotel_type || 'Heritage 4-Star Resort',
+      food_included: pkg.food_included !== undefined ? Boolean(pkg.food_included) : true,
+      guide_included: pkg.guide_included !== undefined ? Boolean(pkg.guide_included) : true,
+      activities: Array.isArray(pkg.activities) ? pkg.activities.join(', ') : (pkg.activities || ''),
+      description: pkg.description || '',
+      image_url: pkg.image_url || ''
+    });
+    setNewPkgModal(true);
+  };
+
+  const handleOpenEditHotel = (h) => {
+    setEditingHotelId(h.id);
+    setNewHotelData({
+      destination_id: h.destination_id || (allDestinations[0]?.id || 1),
+      name: h.name || '',
+      location: h.location || '',
+      price_per_night: h.price_per_night || 3500,
+      rating: h.rating || 4.6,
+      room_type: h.room_type || 'Heritage Deluxe Room',
+      amenities: Array.isArray(h.amenities) ? h.amenities.join(', ') : (h.amenities || ''),
+      contact: h.contact || '+91 98765 43210',
+      image_url: h.image_url || '',
+      address: h.address || ''
+    });
+    setNewHotelModal(true);
+  };
+
+  const handleOpenEditGuide = (g) => {
+    setEditingGuideId(g.id);
+    setNewGuideData({
+      destination_id: g.destination_id || (allDestinations[0]?.id || 1),
+      name: g.name || '',
+      languages: g.languages || 'English, Kannada, Hindi',
+      experience_years: g.experience_years || 5,
+      specialization: g.specialization || 'Heritage & Archaeology',
+      price_per_day: g.price_per_day || 1500,
+      rating: g.rating || 4.8,
+      contact: g.contact || '+91 98450 12345',
+      image_url: g.image_url || ''
+    });
+    setNewGuideModal(true);
+  };
+
+  const handleOpenEditTransport = (t) => {
+    setEditingTransId(t.id);
+    setNewTransportData({
+      destination_id: t.destination_id || (allDestinations[0]?.id || 1),
+      transport_type: t.transport_type || 'Train',
+      provider: t.provider || '',
+      route: t.route || '',
+      departure_time: t.departure_time || '06:30 AM',
+      arrival_time: t.arrival_time || '10:00 AM',
+      price: t.price || 650,
+      duration: t.duration || '3h 30m',
+      booking_info: t.booking_info || 'AC Chair Car / Express'
+    });
+    setNewTransportModal(true);
+  };
+
+  // --- Save (Create or Update) Handlers ---
+  const handleSaveDestination = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post('/destinations', newDestData);
-      if (res.data.success) {
-        setActionMsg(`Destination "${newDestData.name}" published successfully.`);
-        setNewDestModal(false);
-        setNewDestData({
-          state_id: 1,
-          name: '',
-          location: '',
-          category: 'Heritage',
-          image_url: '',
-          description: '',
-          estimated_cost_per_day: 3000,
-          recommended_duration_days: 3
-        });
-        loadAllData();
+      if (editingDestId) {
+        const res = await api.put(`/destinations/${editingDestId}`, newDestData);
+        if (res.data.success) {
+          setActionMsg(`Destination "${newDestData.name}" updated successfully.`);
+          setNewDestModal(false);
+          setEditingDestId(null);
+          loadAllData();
+        }
+      } else {
+        const res = await api.post('/destinations', newDestData);
+        if (res.data.success) {
+          setActionMsg(`Destination "${newDestData.name}" published successfully.`);
+          setNewDestModal(false);
+          setNewDestData({
+            state_id: 1,
+            name: '',
+            location: '',
+            category: 'Heritage',
+            image_url: '',
+            description: '',
+            estimated_cost_per_day: 3000,
+            recommended_duration_days: 3
+          });
+          loadAllData();
+        }
       }
     } catch (err) {
-      console.error('Create dest error:', err);
-      alert(err.response?.data?.message || 'Failed to create destination.');
+      console.error('Save dest error:', err);
+      alert(err.response?.data?.message || 'Failed to save destination.');
     }
   };
 
-  const handleCreatePackage = async (e) => {
+  const handleSavePackage = async (e) => {
     e.preventDefault();
     try {
       const destId = newPkgData.destination_id || (allDestinations[0]?.id || 1);
-      const res = await api.post('/packages', { ...newPkgData, destination_id: destId });
-      if (res.data.success) {
-        setActionMsg(`Package "${newPkgData.title}" created successfully.`);
-        setNewPkgModal(false);
-        setNewPkgData({
-          destination_id: allDestinations[0]?.id || 1,
-          title: '',
-          company_name: 'Incredible South Journeys',
-          duration_days: 3,
-          duration_nights: 2,
-          price: 9999,
-          transport_type: 'AC Luxury Coach',
-          hotel_type: 'Heritage 4-Star Resort',
-          food_included: true,
-          guide_included: true,
-          activities: 'Temple Walk, Palace Tour, Sunset Viewpoint',
-          description: '',
-          image_url: ''
-        });
-        loadAllData();
+      const pkgPayload = { ...newPkgData, destination_id: destId };
+      if (editingPkgId) {
+        const res = await api.put(`/packages/${editingPkgId}`, pkgPayload);
+        if (res.data.success) {
+          setActionMsg(`Package "${newPkgData.title}" updated successfully.`);
+          setNewPkgModal(false);
+          setEditingPkgId(null);
+          loadAllData();
+        }
+      } else {
+        const res = await api.post('/packages', pkgPayload);
+        if (res.data.success) {
+          setActionMsg(`Package "${newPkgData.title}" created successfully.`);
+          setNewPkgModal(false);
+          setNewPkgData({
+            destination_id: allDestinations[0]?.id || 1,
+            title: '',
+            company_name: 'Incredible South Journeys',
+            duration_days: 3,
+            duration_nights: 2,
+            price: 9999,
+            transport_type: 'AC Luxury Coach',
+            hotel_type: 'Heritage 4-Star Resort',
+            food_included: true,
+            guide_included: true,
+            activities: 'Temple Walk, Palace Tour, Sunset Viewpoint',
+            description: '',
+            image_url: ''
+          });
+          loadAllData();
+        }
       }
     } catch (err) {
-      console.error('Create pkg error:', err);
-      alert(err.response?.data?.message || 'Failed to create package.');
+      console.error('Save pkg error:', err);
+      alert(err.response?.data?.message || 'Failed to save package.');
     }
   };
 
-  const handleCreateHotel = async (e) => {
+  const handleSaveHotel = async (e) => {
     e.preventDefault();
     try {
       const destId = newHotelData.destination_id || (allDestinations[0]?.id || 1);
-      const res = await api.post('/hotels', { ...newHotelData, destination_id: destId });
-      if (res.data.success) {
-        setActionMsg(`Hotel "${newHotelData.name}" added successfully.`);
-        setNewHotelModal(false);
-        setNewHotelData({
-          destination_id: allDestinations[0]?.id || 1,
-          name: '',
-          location: '',
-          price_per_night: 3500,
-          rating: 4.6,
-          room_type: 'Heritage Deluxe Room',
-          amenities: 'Free WiFi, AC, Breakfast Included, Swimming Pool',
-          contact: '+91 98765 43210',
-          image_url: '',
-          address: ''
-        });
-        loadAllData();
+      const hotelPayload = { ...newHotelData, destination_id: destId };
+      if (editingHotelId) {
+        const res = await api.put(`/hotels/${editingHotelId}`, hotelPayload);
+        if (res.data.success) {
+          setActionMsg(`Hotel "${newHotelData.name}" updated successfully.`);
+          setNewHotelModal(false);
+          setEditingHotelId(null);
+          loadAllData();
+        }
+      } else {
+        const res = await api.post('/hotels', hotelPayload);
+        if (res.data.success) {
+          setActionMsg(`Hotel "${newHotelData.name}" added successfully.`);
+          setNewHotelModal(false);
+          setNewHotelData({
+            destination_id: allDestinations[0]?.id || 1,
+            name: '',
+            location: '',
+            price_per_night: 3500,
+            rating: 4.6,
+            room_type: 'Heritage Deluxe Room',
+            amenities: 'Free WiFi, AC, Breakfast Included, Swimming Pool',
+            contact: '+91 98765 43210',
+            image_url: '',
+            address: ''
+          });
+          loadAllData();
+        }
       }
     } catch (err) {
-      console.error('Create hotel error:', err);
-      alert(err.response?.data?.message || 'Failed to add hotel.');
+      console.error('Save hotel error:', err);
+      alert(err.response?.data?.message || 'Failed to save hotel.');
     }
   };
 
-  const handleCreateGuide = async (e) => {
+  const handleSaveGuide = async (e) => {
     e.preventDefault();
     try {
       const destId = newGuideData.destination_id || (allDestinations[0]?.id || 1);
-      const res = await api.post('/guides', { ...newGuideData, destination_id: destId });
-      if (res.data.success) {
-        setActionMsg(`Guide "${newGuideData.name}" added successfully.`);
-        setNewGuideModal(false);
-        setNewGuideData({
-          destination_id: allDestinations[0]?.id || 1,
-          name: '',
-          languages: 'English, Kannada, Hindi',
-          experience_years: 5,
-          specialization: 'Heritage & Archaeology',
-          price_per_day: 1500,
-          rating: 4.8,
-          contact: '+91 98450 12345',
-          image_url: ''
-        });
-        loadAllData();
+      const guidePayload = { ...newGuideData, destination_id: destId };
+      if (editingGuideId) {
+        const res = await api.put(`/guides/${editingGuideId}`, guidePayload);
+        if (res.data.success) {
+          setActionMsg(`Guide "${newGuideData.name}" updated successfully.`);
+          setNewGuideModal(false);
+          setEditingGuideId(null);
+          loadAllData();
+        }
+      } else {
+        const res = await api.post('/guides', guidePayload);
+        if (res.data.success) {
+          setActionMsg(`Guide "${newGuideData.name}" added successfully.`);
+          setNewGuideModal(false);
+          setNewGuideData({
+            destination_id: allDestinations[0]?.id || 1,
+            name: '',
+            languages: 'English, Kannada, Hindi',
+            experience_years: 5,
+            specialization: 'Heritage & Archaeology',
+            price_per_day: 1500,
+            rating: 4.8,
+            contact: '+91 98450 12345',
+            image_url: ''
+          });
+          loadAllData();
+        }
       }
     } catch (err) {
-      console.error('Create guide error:', err);
-      alert(err.response?.data?.message || 'Failed to add guide.');
+      console.error('Save guide error:', err);
+      alert(err.response?.data?.message || 'Failed to save guide.');
     }
   };
 
-  const handleCreateTransport = async (e) => {
+  const handleSaveTransport = async (e) => {
     e.preventDefault();
     try {
       const destId = newTransportData.destination_id || (allDestinations[0]?.id || 1);
-      const res = await api.post('/transport', { ...newTransportData, destination_id: destId });
-      if (res.data.success) {
-        setActionMsg(`Transport option "${newTransportData.provider}" added successfully.`);
-        setNewTransportModal(false);
-        setNewTransportData({
-          destination_id: allDestinations[0]?.id || 1,
-          transport_type: 'Train',
-          provider: '',
-          route: '',
-          departure_time: '06:30 AM',
-          arrival_time: '10:00 AM',
-          price: 650,
-          duration: '3h 30m',
-          booking_info: 'AC Chair Car / Express'
-        });
-        loadAllData();
+      const transPayload = { ...newTransportData, destination_id: destId };
+      if (editingTransId) {
+        const res = await api.put(`/transport/${editingTransId}`, transPayload);
+        if (res.data.success) {
+          setActionMsg(`Transport option "${newTransportData.provider}" updated successfully.`);
+          setNewTransportModal(false);
+          setEditingTransId(null);
+          loadAllData();
+        }
+      } else {
+        const res = await api.post('/transport', transPayload);
+        if (res.data.success) {
+          setActionMsg(`Transport option "${newTransportData.provider}" added successfully.`);
+          setNewTransportModal(false);
+          setNewTransportData({
+            destination_id: allDestinations[0]?.id || 1,
+            transport_type: 'Train',
+            provider: '',
+            route: '',
+            departure_time: '06:30 AM',
+            arrival_time: '10:00 AM',
+            price: 650,
+            duration: '3h 30m',
+            booking_info: 'AC Chair Car / Express'
+          });
+          loadAllData();
+        }
       }
     } catch (err) {
-      console.error('Create transport error:', err);
-      alert(err.response?.data?.message || 'Failed to add transport option.');
+      console.error('Save transport error:', err);
+      alert(err.response?.data?.message || 'Failed to save transport option.');
     }
   };
 
@@ -611,7 +774,36 @@ export default function AdminDashboard() {
         {/* Tab 1: Bookings Management */}
         {activeTab === 'overview' && (
           <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '16px' }}>All Platform Bookings</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', margin: 0 }}>All Platform Bookings</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>Manage tourist bookings, approvals, and cancellations</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ position: 'relative', width: '220px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search bookings..."
+                    value={searchBookings}
+                    onChange={(e) => setSearchBookings(e.target.value)}
+                    className="form-control"
+                    style={{ padding: '7px 12px 7px 32px', fontSize: '0.82rem' }}
+                  />
+                  <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+                </div>
+                <select
+                  value={filterBookingStatus}
+                  onChange={(e) => setFilterBookingStatus(e.target.value)}
+                  className="form-control"
+                  style={{ width: 'auto', padding: '7px 12px', fontSize: '0.82rem' }}
+                >
+                  <option value="All">All Statuses</option>
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
 
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem', minWidth: '650px' }}>
@@ -628,7 +820,20 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {allBookings.map((b) => (
+                  {allBookings
+                    .filter((b) => {
+                      if (filterBookingStatus !== 'All' && b.status !== filterBookingStatus) return false;
+                      if (!searchBookings.trim()) return true;
+                      const q = searchBookings.toLowerCase();
+                      return (
+                        String(b.id).includes(q) ||
+                        (b.user_name || '').toLowerCase().includes(q) ||
+                        (b.user_email || '').toLowerCase().includes(q) ||
+                        (b.package_title || '').toLowerCase().includes(q) ||
+                        (b.destination_name || '').toLowerCase().includes(q)
+                      );
+                    })
+                    .map((b) => (
                     <tr key={b.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '12px 10px', fontWeight: '700' }}>#{b.id}</td>
                       <td style={{ padding: '12px 10px' }}>
@@ -688,11 +893,44 @@ export default function AdminDashboard() {
         {/* Tab 2: Destinations Management */}
         {activeTab === 'destinations' && (
           <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-              <h3 style={{ fontSize: '1.25rem' }}>Active Tourist Destinations</h3>
-              <button onClick={() => setNewDestModal(true)} className="btn btn-gold btn-sm">
-                <Plus size={16} /> Add Destination
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Active Tourist Destinations</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>Add, edit, or remove destinations catalog</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ position: 'relative', width: '220px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search destinations..."
+                    value={searchDests}
+                    onChange={(e) => setSearchDests(e.target.value)}
+                    className="form-control"
+                    style={{ padding: '7px 12px 7px 32px', fontSize: '0.82rem' }}
+                  />
+                  <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingDestId(null);
+                    setNewDestData({
+                      state_id: 1,
+                      name: '',
+                      location: '',
+                      category: 'Heritage',
+                      image_url: '',
+                      description: '',
+                      estimated_cost_per_day: 3000,
+                      recommended_duration_days: 3
+                    });
+                    setNewDestModal(true);
+                  }}
+                  className="btn btn-gold btn-sm"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={16} /> Add Destination
+                </button>
+              </div>
             </div>
 
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -708,7 +946,18 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {allDestinations.map((d) => (
+                  {allDestinations
+                    .filter((d) => {
+                      if (!searchDests.trim()) return true;
+                      const q = searchDests.toLowerCase();
+                      return (
+                        (d.name || '').toLowerCase().includes(q) ||
+                        (d.state_name || '').toLowerCase().includes(q) ||
+                        (d.category || '').toLowerCase().includes(q) ||
+                        (d.location || '').toLowerCase().includes(q)
+                      );
+                    })
+                    .map((d) => (
                     <tr key={d.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '12px 10px', fontWeight: '600' }}>{d.name}</td>
                       <td style={{ padding: '12px 10px' }}>{d.state_name}</td>
@@ -716,14 +965,24 @@ export default function AdminDashboard() {
                       <td style={{ padding: '12px 10px' }}>₹{Math.round(d.estimated_cost_per_day)}</td>
                       <td style={{ padding: '12px 10px' }}>⭐ {d.rating}</td>
                       <td style={{ padding: '12px 10px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => handleDeleteDestination(d.id)}
-                          className="btn btn-secondary btn-sm"
-                          style={{ color: '#b91c1c' }}
-                          title="Delete destination"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => handleOpenEditDestination(d)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: '#0284c7' }}
+                            title="Edit destination details"
+                          >
+                            <Edit2 size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDestination(d.id)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: '#b91c1c' }}
+                            title="Delete destination"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -736,11 +995,49 @@ export default function AdminDashboard() {
         {/* Tab 3: Packages Management */}
         {activeTab === 'packages' && (
           <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-              <h3 style={{ fontSize: '1.25rem' }}>Tour Packages Inventory</h3>
-              <button onClick={() => setNewPkgModal(true)} className="btn btn-primary btn-sm">
-                <Plus size={16} /> Add Tour Package
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Tour Packages Inventory</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>Curate and manage all-inclusive holiday tour packages</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ position: 'relative', width: '220px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search packages..."
+                    value={searchPkgs}
+                    onChange={(e) => setSearchPkgs(e.target.value)}
+                    className="form-control"
+                    style={{ padding: '7px 12px 7px 32px', fontSize: '0.82rem' }}
+                  />
+                  <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingPkgId(null);
+                    setNewPkgData({
+                      destination_id: allDestinations[0]?.id || 1,
+                      title: '',
+                      company_name: 'Incredible South Journeys',
+                      duration_days: 3,
+                      duration_nights: 2,
+                      price: 9999,
+                      transport_type: 'AC Luxury Coach',
+                      hotel_type: 'Heritage 4-Star Resort',
+                      food_included: true,
+                      guide_included: true,
+                      activities: 'Temple Walk, Palace Tour, Sunset Viewpoint',
+                      description: '',
+                      image_url: ''
+                    });
+                    setNewPkgModal(true);
+                  }}
+                  className="btn btn-primary btn-sm"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={16} /> Add Tour Package
+                </button>
+              </div>
             </div>
 
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -756,7 +1053,18 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {allPackages.map((pkg) => (
+                  {allPackages
+                    .filter((pkg) => {
+                      if (!searchPkgs.trim()) return true;
+                      const q = searchPkgs.toLowerCase();
+                      return (
+                        (pkg.title || '').toLowerCase().includes(q) ||
+                        (pkg.company_name || '').toLowerCase().includes(q) ||
+                        (pkg.destination_name || '').toLowerCase().includes(q) ||
+                        (pkg.hotel_type || '').toLowerCase().includes(q)
+                      );
+                    })
+                    .map((pkg) => (
                     <tr key={pkg.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '12px 10px', fontWeight: '600' }}>{pkg.title}</td>
                       <td style={{ padding: '12px 10px' }}>{pkg.destination_name}</td>
@@ -766,14 +1074,24 @@ export default function AdminDashboard() {
                         ₹{Number(pkg.price).toLocaleString('en-IN')}
                       </td>
                       <td style={{ padding: '12px 10px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => handleDeletePackage(pkg.id)}
-                          className="btn btn-secondary btn-sm"
-                          style={{ color: '#b91c1c' }}
-                          title="Delete package"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => handleOpenEditPackage(pkg)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: '#0284c7' }}
+                            title="Edit package details"
+                          >
+                            <Edit2 size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDeletePackage(pkg.id)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: '#b91c1c' }}
+                            title="Delete package"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -786,11 +1104,46 @@ export default function AdminDashboard() {
         {/* Tab 4: Hotels Management */}
         {activeTab === 'hotels' && (
           <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-              <h3 style={{ fontSize: '1.25rem' }}>Hotels & Heritage Resorts Inventory</h3>
-              <button onClick={() => setNewHotelModal(true)} className="btn btn-sm" style={{ background: '#0284c7', color: '#fff', border: 'none' }}>
-                <Plus size={16} /> Add Hotel
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Hotels & Heritage Resorts Inventory</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>Manage verified accommodations, room types, and pricing</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ position: 'relative', width: '220px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search hotels..."
+                    value={searchHotels}
+                    onChange={(e) => setSearchHotels(e.target.value)}
+                    className="form-control"
+                    style={{ padding: '7px 12px 7px 32px', fontSize: '0.82rem' }}
+                  />
+                  <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingHotelId(null);
+                    setNewHotelData({
+                      destination_id: allDestinations[0]?.id || 1,
+                      name: '',
+                      location: '',
+                      price_per_night: 3500,
+                      rating: 4.6,
+                      room_type: 'Heritage Deluxe Room',
+                      amenities: 'Free WiFi, AC, Breakfast Included, Swimming Pool',
+                      contact: '+91 98765 43210',
+                      image_url: '',
+                      address: ''
+                    });
+                    setNewHotelModal(true);
+                  }}
+                  className="btn btn-sm"
+                  style={{ background: '#0284c7', color: '#fff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={16} /> Add Hotel
+                </button>
+              </div>
             </div>
 
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -807,7 +1160,18 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {allHotels.map((h) => (
+                  {allHotels
+                    .filter((h) => {
+                      if (!searchHotels.trim()) return true;
+                      const q = searchHotels.toLowerCase();
+                      return (
+                        (h.name || '').toLowerCase().includes(q) ||
+                        (h.location || '').toLowerCase().includes(q) ||
+                        (h.destination_name || '').toLowerCase().includes(q) ||
+                        (h.room_type || '').toLowerCase().includes(q)
+                      );
+                    })
+                    .map((h) => (
                     <tr key={h.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '12px 10px', fontWeight: '600' }}>{h.name}</td>
                       <td style={{ padding: '12px 10px' }}>{h.destination_name || h.location}</td>
@@ -818,14 +1182,24 @@ export default function AdminDashboard() {
                       <td style={{ padding: '12px 10px' }}>⭐ {h.rating}</td>
                       <td style={{ padding: '12px 10px', fontSize: '0.82rem', color: 'var(--slate)' }}>{h.contact || 'N/A'}</td>
                       <td style={{ padding: '12px 10px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => handleDeleteHotel(h.id)}
-                          className="btn btn-secondary btn-sm"
-                          style={{ color: '#b91c1c' }}
-                          title="Delete hotel"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => handleOpenEditHotel(h)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: '#0284c7' }}
+                            title="Edit hotel details"
+                          >
+                            <Edit2 size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteHotel(h.id)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: '#b91c1c' }}
+                            title="Delete hotel"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -838,11 +1212,45 @@ export default function AdminDashboard() {
         {/* Tab 5: Guides Management */}
         {activeTab === 'guides' && (
           <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-              <h3 style={{ fontSize: '1.25rem' }}>Certified Tourist Guides Directory</h3>
-              <button onClick={() => setNewGuideModal(true)} className="btn btn-sm" style={{ background: '#059669', color: '#fff', border: 'none' }}>
-                <Plus size={16} /> Add Guide
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Certified Tourist Guides Directory</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>Onboard and manage authorized local guides and storytellers</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ position: 'relative', width: '220px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search guides..."
+                    value={searchGuides}
+                    onChange={(e) => setSearchGuides(e.target.value)}
+                    className="form-control"
+                    style={{ padding: '7px 12px 7px 32px', fontSize: '0.82rem' }}
+                  />
+                  <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingGuideId(null);
+                    setNewGuideData({
+                      destination_id: allDestinations[0]?.id || 1,
+                      name: '',
+                      languages: 'English, Kannada, Hindi',
+                      experience_years: 5,
+                      specialization: 'Heritage & Archaeology',
+                      price_per_day: 1500,
+                      rating: 4.8,
+                      contact: '+91 98450 12345',
+                      image_url: ''
+                    });
+                    setNewGuideModal(true);
+                  }}
+                  className="btn btn-sm"
+                  style={{ background: '#059669', color: '#fff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={16} /> Add Guide
+                </button>
+              </div>
             </div>
 
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -860,7 +1268,18 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {allGuides.map((g) => (
+                  {allGuides
+                    .filter((g) => {
+                      if (!searchGuides.trim()) return true;
+                      const q = searchGuides.toLowerCase();
+                      return (
+                        (g.name || '').toLowerCase().includes(q) ||
+                        (g.specialization || '').toLowerCase().includes(q) ||
+                        (g.languages || '').toLowerCase().includes(q) ||
+                        (g.destination_name || '').toLowerCase().includes(q)
+                      );
+                    })
+                    .map((g) => (
                     <tr key={g.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '12px 10px', fontWeight: '600' }}>{g.name}</td>
                       <td style={{ padding: '12px 10px' }}>{g.destination_name || 'All India'}</td>
@@ -872,14 +1291,24 @@ export default function AdminDashboard() {
                       </td>
                       <td style={{ padding: '12px 10px' }}>⭐ {g.rating}</td>
                       <td style={{ padding: '12px 10px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => handleDeleteGuide(g.id)}
-                          className="btn btn-secondary btn-sm"
-                          style={{ color: '#b91c1c' }}
-                          title="Delete guide"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => handleOpenEditGuide(g)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: '#0284c7' }}
+                            title="Edit guide details"
+                          >
+                            <Edit2 size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteGuide(g.id)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: '#b91c1c' }}
+                            title="Delete guide"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -892,11 +1321,45 @@ export default function AdminDashboard() {
         {/* Tab 6: Transport Management */}
         {activeTab === 'transport' && (
           <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-              <h3 style={{ fontSize: '1.25rem' }}>Intercity Transport & Transit Options</h3>
-              <button onClick={() => setNewTransportModal(true)} className="btn btn-sm" style={{ background: '#7c3aed', color: '#fff', border: 'none' }}>
-                <Plus size={16} /> Add Transport
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', margin: 0 }}>Intercity Transport & Transit Options</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>Manage trains, luxury coaches, cabs, and flight links</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div style={{ position: 'relative', width: '220px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search transit..."
+                    value={searchTrans}
+                    onChange={(e) => setSearchTrans(e.target.value)}
+                    className="form-control"
+                    style={{ padding: '7px 12px 7px 32px', fontSize: '0.82rem' }}
+                  />
+                  <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingTransId(null);
+                    setNewTransportData({
+                      destination_id: allDestinations[0]?.id || 1,
+                      transport_type: 'Train',
+                      provider: '',
+                      route: '',
+                      departure_time: '06:30 AM',
+                      arrival_time: '10:00 AM',
+                      price: 650,
+                      duration: '3h 30m',
+                      booking_info: 'AC Chair Car / Express'
+                    });
+                    setNewTransportModal(true);
+                  }}
+                  className="btn btn-sm"
+                  style={{ background: '#7c3aed', color: '#fff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Plus size={16} /> Add Transport
+                </button>
+              </div>
             </div>
 
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -913,7 +1376,18 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {allTransport.map((t) => (
+                  {allTransport
+                    .filter((t) => {
+                      if (!searchTrans.trim()) return true;
+                      const q = searchTrans.toLowerCase();
+                      return (
+                        (t.provider || '').toLowerCase().includes(q) ||
+                        (t.transport_type || '').toLowerCase().includes(q) ||
+                        (t.route || '').toLowerCase().includes(q) ||
+                        (t.destination_name || '').toLowerCase().includes(q)
+                      );
+                    })
+                    .map((t) => (
                     <tr key={t.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '12px 10px' }}>
                         <span className="badge badge-sky">{t.transport_type}</span>
@@ -926,14 +1400,24 @@ export default function AdminDashboard() {
                         ₹{Number(t.price).toLocaleString('en-IN')}
                       </td>
                       <td style={{ padding: '12px 10px', textAlign: 'right' }}>
-                        <button
-                          onClick={() => handleDeleteTransport(t.id)}
-                          className="btn btn-secondary btn-sm"
-                          style={{ color: '#b91c1c' }}
-                          title="Delete transport option"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={() => handleOpenEditTransport(t)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: '#0284c7' }}
+                            title="Edit transport route"
+                          >
+                            <Edit2 size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTransport(t.id)}
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: '#b91c1c' }}
+                            title="Delete transport option"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -946,7 +1430,23 @@ export default function AdminDashboard() {
         {/* Tab 7: Users Management */}
         {activeTab === 'users' && (
           <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '16px' }}>User Accounts & Roles</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.25rem', margin: 0 }}>User Accounts & Roles</h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--slate)' }}>Monitor user credentials, roles, and administrative access</span>
+              </div>
+              <div style={{ position: 'relative', width: '240px' }}>
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={searchUsers}
+                  onChange={(e) => setSearchUsers(e.target.value)}
+                  className="form-control"
+                  style={{ padding: '7px 12px 7px 32px', fontSize: '0.82rem' }}
+                />
+                <Search size={14} style={{ position: 'absolute', left: '10px', top: '10px', color: '#94a3b8' }} />
+              </div>
+            </div>
 
             <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem', minWidth: '600px' }}>
@@ -961,7 +1461,18 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {allUsers.map((u) => (
+                  {allUsers
+                    .filter((u) => {
+                      if (!searchUsers.trim()) return true;
+                      const q = searchUsers.toLowerCase();
+                      return (
+                        (u.name || '').toLowerCase().includes(q) ||
+                        (u.email || '').toLowerCase().includes(q) ||
+                        (u.phone || '').toLowerCase().includes(q) ||
+                        (u.role || '').toLowerCase().includes(q)
+                      );
+                    })
+                    .map((u) => (
                     <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '12px 10px', fontWeight: '600' }}>{u.name}</td>
                       <td style={{ padding: '12px 10px' }}>{u.email}</td>
@@ -997,7 +1508,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* ============================================================ */}
-      {/* MODAL 1: ADD GUIDE                                          */}
+      {/* MODAL 1: ADD / EDIT GUIDE                                   */}
       {/* ============================================================ */}
       {newGuideModal && (
         <div className="modal-overlay">
@@ -1007,12 +1518,14 @@ export default function AdminDashboard() {
                 <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#dcfce7', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <UserCheck size={18} />
                 </div>
-                <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>Add Tourist Guide</h3>
+                <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>
+                  {editingGuideId ? 'Edit Tourist Guide' : 'Add Tourist Guide'}
+                </h3>
               </div>
-              <button onClick={() => setNewGuideModal(false)} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer' }}><X size={20} /></button>
+              <button onClick={() => { setNewGuideModal(false); setEditingGuideId(null); }} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
 
-            <form onSubmit={handleCreateGuide}>
+            <form onSubmit={handleSaveGuide}>
               <div className="form-group">
                 <label className="form-label">Destination Location *</label>
                 <select
@@ -1121,11 +1634,11 @@ export default function AdminDashboard() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                <button type="button" onClick={() => setNewGuideModal(false)} className="btn btn-secondary">
+                <button type="button" onClick={() => { setNewGuideModal(false); setEditingGuideId(null); }} className="btn btn-secondary">
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" style={{ background: '#059669', borderColor: '#059669' }}>
-                  Register Tourist Guide
+                  {editingGuideId ? 'Save Changes' : 'Register Tourist Guide'}
                 </button>
               </div>
             </form>
@@ -1134,7 +1647,7 @@ export default function AdminDashboard() {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 2: ADD TOUR PACKAGE                                   */}
+      {/* MODAL 2: ADD / EDIT TOUR PACKAGE                             */}
       {/* ============================================================ */}
       {newPkgModal && (
         <div className="modal-overlay">
@@ -1144,12 +1657,14 @@ export default function AdminDashboard() {
                 <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Package size={18} />
                 </div>
-                <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>Add Tour Package</h3>
+                <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>
+                  {editingPkgId ? 'Edit Tour Package' : 'Add Tour Package'}
+                </h3>
               </div>
-              <button onClick={() => setNewPkgModal(false)} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer' }}><X size={20} /></button>
+              <button onClick={() => { setNewPkgModal(false); setEditingPkgId(null); }} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
 
-            <form onSubmit={handleCreatePackage}>
+            <form onSubmit={handleSavePackage}>
               <div className="form-group">
                 <label className="form-label">Destination Location *</label>
                 <select
@@ -1301,11 +1816,11 @@ export default function AdminDashboard() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                <button type="button" onClick={() => setNewPkgModal(false)} className="btn btn-secondary">
+                <button type="button" onClick={() => { setNewPkgModal(false); setEditingPkgId(null); }} className="btn btn-secondary">
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary">
-                  Publish Tour Package
+                  {editingPkgId ? 'Save Changes' : 'Publish Tour Package'}
                 </button>
               </div>
             </form>
@@ -1314,7 +1829,7 @@ export default function AdminDashboard() {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 3: ADD HOTEL                                          */}
+      {/* MODAL 3: ADD / EDIT HOTEL                                    */}
       {/* ============================================================ */}
       {newHotelModal && (
         <div className="modal-overlay">
@@ -1324,12 +1839,14 @@ export default function AdminDashboard() {
                 <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#e0f2fe', color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Hotel size={18} />
                 </div>
-                <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>Add Hotel & Resort</h3>
+                <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>
+                  {editingHotelId ? 'Edit Hotel & Resort' : 'Add Hotel & Resort'}
+                </h3>
               </div>
-              <button onClick={() => setNewHotelModal(false)} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer' }}><X size={20} /></button>
+              <button onClick={() => { setNewHotelModal(false); setEditingHotelId(null); }} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
 
-            <form onSubmit={handleCreateHotel}>
+            <form onSubmit={handleSaveHotel}>
               <div className="form-group">
                 <label className="form-label">Destination Location *</label>
                 <select
@@ -1459,11 +1976,11 @@ export default function AdminDashboard() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                <button type="button" onClick={() => setNewHotelModal(false)} className="btn btn-secondary">
+                <button type="button" onClick={() => { setNewHotelModal(false); setEditingHotelId(null); }} className="btn btn-secondary">
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" style={{ background: '#0284c7', borderColor: '#0284c7' }}>
-                  Add Hotel Listing
+                  {editingHotelId ? 'Save Changes' : 'Add Hotel Listing'}
                 </button>
               </div>
             </form>
@@ -1472,7 +1989,7 @@ export default function AdminDashboard() {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 4: ADD TRANSPORT                                      */}
+      {/* MODAL 4: ADD / EDIT TRANSPORT                                */}
       {/* ============================================================ */}
       {newTransportModal && (
         <div className="modal-overlay">
@@ -1482,12 +1999,14 @@ export default function AdminDashboard() {
                 <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#f3e8ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Car size={18} />
                 </div>
-                <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>Add Transport Option</h3>
+                <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>
+                  {editingTransId ? 'Edit Transport Option' : 'Add Transport Option'}
+                </h3>
               </div>
-              <button onClick={() => setNewTransportModal(false)} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer' }}><X size={20} /></button>
+              <button onClick={() => { setNewTransportModal(false); setEditingTransId(null); }} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
 
-            <form onSubmit={handleCreateTransport}>
+            <form onSubmit={handleSaveTransport}>
               <div className="form-group">
                 <label className="form-label">Destination Location *</label>
                 <select
@@ -1603,11 +2122,11 @@ export default function AdminDashboard() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                <button type="button" onClick={() => setNewTransportModal(false)} className="btn btn-secondary">
+                <button type="button" onClick={() => { setNewTransportModal(false); setEditingTransId(null); }} className="btn btn-secondary">
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" style={{ background: '#7c3aed', borderColor: '#7c3aed' }}>
-                  Add Transport Option
+                  {editingTransId ? 'Save Changes' : 'Add Transport Option'}
                 </button>
               </div>
             </form>
@@ -1616,7 +2135,7 @@ export default function AdminDashboard() {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 5: ADD DESTINATION                                    */}
+      {/* MODAL 5: ADD / EDIT DESTINATION                             */}
       {/* ============================================================ */}
       {newDestModal && (
         <div className="modal-overlay">
@@ -1626,12 +2145,14 @@ export default function AdminDashboard() {
                 <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Compass size={18} />
                 </div>
-                <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>Add Tourist Destination</h3>
+                <h3 style={{ fontSize: '1.25rem', fontFamily: 'var(--font-serif)' }}>
+                  {editingDestId ? 'Edit Tourist Destination' : 'Add Tourist Destination'}
+                </h3>
               </div>
-              <button onClick={() => setNewDestModal(false)} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer' }}><X size={20} /></button>
+              <button onClick={() => { setNewDestModal(false); setEditingDestId(null); }} style={{ background: 'none', border: 'none', color: 'var(--slate)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
 
-            <form onSubmit={handleCreateDestination}>
+            <form onSubmit={handleSaveDestination}>
               <div className="form-group">
                 <label className="form-label">Destination Name *</label>
                 <input
@@ -1746,17 +2267,35 @@ export default function AdminDashboard() {
               </div>
 
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
-                <button type="button" onClick={() => setNewDestModal(false)} className="btn btn-secondary">
+                <button type="button" onClick={() => { setNewDestModal(false); setEditingDestId(null); }} className="btn btn-secondary">
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-gold">
-                  Publish Destination
+                  {editingDestId ? 'Save Changes' : 'Publish Destination'}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Admin Dedicated Footer */}
+      <footer style={{
+        marginTop: '60px',
+        padding: '24px 16px',
+        borderTop: '1px solid #e2e8f0',
+        textAlign: 'center',
+        color: '#64748b',
+        fontSize: '0.85rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '4px' }}>
+          <ShieldCheck size={18} color="#0284c7" />
+          <strong style={{ color: '#0f172a' }}>Tourist AI Hub — Administrator Control Center</strong>
+        </div>
+        <p style={{ margin: 0, fontSize: '0.78rem' }}>
+          Real-time administrative operations for bookings, destinations, packages, hotels, guides, transport, and user accounts.
+        </p>
+      </footer>
     </div>
   );
 }
