@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import ErrorBoundary from './ErrorBoundary';
 import {
   TrendingUp,
   IndianRupee,
@@ -38,7 +39,7 @@ import {
   Legend
 } from 'recharts';
 
-export default function AnalyticsDashboard() {
+function AnalyticsContent() {
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState('daily'); // 'daily' or 'monthly'
@@ -50,7 +51,7 @@ export default function AnalyticsDashboard() {
       setLoading(true);
       setError(null);
       const res = await api.get('/stats/analytics');
-      if (res.data?.success) {
+      if (res.data?.success && res.data.analytics) {
         setAnalytics(res.data.analytics);
       } else {
         setError('Failed to load analytics metrics.');
@@ -123,10 +124,20 @@ export default function AnalyticsDashboard() {
     );
   }
 
-  const { kpi, daily_timeline, monthly_timeline, payment_methods, status_breakdown, top_packages, categories, inventory } = analytics;
+  // Safe extraction with default values
+  const kpi = analytics?.kpi || {};
+  const daily_timeline = analytics?.daily_timeline || [];
+  const monthly_timeline = analytics?.monthly_timeline || [];
+  const payment_methods = analytics?.payment_methods || [];
+  const status_breakdown = analytics?.status_breakdown || [];
+  const top_packages = analytics?.top_packages || [];
+  const categories = analytics?.categories || [];
+  const inventory = analytics?.inventory || {};
 
-  // Chart timeline data based on selected timeframe
-  const timelineData = timeframe === 'monthly' ? monthly_timeline : daily_timeline;
+  // Aliases ensuring no undefined reference errors
+  const statusBreakdown = status_breakdown;
+  const topPackages = top_packages;
+  const timelineData = (timeframe === 'monthly' ? monthly_timeline : daily_timeline) || [];
 
   // Status colors
   const STATUS_COLORS = {
@@ -324,10 +335,10 @@ export default function AnalyticsDashboard() {
           </div>
           <div style={{ marginTop: '12px' }}>
             <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
-              {kpi.total_bookings}
+              {kpi.total_bookings || 0}
             </div>
             <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: '500', marginTop: '5px' }}>
-              {kpi.confirmed_count} Confirmed • {kpi.pending_count} Pending
+              {kpi.confirmed_count || 0} Confirmed • {kpi.pending_count || 0} Pending
             </div>
           </div>
         </div>
@@ -382,7 +393,7 @@ export default function AnalyticsDashboard() {
           </div>
           <div style={{ marginTop: '12px' }}>
             <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
-              {kpi.conversion_rate}%
+              {kpi.conversion_rate || 0}%
             </div>
             <div style={{ fontSize: '0.74rem', color: '#0d9488', fontWeight: '600', marginTop: '5px' }}>
               Successful Bookings Ratio
@@ -411,7 +422,7 @@ export default function AnalyticsDashboard() {
           </div>
           <div style={{ marginTop: '12px' }}>
             <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
-              {kpi.total_guests_hosted || kpi.total_passengers}
+              {kpi.total_guests_hosted || kpi.total_passengers || 0}
             </div>
             <div style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: '500', marginTop: '5px' }}>
               Total Passenger Headcount
@@ -440,7 +451,7 @@ export default function AnalyticsDashboard() {
           </div>
           <div style={{ marginTop: '12px' }}>
             <div style={{ fontSize: '1.75rem', fontWeight: '800', color: '#0f172a', lineHeight: 1.1 }}>
-              {kpi.total_tourists}
+              {kpi.total_tourists || 0}
             </div>
             <div style={{ fontSize: '0.74rem', color: '#16a34a', fontWeight: '600', marginTop: '5px' }}>
               Registered Explorer Accounts
@@ -513,50 +524,56 @@ export default function AnalyticsDashboard() {
             </div>
           </div>
 
-          <div style={{ width: '100%', height: '310px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              {metricView === 'revenue' ? (
-                <AreaChart data={timelineData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0284c7" stopOpacity={0.35}/>
-                      <stop offset="95%" stopColor="#0284c7" stopOpacity={0.0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} tickLine={false} />
-                  <YAxis
-                    stroke="#94a3b8"
-                    fontSize={12}
-                    tickLine={false}
-                    tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
-                  />
-                  <Tooltip
-                    formatter={(val) => [`₹${Number(val).toLocaleString('en-IN')}`, 'Gross Revenue']}
-                    contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#0284c7"
-                    strokeWidth={2.5}
-                    fillOpacity={1}
-                    fill="url(#colorRevenue)"
-                  />
-                </AreaChart>
-              ) : (
-                <BarChart data={timelineData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} tickLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
-                  <Tooltip
-                    formatter={(val) => [val, 'Confirmed & Active Bookings']}
-                    contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                  />
-                  <Bar dataKey="bookings" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={48} />
-                </BarChart>
-              )}
-            </ResponsiveContainer>
+          <div style={{ width: '100%', height: '300px', minHeight: '300px' }}>
+            {timelineData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={290}>
+                {metricView === 'revenue' ? (
+                  <AreaChart data={timelineData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0284c7" stopOpacity={0.35}/>
+                        <stop offset="95%" stopColor="#0284c7" stopOpacity={0.0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                    <YAxis
+                      stroke="#94a3b8"
+                      fontSize={12}
+                      tickLine={false}
+                      tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                    />
+                    <Tooltip
+                      formatter={(val) => [`₹${Number(val).toLocaleString('en-IN')}`, 'Gross Revenue']}
+                      contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#0284c7"
+                      strokeWidth={2.5}
+                      fillOpacity={1}
+                      fill="url(#colorRevenue)"
+                    />
+                  </AreaChart>
+                ) : (
+                  <BarChart data={timelineData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="label" stroke="#94a3b8" fontSize={12} tickLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} />
+                    <Tooltip
+                      formatter={(val) => [val, 'Confirmed & Active Bookings']}
+                      contentStyle={{ borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    />
+                    <Bar dataKey="bookings" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={48} />
+                  </BarChart>
+                )}
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.9rem' }}>
+                No timeline records available yet
+              </div>
+            )}
           </div>
         </div>
 
@@ -579,31 +596,37 @@ export default function AnalyticsDashboard() {
               Fulfillment breakdown across all historical orders
             </span>
 
-            <div style={{ width: '100%', height: '190px', marginTop: '12px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={statusBreakdown}
-                    dataKey="count"
-                    nameKey="status"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={48}
-                    outerRadius={75}
-                    paddingAngle={3}
-                  >
-                    {statusBreakdown.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status] || '#94a3b8'} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(val, name, item) => [
-                      `${val} orders (₹${Number(item.payload.revenue).toLocaleString('en-IN')})`,
-                      item.payload.status
-                    ]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+            <div style={{ width: '100%', height: '180px', minHeight: '180px', marginTop: '12px' }}>
+              {statusBreakdown.length > 0 ? (
+                <ResponsiveContainer width="100%" height={175}>
+                  <PieChart>
+                    <Pie
+                      data={statusBreakdown}
+                      dataKey="count"
+                      nameKey="status"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={46}
+                      outerRadius={72}
+                      paddingAngle={3}
+                    >
+                      {statusBreakdown.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status] || '#94a3b8'} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(val, name, item) => [
+                        `${val} orders (₹${Number(item?.payload?.revenue || 0).toLocaleString('en-IN')})`,
+                        item?.payload?.status || name
+                      ]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                  No orders recorded yet
+                </div>
+              )}
             </div>
           </div>
 
@@ -618,7 +641,7 @@ export default function AnalyticsDashboard() {
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <span style={{ fontSize: '0.84rem', fontWeight: '800', color: '#0f172a' }}>{s.count}</span>
-                    <span style={{ fontSize: '0.74rem', color: '#64748b', marginLeft: '6px' }}>({s.percent}%)</span>
+                    <span style={{ fontSize: '0.74rem', color: '#64748b', marginLeft: '6px' }}>({s.percent || 0}%)</span>
                   </div>
                 </div>
               );
@@ -652,49 +675,55 @@ export default function AnalyticsDashboard() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {topPackages.map((pkg, idx) => {
-              const maxRev = topPackages[0]?.revenue || 1;
-              const barWidth = Math.max(12, Math.round((pkg.revenue / maxRev) * 100));
-              return (
-                <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.84rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', maxWidth: '65%' }}>
-                      <span style={{
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '6px',
-                        background: idx === 0 ? '#fef3c7' : '#f1f5f9',
-                        color: idx === 0 ? '#d97706' : '#64748b',
-                        fontSize: '0.72rem',
-                        fontWeight: '800',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        {idx + 1}
-                      </span>
-                      <strong style={{ color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={pkg.name}>
-                        {pkg.name}
-                      </strong>
+            {topPackages.length > 0 ? (
+              topPackages.map((pkg, idx) => {
+                const maxRev = topPackages[0]?.revenue || 1;
+                const barWidth = Math.max(12, Math.round(((pkg.revenue || 0) / maxRev) * 100));
+                return (
+                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.84rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', maxWidth: '65%' }}>
+                        <span style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '6px',
+                          background: idx === 0 ? '#fef3c7' : '#f1f5f9',
+                          color: idx === 0 ? '#d97706' : '#64748b',
+                          fontSize: '0.72rem',
+                          fontWeight: '800',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          {idx + 1}
+                        </span>
+                        <strong style={{ color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={pkg.name}>
+                          {pkg.name}
+                        </strong>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <strong style={{ color: '#0284c7' }}>₹{Number(pkg.revenue || 0).toLocaleString('en-IN')}</strong>
+                        <span style={{ fontSize: '0.74rem', color: '#64748b', marginLeft: '6px' }}>({pkg.bookings || 0} bkgs)</span>
+                      </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <strong style={{ color: '#0284c7' }}>₹{Number(pkg.revenue).toLocaleString('en-IN')}</strong>
-                      <span style={{ fontSize: '0.74rem', color: '#64748b', marginLeft: '6px' }}>({pkg.bookings} bkgs)</span>
+                    {/* Visual Bar */}
+                    <div style={{ width: '100%', height: '7px', background: '#f1f5f9', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${barWidth}%`,
+                        height: '100%',
+                        background: idx === 0 ? 'linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)' : '#94a3b8',
+                        borderRadius: '999px',
+                        transition: 'width 0.4s ease'
+                      }} />
                     </div>
                   </div>
-                  {/* Visual Bar */}
-                  <div style={{ width: '100%', height: '7px', background: '#f1f5f9', borderRadius: '999px', overflow: 'hidden' }}>
-                    <div style={{
-                      width: `${barWidth}%`,
-                      height: '100%',
-                      background: idx === 0 ? 'linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)' : '#94a3b8',
-                      borderRadius: '999px',
-                      transition: 'width 0.4s ease'
-                    }} />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div style={{ textAlign: 'center', padding: '24px 0', color: '#94a3b8', fontSize: '0.88rem' }}>
+                No experience packages booked yet
+              </div>
+            )}
           </div>
         </div>
 
@@ -716,31 +745,37 @@ export default function AnalyticsDashboard() {
             <CreditCard size={20} color="#059669" />
           </div>
 
-          <div style={{ width: '100%', height: '170px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={payment_methods}
-                  dataKey="revenue"
-                  nameKey="method"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={42}
-                  outerRadius={68}
-                  paddingAngle={4}
-                >
-                  {payment_methods.map((entry, index) => (
-                    <Cell key={`pay-${index}`} fill={PAYMENT_COLORS[index % PAYMENT_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(val, name, item) => [
-                    `₹${Number(val).toLocaleString('en-IN')} (${item.payload.count} transactions)`,
-                    item.payload.method
-                  ]}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+          <div style={{ width: '100%', height: '170px', minHeight: '170px' }}>
+            {payment_methods.length > 0 ? (
+              <ResponsiveContainer width="100%" height={165}>
+                <PieChart>
+                  <Pie
+                    data={payment_methods}
+                    dataKey="revenue"
+                    nameKey="method"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={42}
+                    outerRadius={68}
+                    paddingAngle={4}
+                  >
+                    {payment_methods.map((entry, index) => (
+                      <Cell key={`pay-${index}`} fill={PAYMENT_COLORS[index % PAYMENT_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(val, name, item) => [
+                      `₹${Number(val || 0).toLocaleString('en-IN')} (${item?.payload?.count || 0} transactions)`,
+                      item?.payload?.method || name
+                    ]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                No payment transactions yet
+              </div>
+            )}
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
@@ -754,10 +789,10 @@ export default function AnalyticsDashboard() {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#0f172a' }}>
-                    ₹{Number(p.revenue).toLocaleString('en-IN')}
+                    ₹{Number(p.revenue || 0).toLocaleString('en-IN')}
                   </span>
                   <span style={{ fontSize: '0.74rem', color: '#64748b', marginLeft: '6px' }}>
-                    ({p.share_percent}%)
+                    ({p.share_percent || 0}%)
                   </span>
                 </div>
               </div>
@@ -803,7 +838,7 @@ export default function AnalyticsDashboard() {
               }}>
                 <div>
                   <div style={{ fontSize: '0.86rem', fontWeight: '700', color: '#0f172a' }}>{c.category}</div>
-                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Avg. ₹{Number(c.avg_daily_cost).toLocaleString('en-IN')}/day</div>
+                  <div style={{ fontSize: '0.74rem', color: '#64748b' }}>Avg. ₹{Number(c.avg_daily_cost || 0).toLocaleString('en-IN')}/day</div>
                 </div>
                 <span style={{
                   padding: '4px 10px',
@@ -880,7 +915,7 @@ export default function AnalyticsDashboard() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <strong style={{ fontSize: '0.86rem', color: '#6b21a8' }}>Transit Connections</strong>
                   <span style={{ fontWeight: '800', color: '#6b21a8', fontSize: '0.88rem' }}>
-                    {inventory?.transport?.reduce((acc, t) => acc + t.count, 0) || 0} routes
+                    {inventory?.transport?.reduce((acc, t) => acc + (t.count || 0), 0) || 0} routes
                   </span>
                 </div>
                 <div style={{ fontSize: '0.74rem', color: '#7e22ce', marginTop: '2px' }}>
@@ -892,5 +927,13 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AnalyticsDashboard() {
+  return (
+    <ErrorBoundary fallbackTitle="Analytics Dashboard Loading Error">
+      <AnalyticsContent />
+    </ErrorBoundary>
   );
 }

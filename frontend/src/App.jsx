@@ -168,6 +168,22 @@ function AppContent() {
               </AdminRoute>
             }
           />
+          <Route
+            path="/admin/analytics"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            }
+          />
 
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />

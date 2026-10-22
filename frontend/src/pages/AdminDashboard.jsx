@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import AnalyticsDashboard from '../components/AnalyticsDashboard';
+import ErrorBoundary from '../components/ErrorBoundary';
 import {
   ShieldCheck,
   Users,
@@ -37,8 +38,11 @@ import {
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get('tab') || 'overview';
+  const searchTab = searchParams.get('tab');
+  const pathTab = location.pathname.includes('analytics') ? 'analytics' : null;
+  const activeTab = searchTab || pathTab || 'overview';
   const setActiveTab = (tab) => setSearchParams({ tab });
 
   // Quick Action Dropdown state
