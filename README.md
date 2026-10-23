@@ -1,4 +1,4 @@
-# Tourist AI Hub (灵山胜境 / Incredible India Digital Guide)
+# Tourist AI Hub (Incredible India Digital Guide)
 
 A modern, production-grade tourism platform featuring an AI Travel Planner, Destination Discovery, and a modern split-screen Authentication Module.
 
