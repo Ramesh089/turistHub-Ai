@@ -128,13 +128,16 @@ router.get('/my-bookings', authenticateToken, async (req, res) => {
              t.provider as transport_provider, t.transport_type, t.service_number as transport_number,
              t.from_city as transport_from, t.to_city as transport_to, t.vehicle_model as transport_vehicle,
              t.cancellation_policy as transport_cancellation_policy,
-             g.name as guide_name
+             g.name as guide_name,
+             psl.listing_title as partner_listing_title,
+             psl.category as partner_listing_category
       FROM bookings b
       LEFT JOIN travel_packages pkg ON b.package_id = pkg.id
       LEFT JOIN tourist_places p ON pkg.destination_id = p.id
       LEFT JOIN hotels h ON b.hotel_id = h.id
       LEFT JOIN transport t ON b.transport_id = t.id
       LEFT JOIN guides g ON b.guide_id = g.id
+      LEFT JOIN partner_service_listings psl ON b.listing_id = psl.id
       WHERE b.user_id = ?
       ORDER BY b.created_at DESC
     `, [req.user.id]);
@@ -162,12 +165,14 @@ router.get('/admin/all', authenticateToken, requireAdmin, async (req, res) => {
              u.name as user_name, u.email as user_email, u.phone as user_phone,
              pkg.title as package_title,
              p.name as destination_name,
-             h.name as hotel_name
+             h.name as hotel_name,
+             psl.listing_title as partner_listing_title
       FROM bookings b
       JOIN users u ON b.user_id = u.id
       LEFT JOIN travel_packages pkg ON b.package_id = pkg.id
       LEFT JOIN tourist_places p ON pkg.destination_id = p.id
       LEFT JOIN hotels h ON b.hotel_id = h.id
+      LEFT JOIN partner_service_listings psl ON b.listing_id = psl.id
       ORDER BY b.created_at DESC
     `);
 

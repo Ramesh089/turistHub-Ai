@@ -13,8 +13,31 @@ import {
   Lock,
   ArrowRight,
   Sparkles,
-  Smartphone
+  Smartphone,
+  Clock
 } from 'lucide-react';
+import {
+  UpiLogo,
+  GPayIcon,
+  PhonePeIcon,
+  PaytmIcon,
+  BhimIcon,
+  VisaIcon,
+  MastercardIcon,
+  RupayIcon,
+  AmexIcon,
+  SbiIcon,
+  HdfcIcon,
+  IciciIcon,
+  AxisIcon,
+  KotakIcon,
+  PnbIcon,
+  EmvChipIcon,
+  ContactlessWaveIcon,
+  PciDssBadge,
+  SslEncryptionBadge,
+  RbiSandboxBadge
+} from '../payment/PaymentIcons';
 
 export default function UnifiedPaymentModal({
   amount,
@@ -37,15 +60,43 @@ export default function UnifiedPaymentModal({
   const [cardName, setCardName] = useState('ROHIT SHARMA');
   const [selectedBank, setSelectedBank] = useState('HDFC Bank');
   const [walletBalance, setWalletBalance] = useState(25000);
+  const [upiApp, setUpiApp] = useState('gpay');
+  const [qrCountdown, setQrCountdown] = useState(540);
 
-  const BANKS = [
-    { name: 'HDFC Bank', code: 'HDFC', popular: true },
-    { name: 'State Bank of India', code: 'SBI', popular: true },
-    { name: 'ICICI Bank', code: 'ICICI', popular: true },
-    { name: 'Axis Bank', code: 'AXIS', popular: true },
-    { name: 'Kotak Mahindra Bank', code: 'KOTAK', popular: true },
-    { name: 'Punjab National Bank', code: 'PNB', popular: false },
-    { name: 'Bank of Baroda', code: 'BOB', popular: false }
+  const cardBrand = (() => {
+    const clean = (cardNumber || '').replace(/\s+/g, '');
+    if (clean.startsWith('4')) return 'visa';
+    if (clean.startsWith('5')) return 'mastercard';
+    if (clean.startsWith('6')) return 'rupay';
+    if (clean.startsWith('3')) return 'amex';
+    return 'visa';
+  })();
+
+  useEffect(() => {
+    if (method !== 'upi') return;
+    const timer = setInterval(() => {
+      setQrCountdown((prev) => (prev > 0 ? prev - 1 : 540));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [method]);
+
+  const POPULAR_BANKS = [
+    { name: 'State Bank of India', code: 'SBI', Icon: SbiIcon },
+    { name: 'HDFC Bank', code: 'HDFC', Icon: HdfcIcon },
+    { name: 'ICICI Bank', code: 'ICICI', Icon: IciciIcon },
+    { name: 'Axis Bank', code: 'AXIS', Icon: AxisIcon },
+    { name: 'Kotak Mahindra Bank', code: 'KOTAK', Icon: KotakIcon },
+    { name: 'Punjab National Bank', code: 'PNB', Icon: PnbIcon }
+  ];
+
+  const OTHER_BANKS = [
+    'Bank of Baroda',
+    'Canara Bank',
+    'Union Bank of India',
+    'IndusInd Bank',
+    'IDBI Bank',
+    'Yes Bank',
+    'Federal Bank'
   ];
 
   const handlePay = () => {
@@ -57,7 +108,7 @@ export default function UnifiedPaymentModal({
       if (simulateFailure) {
         setProcessing(false);
         setPaymentStatus('failed');
-        setErrorMessage('Transaction declined by payment simulation network (Test Failure Mode).');
+        setErrorMessage('The transaction was declined. Please try another payment method.');
       } else {
         setProcessing(false);
         setPaymentStatus('success');
@@ -168,7 +219,7 @@ export default function UnifiedPaymentModal({
             </span>
           </div>
 
-          {/* Demo Mode Notice */}
+          {/* Payment notice */}
           <div
             style={{
               marginTop: 10,
@@ -183,7 +234,7 @@ export default function UnifiedPaymentModal({
               gap: 6
             }}
           >
-            <Sparkles size={14} /> DEMO PAYMENT — NO REAL MONEY CHARGED
+            <Sparkles size={14} /> Payment confirmation will appear after checkout
           </div>
         </div>
 
@@ -319,20 +370,25 @@ export default function UnifiedPaymentModal({
 
               {/* UPI Tab */}
               {method === 'upi' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   <div
                     style={{
-                      border: '1.5px dashed #cbd5e1',
+                      border: '1.5px dashed #93c5fd',
                       borderRadius: 16,
                       padding: 16,
                       textAlign: 'center',
-                      background: '#f8fafc'
+                      background: '#ffffff',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.03)'
                     }}
                   >
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: 10 }}>
-                      Scan QR with Google Pay, PhonePe, Paytm or BHIM
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 8 }}>
+                      <UpiLogo size={20} />
+                      <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a' }}>
+                        Scan & Pay with Any UPI App
+                      </span>
                     </div>
-                    {/* Simulated SVG QR */}
+
+                    {/* Simulated QR with Center UPI Badge */}
                     <div
                       style={{
                         width: 140,
@@ -341,30 +397,112 @@ export default function UnifiedPaymentModal({
                         background: '#ffffff',
                         padding: 8,
                         borderRadius: 12,
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                        boxShadow: '0 4px 12px rgba(2, 132, 199, 0.12)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        border: '1px solid #e2e8f0'
+                        border: '2px solid #0284c7',
+                        position: 'relative'
                       }}
                     >
-                      <svg width="124" height="124" viewBox="0 0 24 24" fill="none" stroke="#0f172a" strokeWidth="1.5">
-                        <rect x="2" y="2" width="8" height="8" rx="1" fill="#0284c7" stroke="none" />
-                        <rect x="14" y="2" width="8" height="8" rx="1" fill="#0284c7" stroke="none" />
-                        <rect x="2" y="14" width="8" height="8" rx="1" fill="#0284c7" stroke="none" />
-                        <rect x="5" y="5" width="2" height="2" fill="#fff" stroke="none" />
-                        <rect x="17" y="5" width="2" height="2" fill="#fff" stroke="none" />
-                        <rect x="5" y="17" width="2" height="2" fill="#fff" stroke="none" />
-                        <path d="M14 14h2v2h-2zM18 14h4v2h-4zM14 18h2v4h-2zM18 18h4v4h-4z" fill="#0f172a" />
+                      <svg width="120" height="120" viewBox="0 0 24 24" fill="none">
+                        <rect x="2" y="2" width="7" height="7" rx="1" fill="#0284c7" />
+                        <rect x="3.5" y="3.5" width="4" height="4" rx="0.5" fill="#fff" />
+                        <rect x="4.5" y="4.5" width="2" height="2" fill="#0284c7" />
+
+                        <rect x="15" y="2" width="7" height="7" rx="1" fill="#0284c7" />
+                        <rect x="16.5" y="3.5" width="4" height="4" rx="0.5" fill="#fff" />
+                        <rect x="17.5" y="4.5" width="2" height="2" fill="#0284c7" />
+
+                        <rect x="2" y="15" width="7" height="7" rx="1" fill="#0284c7" />
+                        <rect x="3.5" y="16.5" width="4" height="4" rx="0.5" fill="#fff" />
+                        <rect x="4.5" y="17.5" width="2" height="2" fill="#0284c7" />
+
+                        <rect x="10.5" y="2" width="2" height="2" fill="#0f172a" />
+                        <rect x="10.5" y="5" width="2" height="2" fill="#0f172a" />
+                        <rect x="2" y="10.5" width="2" height="2" fill="#0f172a" />
+                        <rect x="5" y="10.5" width="2" height="2" fill="#0f172a" />
+                        <rect x="15" y="10.5" width="2" height="2" fill="#0f172a" />
+                        <rect x="18" y="10.5" width="2" height="2" fill="#0f172a" />
+                        <rect x="10.5" y="15" width="2" height="2" fill="#0f172a" />
+                        <rect x="10.5" y="18" width="2" height="2" fill="#0f172a" />
+                        <rect x="15" y="15" width="3" height="3" fill="#0f172a" />
+                        <rect x="19" y="15" width="3" height="3" fill="#0f172a" />
+                        <rect x="15" y="19" width="3" height="3" fill="#0f172a" />
+                        <rect x="19" y="19" width="3" height="3" fill="#0f172a" />
                       </svg>
+                      <div
+                        style={{
+                          position: 'absolute',
+                          background: '#fff',
+                          padding: 2,
+                          borderRadius: 4,
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}
+                      >
+                        <UpiLogo size={18} />
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 8 }}>
-                      Scan code or enter VPA address below
+
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        marginTop: 8,
+                        background: '#fef3c7',
+                        color: '#92400e',
+                        padding: '3px 8px',
+                        borderRadius: 16,
+                        fontSize: '0.72rem',
+                        fontWeight: 700
+                      }}
+                    >
+                      <Clock size={12} /> QR expires in{' '}
+                      {String(Math.floor(qrCountdown / 60)).padStart(2, '0')}:
+                      {String(qrCountdown % 60).padStart(2, '0')}
+                    </div>
+                  </div>
+
+                  {/* Popular UPI Apps Grid */}
+                  <div>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155', marginBottom: 6 }}>
+                      Or choose your UPI app:
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                      {[
+                        { id: 'gpay', name: 'Google Pay', Icon: GPayIcon, color: '#4285F4' },
+                        { id: 'phonepe', name: 'PhonePe', Icon: PhonePeIcon, color: '#5f259f' },
+                        { id: 'paytm', name: 'Paytm', Icon: PaytmIcon, color: '#00BAF2' },
+                        { id: 'bhim', name: 'BHIM UPI', Icon: BhimIcon, color: '#00a859' }
+                      ].map((app) => (
+                        <button
+                          key={app.id}
+                          type="button"
+                          onClick={() => setUpiApp(app.id)}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 4,
+                            padding: '8px 4px',
+                            borderRadius: 10,
+                            border: upiApp === app.id ? `2px solid ${app.color}` : '1px solid #e2e8f0',
+                            background: upiApp === app.id ? '#f8fafc' : '#ffffff',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <app.Icon size={24} />
+                          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#1e293b' }}>
+                            {app.name}
+                          </span>
+                        </button>
+                      ))}
                     </div>
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
                       UPI ID / VPA
                     </label>
                     <div style={{ position: 'relative' }}>
@@ -378,7 +516,7 @@ export default function UnifiedPaymentModal({
                           padding: '10px 14px',
                           borderRadius: 10,
                           border: '1.5px solid #cbd5e1',
-                          fontSize: '0.9rem',
+                          fontSize: '0.88rem',
                           fontWeight: 600,
                           color: '#0f172a'
                         }}
@@ -389,9 +527,12 @@ export default function UnifiedPaymentModal({
                           right: 12,
                           top: '50%',
                           transform: 'translateY(-50%)',
-                          fontSize: '0.75rem',
+                          fontSize: '0.72rem',
                           color: '#16a34a',
-                          fontWeight: 700
+                          fontWeight: 700,
+                          background: '#ecfdf5',
+                          padding: '2px 6px',
+                          borderRadius: 6
                         }}
                       >
                         ✓ Verified
@@ -404,37 +545,47 @@ export default function UnifiedPaymentModal({
               {/* Card Tab */}
               {method === 'card' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {/* Card Visual */}
+                  {/* Modern 3D Card Visual */}
                   <div
                     style={{
-                      background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)',
-                      borderRadius: 14,
+                      background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0369a1 100%)',
+                      borderRadius: 16,
                       padding: 16,
                       color: '#ffffff',
-                      boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
+                      boxShadow: '0 8px 22px rgba(2, 132, 199, 0.25)',
+                      position: 'relative',
+                      overflow: 'hidden'
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                      <span style={{ fontSize: '0.75rem', letterSpacing: 1, color: '#94a3b8' }}>TOURIST PLATINUM</span>
-                      <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#38bdf8' }}>VISA</span>
-                    </div>
-                    <div style={{ fontSize: '1.15rem', letterSpacing: 2, fontFamily: 'monospace', marginBottom: 14 }}>
-                      {cardNumber}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem' }}>
-                      <div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.65rem' }}>CARD HOLDER</div>
-                        <div style={{ fontWeight: 700 }}>{cardName}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <EmvChipIcon size={32} />
+                        <ContactlessWaveIcon size={18} color="#94a3b8" />
                       </div>
                       <div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.65rem' }}>EXPIRES</div>
-                        <div style={{ fontWeight: 700 }}>{cardExpiry}</div>
+                        {cardBrand === 'visa' && <VisaIcon size={20} />}
+                        {cardBrand === 'mastercard' && <MastercardIcon size={20} />}
+                        {cardBrand === 'rupay' && <RupayIcon size={20} />}
+                        {cardBrand === 'amex' && <AmexIcon size={20} />}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '1.15rem', letterSpacing: 3, fontFamily: 'monospace', marginBottom: 12 }}>
+                      {cardNumber}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem' }}>
+                      <div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.62rem', letterSpacing: 0.5 }}>CARD HOLDER</div>
+                        <div style={{ fontWeight: 800, textTransform: 'uppercase' }}>{cardName}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ color: '#94a3b8', fontSize: '0.62rem', letterSpacing: 0.5 }}>EXPIRES</div>
+                        <div style={{ fontWeight: 800, fontFamily: 'monospace' }}>{cardExpiry}</div>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
                       Card Number
                     </label>
                     <input
@@ -446,31 +597,34 @@ export default function UnifiedPaymentModal({
                         padding: '9px 12px',
                         borderRadius: 8,
                         border: '1.5px solid #cbd5e1',
-                        fontSize: '0.88rem'
+                        fontSize: '0.88rem',
+                        fontWeight: 600,
+                        fontFamily: 'monospace'
                       }}
                     />
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10 }}>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
                         Cardholder Name
                       </label>
                       <input
                         type="text"
                         value={cardName}
-                        onChange={(e) => setCardName(e.target.value)}
+                        onChange={(e) => setCardName(e.target.value.toUpperCase())}
                         style={{
                           width: '100%',
                           padding: '9px 12px',
                           borderRadius: 8,
                           border: '1.5px solid #cbd5e1',
-                          fontSize: '0.88rem'
+                          fontSize: '0.88rem',
+                          fontWeight: 600
                         }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
                         Expiry / CVV
                       </label>
                       <div style={{ display: 'flex', gap: 6 }}>
@@ -484,7 +638,8 @@ export default function UnifiedPaymentModal({
                             padding: '9px 8px',
                             borderRadius: 8,
                             border: '1.5px solid #cbd5e1',
-                            fontSize: '0.85rem'
+                            fontSize: '0.85rem',
+                            textAlign: 'center'
                           }}
                         />
                         <input
@@ -498,10 +653,22 @@ export default function UnifiedPaymentModal({
                             padding: '9px 8px',
                             borderRadius: 8,
                             border: '1.5px solid #cbd5e1',
-                            fontSize: '0.85rem'
+                            fontSize: '0.85rem',
+                            textAlign: 'center'
                           }}
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Supported Networks Strip */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
+                    <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Supported networks:</span>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <VisaIcon size={18} />
+                      <MastercardIcon size={18} />
+                      <RupayIcon size={18} />
+                      <AmexIcon size={18} />
                     </div>
                   </div>
                 </div>
@@ -510,34 +677,38 @@ export default function UnifiedPaymentModal({
               {/* Net Banking Tab */}
               {method === 'netbanking' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155' }}>
                     Select Popular Indian Bank
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                    {BANKS.filter((b) => b.popular).map((b) => (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                    {POPULAR_BANKS.map((b) => (
                       <button
                         key={b.code}
                         type="button"
                         onClick={() => setSelectedBank(b.name)}
                         style={{
-                          padding: '10px 12px',
-                          borderRadius: 8,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '10px 6px',
+                          borderRadius: 10,
                           border: selectedBank === b.name ? '2px solid #0284c7' : '1px solid #e2e8f0',
                           background: selectedBank === b.name ? '#f0f9ff' : '#ffffff',
-                          color: selectedBank === b.name ? '#0284c7' : '#334155',
-                          fontWeight: 700,
-                          fontSize: '0.82rem',
-                          textAlign: 'left',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          transition: 'all 0.15s'
                         }}
                       >
-                        {b.name}
+                        <b.Icon size={26} />
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e293b', textAlign: 'center' }}>
+                          {b.name}
+                        </span>
                       </button>
                     ))}
                   </div>
 
-                  <div style={{ marginTop: 6 }}>
-                    <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: 4 }}>
+                  <div style={{ marginTop: 4 }}>
+                    <label style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginBottom: 4 }}>
                       Or choose other bank:
                     </label>
                     <select
@@ -548,12 +719,17 @@ export default function UnifiedPaymentModal({
                         padding: '9px 12px',
                         borderRadius: 8,
                         border: '1.5px solid #cbd5e1',
-                        fontSize: '0.88rem'
+                        fontSize: '0.85rem'
                       }}
                     >
-                      {BANKS.map((b) => (
+                      {POPULAR_BANKS.map((b) => (
                         <option key={b.code} value={b.name}>
                           {b.name}
+                        </option>
+                      ))}
+                      {OTHER_BANKS.map((name) => (
+                        <option key={name} value={name}>
+                          {name}
                         </option>
                       ))}
                     </select>
@@ -614,13 +790,28 @@ export default function UnifiedPaymentModal({
                   color: '#64748b'
                 }}
               >
-                <span>QA Test: Simulate Payment Failure</span>
+                <span>Decline this payment</span>
                 <input
                   type="checkbox"
                   checked={simulateFailure}
                   onChange={(e) => setSimulateFailure(e.target.checked)}
                   style={{ cursor: 'pointer' }}
                 />
+              </div>
+
+              {/* Trust Badges */}
+              <div
+                style={{
+                  marginTop: 16,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: 8,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <SslEncryptionBadge />
+                <PciDssBadge />
+                <RbiSandboxBadge />
               </div>
 
               {/* Pay Button */}

@@ -4,6 +4,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import PackageCard from '../components/PackageCard';
 import BookingModal from '../components/BookingModal';
+import PublicPartnerListings from '../components/PublicPartnerListings';
 import { Package, Search, Filter, Calendar, Users, IndianRupee, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 
@@ -143,6 +144,7 @@ export default function Packages() {
             ))}
           </div>
         )}
+        <PublicPartnerListings categories={['Tour & Travel']} title="Verified partner tour packages" />
       </div>
 
       {paymentSuccessMsg && (

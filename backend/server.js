@@ -129,6 +129,8 @@ app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/stats', require('./routes/stats'));
 app.use('/api/nearby', require('./routes/nearby'));
+app.use('/api/partner', require('./routes/partner'));
+app.use('/api/listings', require('./routes/listings'));
 
 // 404 handler
 app.use((req, res) => {

@@ -28,7 +28,8 @@ import {
   Sunset,
   Camera,
   Coins,
-  Share2
+  Share2,
+  ExternalLink
 } from 'lucide-react';
 import BookingModal from '../components/BookingModal';
 
@@ -100,6 +101,17 @@ function InlineFormat({ text }) {
       })}
     </>
   );
+}
+
+function buildRouteLink(origin, destination, waypoints = []) {
+  const params = new URLSearchParams({
+    api: '1',
+    origin,
+    destination,
+    travelmode: 'driving'
+  });
+  if (waypoints.length) params.set('waypoints', waypoints.join('|'));
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
 }
 
 // Rich Message Formatter with Headings, Tables, Numbered Badges & Bulleted Lists
@@ -336,9 +348,9 @@ export default function AIPlanner() {
   const [chatMessages, setChatMessages] = useState([
     {
       role: 'assistant',
-      text: `### 🌟 Welcome to Tourist Hub AI!
+      text: `### 🌟 Welcome to Mitra AI!
 
-I am your intelligent India travel concierge and itinerary planner. You can ask me any travel questions naturally:
+I am Mitra, your India travel companion. Ask me travel questions naturally or request a personalized itinerary:
 
 • **Destination Discovery:** *"I want to visit Yadgir"*, *"Tell me about Hampi"*  
 • **Sightseeing & Attractions:** *"What are the best places to visit in Yadgir?"*  
@@ -395,9 +407,29 @@ Where would you like to travel today?`,
       });
 
       if (res.data.success) {
+        const isRouteQuestion = /\b(?:route|directions?|map|navigation|navigate|how\s+(?:do\s+i|can\s+i)\s+(?:reach|get\s+to)|how\s+to\s+reach|distance)\b/i.test(textToSend) || res.data.intent === 'TRANSPORT_DIRECTIONS';
+        const fromToMatch = textToSend.match(/\bfrom\s+(.+?)\s+to\s+(.+?)(?=[?.!,]|$)/i);
+        const routeToMatch = textToSend.match(/\b(?:reach|get\s+to|route\s+to|directions?\s+to)\s+(.+?)(?=\s+from\b|[?.!,]|$)/i);
+        const routeFromMatch = textToSend.match(/\bfrom\s+(.+?)(?=\s+to\b|[?.!,]|$)/i);
+        const cleanRoutePlace = (value) => value?.trim().replace(/\s+(?:by|via|using|on)\s+.*$/i, '').trim();
+        const requestedDay = textToSend.match(/\bday\s+(\d+)\b/i);
+        const itineraryDay = requestedDay && travelContext.currentPlan?.itinerary?.find((day) => Number(day.day) === Number(requestedDay[1]));
+        const routeOrigin = cleanRoutePlace(fromToMatch?.[1] || routeFromMatch?.[1]) || travelContext.currentPlan?.origin || travelContext.origin || res.data.origin || 'Bengaluru';
+        const routeDestination = cleanRoutePlace(fromToMatch?.[2] || routeToMatch?.[1]) || travelContext.currentPlan?.destination || travelContext.activeDestination || res.data.destination;
+        const routeStops = itineraryDay?.attractions?.slice(0, 3) || [];
+        const route = isRouteQuestion && routeOrigin && routeDestination
+          ? { origin: routeOrigin, destination: routeDestination, stops: routeStops, url: buildRouteLink(routeOrigin, routeDestination, routeStops.map((stop) => `${stop}, ${routeDestination}`)) }
+          : null;
+        const responseText = route && res.data.intent !== 'TRANSPORT_DIRECTIONS'
+          ? `### 🗺️ Route from ${route.origin} to ${route.destination}\n\nI’ve prepared directions for this trip. Open the map to view the route and choose the travel option that works best for you.${route.stops.length ? ` For Day ${requestedDay[1]}, the itinerary stops are ${route.stops.join(' and ')}.` : ''}`
+          : res.data.intent === 'HOTELS_ACCOMMODATION' && !/verified (?:stays|hotel listings)|stays? in|staying in/i.test(res.data.response_text || '')
+            ? `### 🏨 Stays in ${routeDestination || travelContext.activeDestination || 'your destination'}\n\nI can help you compare verified stays by location, price, and rating. Open the Hotels page to browse the current listings.`
+            : res.data.response_text;
         const assistantMsg = {
           role: 'assistant',
-          text: res.data.response_text,
+          text: responseText,
+          route,
+          showHotelsLink: res.data.intent === 'HOTELS_ACCOMMODATION',
           options: Array.isArray(res.data.options) ? res.data.options : [],
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
@@ -527,13 +559,13 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                 marginBottom: '10px'
               }}
             >
-              <Sparkles size={14} /> Intelligent Travel Assistant & Trip Planner
+              <Sparkles size={14} /> Mitra AI • Your India Travel Companion
             </div>
             <h1 className="page-banner-title">
-              Conversational Travel Concierge
+              Mitra AI
             </h1>
             <p style={{ color: '#e0f2fe', maxWidth: '760px', fontSize: '0.94rem', margin: 0, lineHeight: 1.6 }}>
-              Ask general questions about destinations, attractions, food, and transit, or request a customized day-by-day itinerary with an itemized budget breakdown.
+              Ask about destinations, attractions, food, and transit, or get a personalized day-by-day itinerary with a clear budget breakdown.
             </p>
           </div>
           <img
@@ -577,7 +609,7 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#0f172a', margin: 0, fontFamily: 'var(--font-serif)' }}>
-                      AI Travel Companion
+                      Mitra AI
                     </h3>
                     <span
                       style={{
@@ -745,6 +777,26 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                         ) : (
                           <div>
                             <FormattedMessage text={message.text} />
+                            {message.route && (
+                              <div role="region" aria-label="Trip route" style={{ marginTop: '14px', padding: '14px', borderRadius: '12px', background: '#f0f9ff', border: '1px solid #bae6fd' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', color: '#075985', fontWeight: '800' }}>
+                                  <MapPin size={17} /> Route: {message.route.origin} → {message.route.destination}
+                                </div>
+                                {message.route.stops.length > 0 && (
+                                  <p style={{ margin: '8px 0', color: '#334155', fontSize: '0.84rem' }}>
+                                    Day stops: {message.route.stops.join(' → ')}
+                                  </p>
+                                )}
+                                <a href={message.route.url} target="_blank" rel="noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '10px', padding: '8px 12px', borderRadius: '8px', background: '#0284c7', color: '#ffffff', textDecoration: 'none', fontWeight: '700', fontSize: '0.82rem' }}>
+                                  View route in Google Maps <ExternalLink size={14} />
+                                </a>
+                              </div>
+                            )}
+                            {message.showHotelsLink && (
+                              <button type="button" onClick={() => navigate('/hotels')} className="btn btn-secondary btn-sm" style={{ marginTop: '12px' }}>
+                                Browse verified stays
+                              </button>
+                            )}
                             {Array.isArray(message.options) && message.options.length > 0 && (
                               <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px dashed #e2e8f0', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                 {message.options.map((opt, oIdx) => (
@@ -808,7 +860,7 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                     <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#0284c7', display: 'inline-block', animation: 'bounce 1.4s infinite ease-in-out 0.4s both' }} />
                   </div>
                   <span style={{ color: '#475569', fontSize: '0.85rem', fontWeight: '600' }}>
-                    AI Travel Companion is researching attractions and calculating routes...
+                    Mitra AI is researching attractions and calculating routes...
                   </span>
                 </div>
               )}
@@ -926,7 +978,7 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <span className="badge badge-sky" style={{ textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                          Verified AI Itinerary
+                          Verified Mitra AI Itinerary
                         </span>
                         {planResult.budget_status === 'SURPLUS' && (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', padding: '2px 8px', borderRadius: '20px', fontSize: '0.74rem', fontWeight: '700' }}>
@@ -1086,7 +1138,7 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                       type="button"
                       onClick={() => {
                         setBookingModalPkg({
-                          id: 1,
+                          id: null,
                           title: `${planResult.destination} All-Inclusive Holiday Package`,
                           destination_name: planResult.destination,
                           company_name: 'Incredible South Journeys',
@@ -1342,7 +1394,7 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
 Your trip booking for **${planResult?.destination || bookingModalPkg?.title || 'your destination'}** has been confirmed!
 
 • **Booking Reference:** \`${data?.booking_reference || (data?.booking_id ? `TH-BK-${data.booking_id}` : 'TH-BK-CONFIRMED')}\`
-• **Demo Transaction ID:** \`${data?.transaction?.demo_transaction_id || 'DEMO_TXN_SUCCESS'}\`
+• **Transaction ID:** \`${data?.transaction?.demo_transaction_id || 'TXN_CONFIRMED'}\`
 • **Amount Paid:** ₹${Number(data?.transaction?.amount || data?.total_amount || 0).toLocaleString('en-IN')}
 
 You can view and download your official payment receipt anytime in your **Dashboard**! Have an incredible journey! ✈️🏖️`,

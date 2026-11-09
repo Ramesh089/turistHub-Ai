@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { Users, Star, Award, Phone, MapPin, IndianRupee, CheckCircle, Globe } from 'lucide-react';
+import PublicPartnerListings from '../components/PublicPartnerListings';
+import BookingModal from '../components/BookingModal';
 
 export default function Guides() {
   const [guides, setGuides] = useState([]);
   const [loading, setLoading] = useState(true);
   const [specialization, setSpecialization] = useState('');
+  const [bookingGuide, setBookingGuide] = useState(null);
+  const [bookingSuccess, setBookingSuccess] = useState(null);
 
   useEffect(() => {
     async function loadGuides() {
@@ -120,8 +124,27 @@ export default function Guides() {
             ))}
           </div>
         )}
+        <PublicPartnerListings categories={['Guide']} title="Verified partner guides" />
       </div>
+
+      {bookingGuide && (
+        <BookingModal
+          bookingType="guide"
+          item={bookingGuide}
+          onClose={() => setBookingGuide(null)}
+          onComplete={(data) => {
+            setBookingGuide(null);
+            setBookingSuccess(`Guide booked successfully! Ref: ${data?.booking_reference || ''}`);
+            setTimeout(() => setBookingSuccess(null), 6000);
+          }}
+        />
+      )}
+
+      {bookingSuccess && (
+        <div style={{ position: 'fixed', bottom: 24, right: 24, background: '#dcfce7', color: '#166534', padding: '14px 20px', borderRadius: 12, fontWeight: 700, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', zIndex: 9999 }}>
+          ? {bookingSuccess}
+        </div>
+      )}
     </div>
   );
 }
-

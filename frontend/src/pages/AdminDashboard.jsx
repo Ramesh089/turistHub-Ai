@@ -4,6 +4,10 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import AnalyticsDashboard from '../components/AnalyticsDashboard';
 import ErrorBoundary from '../components/ErrorBoundary';
+import PartnerApplicationsAdmin from '../components/PartnerApplicationsAdmin';
+import PartnerListingsAdmin from '../components/PartnerListingsAdmin';
+import PartnerServiceChangesAdmin from '../components/PartnerServiceChangesAdmin';
+import PartnerQueriesAdmin from '../components/PartnerQueriesAdmin';
 import {
   ShieldCheck,
   Users,
@@ -33,7 +37,9 @@ import {
   RefreshCw,
   ChevronDown,
   Sparkles,
-  BarChart3
+  BarChart3,
+  Briefcase,
+  MessageCircle
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -1049,6 +1055,10 @@ export default function AdminDashboard() {
             { id: 'hotels', label: 'Hotels & Stays', count: allHotels.length, icon: Hotel, activeColor: '#059669' },
             { id: 'guides', label: 'Tourist Guides', count: allGuides.length, icon: UserCheck, activeColor: '#0d9488' },
             { id: 'transport', label: 'Transport', count: allTransport.length, icon: Car, activeColor: '#7c3aed' },
+            { id: 'partner-applications', label: 'Partner applications', count: 'Review', icon: Briefcase, activeColor: '#0284c7' },
+            { id: 'partner-listings', label: 'Partner listings', count: 'Review', icon: Hotel, activeColor: '#059669' },
+            { id: 'partner-service-changes', label: 'Service update requests', count: 'Review', icon: RefreshCw, activeColor: '#d97706' },
+            { id: 'partner-questions', label: 'Partner questions', count: 'Inbox', icon: MessageCircle, activeColor: '#7c3aed' },
             { id: 'users', label: 'User Accounts', count: allUsers.length, icon: Users, activeColor: '#2563eb' }
           ].map((t) => {
             const Icon = t.icon;
@@ -1096,6 +1106,30 @@ export default function AdminDashboard() {
         {activeTab === 'analytics' && (
           <div className="animate-fade-in" style={{ marginBottom: '24px' }}>
             <AnalyticsDashboard />
+          </div>
+        )}
+
+        {activeTab === 'partner-applications' && (
+          <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
+            <PartnerApplicationsAdmin />
+          </div>
+        )}
+
+        {activeTab === 'partner-listings' && (
+          <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
+            <PartnerListingsAdmin />
+          </div>
+        )}
+
+        {activeTab === 'partner-service-changes' && (
+          <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
+            <PartnerServiceChangesAdmin />
+          </div>
+        )}
+
+        {activeTab === 'partner-questions' && (
+          <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
+            <PartnerQueriesAdmin />
           </div>
         )}
 
@@ -1158,6 +1192,7 @@ export default function AdminDashboard() {
                         (b.user_name || '').toLowerCase().includes(q) ||
                         (b.user_email || '').toLowerCase().includes(q) ||
                         (b.package_title || '').toLowerCase().includes(q) ||
+                        (b.partner_listing_title || '').toLowerCase().includes(q) ||
                         (b.destination_name || '').toLowerCase().includes(q)
                       );
                     })
@@ -1168,7 +1203,7 @@ export default function AdminDashboard() {
                         <strong>{b.user_name}</strong><br />
                         <span style={{ fontSize: '0.78rem', color: 'var(--slate)' }}>{b.user_email}</span>
                       </td>
-                      <td style={{ padding: '12px 10px' }}>{b.package_title || b.destination_name}</td>
+                      <td style={{ padding: '12px 10px' }}>{b.partner_listing_title || b.package_title || b.destination_name}</td>
                       <td style={{ padding: '12px 10px' }}>{new Date(b.travel_date).toLocaleDateString('en-IN')}</td>
                       <td style={{ padding: '12px 10px' }}>{b.people_count}</td>
                       <td style={{ padding: '12px 10px', fontWeight: '700', color: 'var(--primary)' }}>

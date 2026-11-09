@@ -194,7 +194,7 @@ export default function Home() {
             lineHeight: 1.6,
             fontWeight: '300'
           }}>
-            Explore India's timeless heritage, classical arts, vibrant festivals, and scenic landscapes with a personalized AI travel planner, verified local guides, and 24x7 safety assistance.
+            Explore India's timeless heritage, classical arts, vibrant festivals, and scenic landscapes with Mitra AI, verified local guides, and 24x7 safety assistance.
           </p>
 
           {/* Prominent Explore / Auth Action Buttons */}
@@ -220,7 +220,7 @@ export default function Home() {
                 className="btn btn-secondary btn-lg"
                 style={{ fontWeight: '700', padding: '12px 28px', fontSize: '1rem', background: '#ffffff', color: '#0369a1', cursor: 'pointer' }}
               >
-                <Sparkles size={18} color="#0284c7" /> Open AI Planner
+                <Sparkles size={18} color="#0284c7" /> Open Mitra AI
               </button>
             )}
           </div>
@@ -484,7 +484,7 @@ export default function Home() {
                 display: 'inline-block',
                 marginBottom: '16px'
               }}>
-                Smart Travel Companion
+                Mitra AI Travel Companion
               </span>
               <h2 style={{
                 fontSize: '2.4rem',
@@ -493,10 +493,10 @@ export default function Home() {
                 lineHeight: 1.2,
                 marginBottom: '18px'
               }}>
-                Intelligent AI Travel Planner & Custom Itineraries
+                Mitra AI Travel Companion & Custom Itineraries
               </h2>
               <p style={{ fontSize: '1rem', color: '#e0f2fe', lineHeight: 1.7, marginBottom: '24px' }}>
-                Stop spending weeks juggling spreadsheets. Simply select your travel origin, budget, dietary choices (Vegetarian / Regional), and passions (Heritage, Nature, Photography). Our AI crafts an optimized Day 1..N schedule featuring Morning, Afternoon, and Evening slots.
+                Stop spending weeks juggling spreadsheets. Simply select your travel origin, budget, dietary choices (Vegetarian / Regional), and passions (Heritage, Nature, Photography). Mitra AI crafts an optimized day-by-day schedule with morning, afternoon, and evening activities.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
@@ -519,7 +519,7 @@ export default function Home() {
                 className="btn btn-green btn-lg"
                 style={{ display: 'inline-flex', cursor: 'pointer' }}
               >
-                <Sparkles size={18} /> Launch AI Travel Planner
+                <Sparkles size={18} /> Launch Mitra AI
               </button>
             </div>
 

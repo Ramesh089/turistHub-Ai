@@ -63,7 +63,7 @@ export default function Footer() {
               Travel Services
             </h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '9px', fontSize: '0.88rem' }}>
-              <li><Link to="/ai-planner" style={{ color: '#0284c7', fontWeight: '700' }}>AI Itinerary Planner &rarr;</Link></li>
+              <li><Link to="/ai-planner" style={{ color: '#0284c7', fontWeight: '700' }}>Mitra AI Travel Companion &rarr;</Link></li>
               <li><Link to="/hotels" style={{ color: '#475569' }}>Heritage Hotels & Resorts</Link></li>
               <li><Link to="/transport" style={{ color: '#475569' }}>Trains, Flights & Cabs</Link></li>
               <li><Link to="/guides" style={{ color: '#475569' }}>Certified Tourist Guides</Link></li>

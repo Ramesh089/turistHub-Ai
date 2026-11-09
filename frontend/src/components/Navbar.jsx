@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
+  Briefcase,
   Sparkles,
   User,
   LogOut,
@@ -387,7 +388,7 @@ export default function Navbar() {
                   whiteSpace: 'nowrap'
                 })}
               >
-                <Sparkles size={15} color="#10b981" /> AI Planner
+                <Sparkles size={15} color="#10b981" /> Mitra AI
               </NavLink>
 
               <NavLink
@@ -782,7 +783,7 @@ export default function Navbar() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Home</Link>
                 <Link to="/explore" onClick={(e) => handleNavClick(e, '/explore')} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Explore</Link>
-                <Link to="/ai-planner" onClick={(e) => handleNavClick(e, '/ai-planner')} style={{ fontWeight: '600', color: '#0284c7', padding: '8px 10px', borderRadius: '8px' }}>AI Planner</Link>
+                <Link to="/ai-planner" onClick={(e) => handleNavClick(e, '/ai-planner')} style={{ fontWeight: '600', color: '#0284c7', padding: '8px 10px', borderRadius: '8px' }}>Mitra AI</Link>
                 <Link to="/packages" onClick={(e) => handleNavClick(e, '/packages')} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Packages</Link>
                 <Link to="/hotels" onClick={(e) => handleNavClick(e, '/hotels')} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Hotels</Link>
                 <Link to="/transport" onClick={(e) => handleNavClick(e, '/transport')} style={{ fontWeight: '600', padding: '8px 10px', borderRadius: '8px', color: '#1e293b' }}>Transport</Link>
@@ -802,6 +803,10 @@ export default function Navbar() {
                     {isAdmin ? (
                       <Link to="/admin" onClick={() => setMobileMenuOpen(false)} className="btn btn-primary btn-sm">
                         Admin Portal
+                      </Link>
+                    ) : (user?.role || '').toLowerCase() === 'business partner' ? (
+                      <Link to="/partner/dashboard" onClick={() => setMobileMenuOpen(false)} className="btn btn-green btn-sm" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                        <Briefcase size={14} /> Partner Dashboard
                       </Link>
                     ) : (
                       <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)} className="btn btn-secondary btn-sm">

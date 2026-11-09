@@ -30,6 +30,7 @@ api.interceptors.request.use(
     const token = localStorage.getItem('touristhub_token');
 
     if (token) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -40,10 +41,37 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config;
+
+    // Auto-refresh token on 401 if refresh is available and not already retrying
     if (
       error.response?.status === 401 &&
-      localStorage.getItem('touristhub_token')
+      originalRequest &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes('/auth/refresh') &&
+      !originalRequest.url?.includes('/auth/login')
+    ) {
+      originalRequest._retry = true;
+      try {
+        const refreshRes = await axios.post(`${baseURL}/auth/refresh`, {}, { withCredentials: true });
+        if (refreshRes.data?.success && refreshRes.data.token) {
+          const newToken = refreshRes.data.token;
+          localStorage.setItem('touristhub_token', newToken);
+          if (refreshRes.data.user) {
+            localStorage.setItem('touristhub_user', JSON.stringify(refreshRes.data.user));
+          }
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        }
+      } catch (refreshErr) {
+        localStorage.removeItem('touristhub_token');
+        localStorage.removeItem('touristhub_user');
+      }
+    } else if (
+      error.response?.status === 401 &&
+      (originalRequest?.url?.includes('/auth/refresh') || !originalRequest)
     ) {
       localStorage.removeItem('touristhub_token');
       localStorage.removeItem('touristhub_user');

@@ -29,6 +29,7 @@ import TrainBookingModal from '../components/transport/TrainBookingModal';
 import BusBookingModal from '../components/transport/BusBookingModal';
 import FlightBookingModal from '../components/transport/FlightBookingModal';
 import PrivateDriverModal from '../components/transport/PrivateDriverModal';
+import PublicPartnerListings from '../components/PublicPartnerListings';
 
 const TRANSPORT_TABS = [
   { id: 'Any', label: 'All Modes', icon: <Sparkles size={18} /> },
@@ -808,6 +809,10 @@ export default function Transport() {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="container">
+        <PublicPartnerListings categories={['Bus Operator', 'Tour & Travel']} title="Verified partner transport services" />
       </div>
 
       {/* Floating Success Toast */}

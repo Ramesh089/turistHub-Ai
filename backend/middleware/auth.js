@@ -7,12 +7,15 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'super_secret_refre
  * Extracts token from Authorization header or signed/unsigned cookies
  */
 function extractToken(req) {
-  const authHeader = req.headers['authorization'];
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
     return authHeader.split(' ')[1];
   }
   if (req.cookies && req.cookies.touristhub_access_token) {
     return req.cookies.touristhub_access_token;
+  }
+  if (req.query && req.query.token) {
+    return req.query.token;
   }
   return null;
 }
@@ -35,6 +38,12 @@ function authenticateToken(req, res, next) {
       return res.status(403).json({
         success: false,
         message: 'Invalid or expired session. Please log in again.'
+      });
+    }
+    if (user.tokenPurpose === 'required_password_change') {
+      return res.status(403).json({
+        success: false,
+        message: 'Choose a new password before accessing your account.'
       });
     }
     req.user = user;
@@ -111,7 +120,7 @@ function optionalAuth(req, res, next) {
 
   if (token) {
     jwt.verify(token, JWT_SECRET, (err, user) => {
-      if (!err) {
+      if (!err && user.tokenPurpose !== 'required_password_change') {
         req.user = user;
       }
       next();

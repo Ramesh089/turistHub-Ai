@@ -91,6 +91,10 @@ async function initDatabase() {
       console.log('✅ All 15 application tables verified.');
     }
 
+    await require('./migrate_partner_workflow')();
+    await require('./migrate_partner_queries')();
+    await require('./migrate_listings')();
+
     // 2. Safe Column Additions for backward/forward compatibility
     console.log('\n🔍 Verifying column compatibility on existing tables...');
 
@@ -102,6 +106,8 @@ async function initDatabase() {
     await addColumnIfNotExists(connection, 'users', 'lock_until', 'DATETIME NULL');
     await addColumnIfNotExists(connection, 'users', 'reset_token', 'VARCHAR(255) NULL');
     await addColumnIfNotExists(connection, 'users', 'reset_token_expiry', 'DATETIME NULL');
+    await addColumnIfNotExists(connection, 'users', 'must_change_password', 'TINYINT(1) NOT NULL DEFAULT 0');
+    await addColumnIfNotExists(connection, 'users', 'temporary_password_expires_at', 'DATETIME NULL');
     await addColumnIfNotExists(connection, 'users', 'updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP');
 
     // Only update non-generated columns
@@ -182,11 +188,11 @@ async function initDatabase() {
 
     // Bookings ticket extensions
     await addColumnIfNotExists(connection, 'bookings', 'booking_reference', 'VARCHAR(100) NULL');
+    await addColumnIfNotExists(connection, 'bookings', 'return_date', 'DATE NULL');
     await addColumnIfNotExists(connection, 'bookings', 'booking_details', 'JSON NULL');
     await addColumnIfNotExists(connection, 'bookings', 'cancellation_reason', 'VARCHAR(255) NULL');
     await addColumnIfNotExists(connection, 'bookings', 'refund_amount', 'DECIMAL(10,2) DEFAULT 0.00');
     await addColumnIfNotExists(connection, 'bookings', 'refund_status', "VARCHAR(50) DEFAULT 'None'");
-
     // 3. Multi-Transport Tables Creation
     console.log('\n🚌 Verifying multi-transport booking tables...');
     await connection.query(`

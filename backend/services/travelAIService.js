@@ -644,7 +644,7 @@ function detectIntent(message, context = {}, entities = {}) {
   if (text.includes('why is') && (text.includes('famous') || text.includes('known for'))) return 'HISTORY_CULTURE';
   if (text.includes('history') || text.includes('heritage') || text.includes('dynasty') || text.includes('who built') || text.includes('architecture of')) return 'HISTORY_CULTURE';
   if (text.includes('food') || text.includes('dish') || text.includes('eat') || text.includes('cuisine') || text.includes('restaurant') || text.includes('sweet') || text.includes('dosa') || text.includes('delicac')) return 'FOOD_DINING';
-  if (text.includes('how can i reach') || text.includes('how to reach') || text.includes('how to get to') || text.includes('transport') || text.includes('flight') || text.includes('train') || text.includes('bus') || text.includes('expressway') || text.includes('distance from') || text.includes('drive to')) return 'TRANSPORT_DIRECTIONS';
+  if (text.includes('how can i reach') || text.includes('how to reach') || text.includes('how to get to') || text.includes('transport') || text.includes('flight') || text.includes('train') || text.includes('bus') || text.includes('expressway') || text.includes('distance from') || text.includes('distance to') || text.includes('drive to') || /\b(?:route|directions?|map|navigation|navigate)\b/.test(text)) return 'TRANSPORT_DIRECTIONS';
   if (text.includes('best places') || text.includes('places to visit') || text.includes('attractions') || text.includes('must visit') || text.includes('sightseeing') || text.includes('top spots') || text.includes('things to see') || text.includes('tourist spots')) return 'ATTRACTIONS';
   if (text.includes('where to stay') || text.includes('hotels in') || text.includes('resorts in') || text.includes('homestay') || text.includes('accommodation') || text.includes('best hotel')) return 'HOTELS_ACCOMMODATION';
   if (text.includes('best time') || text.includes('when to visit') || text.includes('weather') || text.includes('climate') || text.includes('season') || text.includes('monsoon in')) return 'WEATHER_BEST_TIME';
@@ -833,6 +833,10 @@ function extractEntities(message, context = {}) {
   else if (text.includes('from chennai')) origin = 'Chennai';
   else if (text.includes('from kochi')) origin = 'Kochi';
   else if (text.includes('from bengaluru') || text.includes('from bangalore')) origin = 'Bengaluru';
+  else {
+    const routeOriginMatch = originalText.match(/\bfrom\s+([a-zA-Z][a-zA-Z\s-]{1,34}?)(?=\s+to\b|[?.!,]|$)/i);
+    if (routeOriginMatch?.[1]) origin = routeOriginMatch[1].trim();
+  }
 
   // Extract Days
   let days = (context.currentPlan && context.currentPlan.days) || context.days || 2;
@@ -927,7 +931,7 @@ function extractEntities(message, context = {}) {
  * 3. Dynamic Prompt Suggestion Generator
  * Generates 4 context-relevant follow-up suggestions for the current conversation
  */
-function generateFollowUpSuggestions(intent, destinationName = '', hasPlan = false) {
+function generateFollowUpSuggestions(intent, destinationName = '', hasPlan = false, origin = 'Bengaluru') {
   const dName = (destinationName || '').split(' ')[0] || 'your destination';
 
   if (intent === 'DESTINATION_DISCOVERY' || intent === 'GENERAL_INFO') {
@@ -980,7 +984,7 @@ function generateFollowUpSuggestions(intent, destinationName = '', hasPlan = fal
       `What are the top attractions in ${dName}?`,
       `Which place is best for photography in ${dName}?`,
       `Plan a 2-day foodie and heritage trip to ${dName}`,
-      `How can I reach ${dName} from Bengaluru?`
+      `Show me the route from ${origin} to ${dName}`
     ];
   }
 
@@ -1220,7 +1224,8 @@ ${foodItems || `• **Traditional Regional Thali:** A delicious spread of local 
 // E. Transportation and Routes
 function handleTransport(destData, origin = 'Bengaluru') {
   let transRoutes = '';
-  if (destData.transport?.from_bengaluru && destData.transport.from_bengaluru.length > 0) {
+  const isBengaluruOrigin = /^(?:bengaluru|bangalore)$/i.test(origin.trim());
+  if (isBengaluruOrigin && destData.transport?.from_bengaluru && destData.transport.from_bengaluru.length > 0) {
     transRoutes = destData.transport.from_bengaluru.map((t, idx) => `
 #### ${idx + 1}. ${t.mode}
 * **Travel Time:** ${t.duration}
@@ -1489,7 +1494,7 @@ ${itemizedRows}
 ${daysMarkdown}
 
 ---
-💡 **Next Steps:** Check out the interactive plan card on the right-hand panel where you can **Save to My Trips**, **Print Route**, or **Book as a Guaranteed Package with ₹1,500 Instant Discount**!`;
+💡 **Next Steps:** Check out the interactive plan card on the right-hand panel where you can **Save to My Trips**, **Print Itinerary**, or **Book as a Guaranteed Package with ₹1,500 Instant Discount**!`;
 }
 
 let openAiQuotaExhausted = false;
@@ -1518,7 +1523,7 @@ async function callLLMAssistant({ message, conversationHistory = [], context = {
   const groupType = entities.travellerType || context.travellerType || 'Couple';
   const userBudget = entities.budget || context.budget || null;
 
-  const systemInstruction = `You are Tourist Hub AI, an intelligent travel assistant.
+  const systemInstruction = `You are Mitra AI, Tourist Hub's intelligent India travel companion.
 
 Always answer questions about the destination explicitly requested by the user or established by the conversation.
 
@@ -1556,7 +1561,7 @@ CRITICAL RULES:
 4. INTERACTIVE OPTIONS: When entering destination discovery or asking for preferences, return helpful options in "options" array.
 5. STRICT JSON OUTPUT: Return ONLY a valid JSON object matching this schema with NO markdown wrapping around the JSON:
 {
-  "intent": "DESTINATION_DISCOVERY" | "TRAVEL_TYPE_SELECTED" | "BUDGET_SELECTED" | "PHOTOGRAPHY_QUERY" | "GENERAL_INFO" | "PLAN_ITINERARY" | "ATTRACTIONS" | "FOOD_DINING" | "TRANSPORT_DIRECTIONS" | "HISTORY_CULTURE" | "WEATHER_BEST_TIME" | "DESTINATION_CHANGE",
+  "intent": "DESTINATION_DISCOVERY" | "TRAVEL_TYPE_SELECTED" | "BUDGET_SELECTED" | "PHOTOGRAPHY_QUERY" | "GENERAL_INFO" | "PLAN_ITINERARY" | "ATTRACTIONS" | "FOOD_DINING" | "TRANSPORT_DIRECTIONS" | "HISTORY_CULTURE" | "WEATHER_BEST_TIME" | "HOTELS_ACCOMMODATION" | "DESTINATION_CHANGE",
   "destination": "${destinationName}",
   "is_destination_change": ${!!entities.isDestinationChange},
   "options": [{"label": "...", "subtext": "...", "value": "..."}],
@@ -1787,7 +1792,7 @@ async function processChatMessage({ message, conversationHistory = [], context =
     if (llmResult && llmResult.response_text) {
       const followUpSuggestions = Array.isArray(llmResult.suggested_prompts) && llmResult.suggested_prompts.length > 0
         ? llmResult.suggested_prompts
-        : generateFollowUpSuggestions(llmResult.intent || intent, llmResult.destination || destData.name, !!llmResult.plan);
+        : generateFollowUpSuggestions(llmResult.intent || intent, llmResult.destination || destData.name, !!llmResult.plan, entities.origin);
 
       const isDestChangeLLM = !!llmResult.is_destination_change || intent === 'DESTINATION_CHANGE' || !!entities.isDestinationChange;
       return {
@@ -1857,9 +1862,9 @@ async function processChatMessage({ message, conversationHistory = [], context =
         break;
       }
       case 'GREETING':
-        responseText = `### 👋 Hello! Welcome to Tourist Hub AI
+        responseText = `### 👋 Hello! Welcome to Mitra AI
 
-I am your intelligent India travel assistant. I can help you with:
+I am your India travel companion. I can help you with:
 • **Destination Overviews:** Ask about history, heritage, culture, and iconic sights.
 • **Local Attractions:** Get opening timings, ticket prices, and visiting order.
 • **Food & Dining:** Discover famous local sweets, legendary eateries, and regional cuisines.
@@ -1887,6 +1892,32 @@ I am your intelligent India travel assistant. I can help you with:
       case 'FOOD_DINING':
         responseText = handleFood(destData);
         break;
+
+      case 'HOTELS_ACCOMMODATION': {
+        let hotels = [];
+        try {
+          const [rows] = await pool.query(
+            `SELECT name, location, price_per_night, rating
+             FROM hotels
+             WHERE destination_id = (
+               SELECT id FROM tourist_places
+               WHERE name LIKE ? OR location LIKE ?
+               LIMIT 1
+             )
+             ORDER BY rating DESC, price_per_night ASC
+             LIMIT 5`,
+            [`%${destData.name}%`, `%${destData.name}%`]
+          );
+          hotels = rows;
+        } catch (hotelErr) {
+          console.warn('Mitra AI hotel lookup warning:', hotelErr.message);
+        }
+
+        responseText = hotels.length
+          ? `### 🏨 Stays in ${destData.name}\n\nHere are verified stays currently listed in our catalogue:\n\n${hotels.map((hotel, index) => `${index + 1}. **${hotel.name}** — ${hotel.location || destData.name}; ₹${Number(hotel.price_per_night || 0).toLocaleString('en-IN')} per night; ${hotel.rating ? `rated ${hotel.rating}/5` : 'rating not available'}`).join('\n')}\n\nYou can compare available room options on the Hotels page.`
+          : `### 🏨 Staying in ${destData.name}\n\nI don’t have verified hotel listings for ${destData.name} in the current catalogue yet. Look for a stay near the main attractions or transit hub, and check recent reviews, cancellation terms, and the full price before booking.`;
+        break;
+      }
 
       case 'TRANSPORT_DIRECTIONS':
         responseText = handleTransport(destData, entities.origin);
@@ -1974,7 +2005,7 @@ ${formatPlanMarkdown(plan)}`;
         break;
     }
 
-    const followUpSuggestions = generateFollowUpSuggestions(intent, destData.name, !!planResult);
+    const followUpSuggestions = generateFollowUpSuggestions(intent, destData.name, !!planResult, entities.origin);
 
     const isDestChange = intent === 'DESTINATION_CHANGE' || !!entities.isDestinationChange;
     return {

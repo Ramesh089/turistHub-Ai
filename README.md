@@ -14,6 +14,7 @@ The Authentication system is built according to the split-screen design specific
 - **Interactive Slider Captcha**: Prevents brute-force automated submissions with drag-to-verify mechanics and server-side HMAC token validation.
 - **Role-Based Access Control (RBAC)**:
   - `Admin`: Portal management and CRUD privileges, redirects to `/admin`.
+  - `Business Partner`: Approved applicants activate an account with their registered email and a password, then redirect to `/partner/dashboard`.
   - `User`: Standard tourist account, redirects to `/dashboard`. Public registration defaults strictly to `User`.
 - **Security & Session Management**:
   - Password hashing with `bcryptjs` (salt rounds: 10).
@@ -191,3 +192,82 @@ Tests verified:
 12. 6-digit forgot password code issuance
 13. Password reset execution with new credentials
 14. Secure cookie and token logout
+
+---
+
+## 6. Business Partner Review and Public Listings
+
+### Existing behavior
+
+- A business submits an application and PDF verification documents; an administrator can inspect the application and approve or reject it.
+- Approved businesses can activate a `Business Partner` account.
+- Administrators can create and edit service listings, upload listing images, and publish or unpublish listings.
+
+### Added workflow
+
+- Partner registration begins with email, then collects the existing business details and required verification documents. Registration includes a **Check Application Status** option using the application ID and email.
+- Applicants do not receive an email-verification link. Administrators can review and approve a pending application directly. When an approved applicant checks status, the page automatically emails a random temporary password to the application’s registered email; the tracker never displays it. The password expires in 24 hours, is stored only as a bcrypt hash, and must be changed at first sign-in. Pending and rejected applications cannot create a partner account.
+- Temporary-password requests and email outcomes are retained in the account setup event history and are rate-limited. A temporary sign-in token can only access the required password-change endpoint; it cannot access partner APIs. Previously issued one-time setup links remain supported for compatibility.
+- SMTP delivery is required to send the temporary password. If delivery fails, the account is not left usable with an undisclosed password; the approved partner can retry from the status page after the administrator fixes email configuration.
+- An approved Business Partner submits a service listing from the Partner Dashboard. New submissions are stored as `Submitted`; the partner cannot publish.
+- Administrators use **Partner applications** and **Partner listings** in the Admin Dashboard to review applications and service submissions. The listing queue supports status, category, partner name, and submission-date filters.
+- Administrators can request corrections or reject a listing with a reason. A partner can edit and resubmit only a listing in `Changes Requested`; every resubmission is retained for comparison.
+- Partners can propose changes to a published or unpublished listing in a separate request. The live listing and price do not change until an administrator approves; rejected requests retain feedback without changing the service.
+- An administrator edits the public listing, manages images and accessibility text, previews the result, approves it to a draft, and publishes it. Only published listings with an approved application and an active partner account appear in the tourist catalogue.
+- Verification documents are stored separately from listing images. PDF endpoints require the owner partner or an administrator; image bytes for unpublished listings require administrator access.
+- The Business Partner dashboard reuses the existing application/status and login flows, and includes service submissions, pending update status, administrator feedback, and partner questions/replies.
+- Partners set a required capacity for each Quick Add service. Administrators can review and edit capacity and booked units; tourists do not see capacity, and fully booked listings are excluded from public results. Checkout verifies and reserves capacity atomically; hotel/guide listings and vehicle listings use one unit per booking, while bus and person-priced services use the guest count.
+- Listing decisions, edits, image changes, submissions, service-update approvals/rejections, and publication events are recorded in audit/history tables. Unpublishing preserves the listing record.
+
+### Database and storage setup
+
+The idempotent partner application/listing migrations are invoked by backend startup and `npm run init:db`. For a deployment or existing database, review and back up the database before running:
+
+```bash
+cd backend
+npm run init:db
+```
+
+The application creates `partner_applications`, `partner_documents`, `partner_audit_logs`, `partner_account_setup_events`, `partner_queries`, `partner_service_listings`, `partner_service_change_requests`, `listing_images`, `listing_audit_logs`, and `partner_listing_submissions` when absent, and extends listing statuses for review. The listings migration adds capacity to existing services and adds listing/capacity-unit references to bookings without deleting existing records. The partner migration adds setup-token hash, expiry, and use-time columns additively to existing applications. Database initialization also adds `users.must_change_password` and `users.temporary_password_expires_at` for expiring partner temporary passwords. Legacy email-verification columns on existing databases are left in place for compatibility but are no longer used. `npm run init:db` invokes the partner-question, service-change, and listings migrations; it is safe to rerun and does not delete application, service, booking, or payment records. Uploaded files use `PARTNER_DOCUMENT_DIR` and `LISTING_IMAGE_DIR` from `backend/.env`; defaults are `backend/uploads/partner-docs` and `backend/uploads/listing-images`. Keep the document directory private and configure durable storage for production deployments. Do not expose the uploads directory as a static web root.
+
+Configure the following backend environment variables to send email:
+
+```env
+CLIENT_URL=http://localhost:5173
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=
+```
+
+Set them to your SMTP provider’s values (use TLS settings required by that provider). The approved application status page emails a random temporary password only to the registered address. It expires after 24 hours, is stored only as a password hash, and must be changed at the first sign-in. Without SMTP configuration, password delivery fails explicitly and the account is not left usable with an undisclosed password.
+
+### Relevant API routes
+
+- `POST /api/partner/apply`, `GET /api/partner/status`, `POST /api/partner/check-status`, and `POST /api/partner/status/request-temporary-password` — application submission, status lookup, and temporary-password email retry for the matching approved application. The status page requests the initial email automatically after approval.
+- `GET /api/partner/account-setup` and `POST /api/partner/complete-account-setup` — validate a one-time setup link and create the approved partner account with a hashed password.
+- `POST /api/partner/status/request-account-setup` — compatibility endpoint for one-time setup links already used by the prior workflow.
+- `POST /api/auth/complete-required-password-change` — set a new password after temporary-password sign-in; the limited change token cannot access protected APIs.
+- `POST /api/listings/my`, `GET /api/listings/my`, `PUT /api/listings/my/:id` — Business Partner submission, own status, and correction resubmission.
+- `GET /api/listings/admin` and `GET /api/listings/admin/:id` — administrator queue and review details/history.
+- `PATCH /api/listings/admin/:id/review` — approve to draft, reject, or request corrections.
+- `POST /api/listings/my/:id/change-requests`, `GET /api/listings/my/change-requests` — submit and view partner proposals for existing services.
+- `GET /api/listings/admin/change-requests`, `PATCH /api/listings/admin/change-requests/:id/review` — compare and approve/reject service changes; approval is the only operation that applies proposed fields.
+- `PUT /api/listings/admin/:id`, `POST /api/listings/admin/:id/images`, and image metadata/delete routes — administrator listing editor.
+- `PATCH /api/listings/admin/:id/publish` and `/unpublish` — administrator publication controls.
+- `GET /api/listings` and `GET /api/listings/:id` — published tourist catalogue and detail.
+- `GET /api/partner/admin/documents/:docId` and `GET /api/partner/my-documents/:docId` — protected verification document access.
+- `GET/POST /api/partner/my/queries`, `GET /api/partner/admin/queries`, `POST /api/partner/admin/queries/:id/reply` — partner questions and administrator replies.
+
+### Partner workflow tests
+
+Run the focused API tests with:
+
+```bash
+cd backend
+npm run test:partner
+```
+
+The current tests use a mocked database and cover partner ownership, role checks, protected documents and image previews, invalid image signatures, correction/edit history, publication, and tourist visibility. They do not verify a live MySQL migration or production object-storage configuration.

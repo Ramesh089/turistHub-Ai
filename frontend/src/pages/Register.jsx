@@ -786,6 +786,55 @@ export default function Register() {
           </div>
         </div>
 
+
+          {/* Partner CTA Banner */}
+          <div
+            style={{
+              marginTop: '14px',
+              padding: '12px 16px',
+              borderRadius: '10px',
+              background: isDark
+                ? 'linear-gradient(135deg, rgba(2,132,199,0.18) 0%, rgba(16,185,129,0.12) 100%)'
+                : 'linear-gradient(135deg, rgba(2,132,199,0.08) 0%, rgba(16,185,129,0.06) 100%)',
+              border: isDark
+                ? '1px solid rgba(2,132,199,0.3)'
+                : '1px solid rgba(2,132,199,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap'
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '0.82rem', fontWeight: '700', color: isDark ? '#38bdf8' : '#0284c7', marginBottom: '2px' }}>
+                🤝 Are you a Business Partner?
+              </div>
+              <div style={{ fontSize: '0.76rem', color: subtextColor, lineHeight: 1.4 }}>
+                Hotels, tour operators, restaurants &amp; more — register your business
+              </div>
+            </div>
+            <Link
+              to="/partner/register"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '7px 14px',
+                borderRadius: '7px',
+                background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                color: '#fff',
+                fontSize: '0.78rem',
+                fontWeight: '700',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 2px 8px rgba(2,132,199,0.3)',
+                flexShrink: 0
+              }}
+            >
+              Partner Register →
+            </Link>
+          </div>
         <div style={{ height: '20px' }} />
       </div>
 

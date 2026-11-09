@@ -3,18 +3,22 @@ import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { Hotel, Star, IndianRupee, MapPin, CreditCard, CheckCircle2 } from 'lucide-react';
 import BookingModal from '../components/BookingModal';
+import PublicPartnerListings from '../components/PublicPartnerListings';
 
 export default function Hotels() {
   const [hotels,     setHotels]     = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [budgetTier, setBudgetTier] = useState('');
   const [minRating,  setMinRating]  = useState('');
+  const [retryKey, setRetryKey] = useState(0);
+  const [loadError, setLoadError] = useState('');
   const [bookingHotel, setBookingHotel] = useState(null); // opens BookingModal
   const [paymentSuccessMsg, setPaymentSuccessMsg] = useState(null);
 
   useEffect(() => {
     async function loadHotels() {
       setLoading(true);
+      setLoadError('');
       try {
         const params = new URLSearchParams();
         if (budgetTier) params.append('budget_tier', budgetTier);
@@ -23,12 +27,14 @@ export default function Hotels() {
         if (res.data.success && Array.isArray(res.data.hotels)) setHotels(res.data.hotels);
       } catch (err) {
         console.error('Failed to load hotels:', err);
+        setHotels([]);
+        setLoadError(err.response?.data?.message || 'We could not load hotels right now. Please try again.');
       } finally {
         setLoading(false);
       }
     }
     loadHotels();
-  }, [budgetTier, minRating]);
+  }, [budgetTier, minRating, retryKey]);
 
   return (
     <div style={{ background: '#f8fafc', minHeight: '90vh', paddingBottom: 90 }}>
@@ -76,7 +82,16 @@ export default function Hotels() {
 
         {/* Cards */}
         {loading ? (
-          <p style={{ textAlign: 'center', padding: '60px 0', color: '#0284c7', fontWeight: 600 }}>Loading verified accommodations...</p>
+          <p role="status" style={{ textAlign: 'center', padding: '60px 0', color: '#0284c7', fontWeight: 600 }}>Loading verified accommodations...</p>
+        ) : loadError ? (
+          <div className="card" role="alert" style={{ padding: '48px 20px', textAlign: 'center' }}>
+            <Hotel size={44} color="#0284c7" style={{ margin: '0 auto 14px' }} />
+            <h3>Hotels are temporarily unavailable</h3>
+            <p style={{ color: '#64748b', margin: '8px auto 18px' }}>{loadError}</p>
+            <button type="button" className="btn btn-primary" onClick={() => setRetryKey(key => key + 1)}>
+              Try again
+            </button>
+          </div>
         ) : hotels.length === 0 ? (
           <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
             <Hotel size={48} color="#0284c7" style={{ margin: '0 auto 16px' }} />
@@ -109,7 +124,7 @@ export default function Hotels() {
 
                     {/* Amenities */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-                      {h.amenities?.slice(0, 4).map((a, i) => (
+                      {(Array.isArray(h.amenities) ? h.amenities : []).slice(0, 4).map((a, i) => (
                         <span key={i} style={{ fontSize: '0.72rem', background: '#f0f9ff', border: '1px solid #bae6fd', padding: '2px 8px', borderRadius: 4, color: '#0369a1' }}>
                           ✓ {a}
                         </span>
@@ -138,6 +153,7 @@ export default function Hotels() {
             ))}
           </div>
         )}
+        <PublicPartnerListings categories={['Hotel']} title="Verified partner stays" />
       </div>
 
       {paymentSuccessMsg && (

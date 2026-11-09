@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
+  Briefcase,
+  Store,
   User,
   LogOut,
   LayoutDashboard,
@@ -40,8 +42,9 @@ export default function UserMenu() {
 
   const getRoleBadgeColor = () => {
     const r = roleName.toLowerCase();
-    if (r === 'admin') return { bg: 'rgba(91, 124, 255, 0.12)', text: '#5B7CFF', border: 'rgba(91, 124, 255, 0.3)' };
-    return { bg: 'rgba(16, 185, 129, 0.12)', text: '#059669', border: 'rgba(16, 185, 129, 0.3)' };
+    if (r === 'admin' || r === 'super admin') return { bg: 'rgba(91, 124, 255, 0.12)', text: '#5B7CFF', border: 'rgba(91, 124, 255, 0.3)' };
+    if (r === 'business partner') return { bg: 'rgba(16, 185, 129, 0.15)', text: '#059669', border: 'rgba(16, 185, 129, 0.35)' };
+    return { bg: 'rgba(2, 132, 199, 0.12)', text: '#0284c7', border: 'rgba(2, 132, 199, 0.3)' };
   };
 
   const roleStyle = getRoleBadgeColor();
@@ -160,6 +163,50 @@ export default function UserMenu() {
               <ShieldCheck size={16} color="#0284c7" />
               <span>Admin Command Center</span>
             </Link>
+          ) : (user?.role || '').toLowerCase() === 'business partner' ? (
+            <>
+              <Link
+                to="/partner/dashboard"
+                onClick={() => setOpen(false)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '9px 10px',
+                  borderRadius: '8px',
+                  fontSize: '0.84rem',
+                  fontWeight: '700',
+                  color: '#059669',
+                  textDecoration: 'none',
+                  backgroundColor: 'rgba(16, 185, 129, 0.12)'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.22)')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.12)')}
+              >
+                <Briefcase size={16} color="#059669" />
+                <span>Partner Dashboard</span>
+              </Link>
+              <Link
+                to="/partner/dashboard?tab=listings"
+                onClick={() => setOpen(false)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '7px 10px',
+                  borderRadius: '8px',
+                  fontSize: '0.82rem',
+                  fontWeight: '500',
+                  color: '#334155',
+                  textDecoration: 'none'
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+              >
+                <Store size={15} color="#059669" />
+                <span>My Services & Prices</span>
+              </Link>
+            </>
           ) : (
             <Link
               to="/dashboard"

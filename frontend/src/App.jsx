@@ -25,10 +25,14 @@ import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
+import PartnerRegister from './pages/PartnerRegister';
+import PartnerStatus from './pages/PartnerStatus';
+import PartnerActivate from './pages/PartnerActivate';
+import PartnerDashboard from './pages/PartnerDashboard';
 
 function AppContent() {
   const location = useLocation();
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register' || location.pathname.startsWith('/partner/');
   const isAdminPortal = location.pathname.startsWith('/admin');
 
   return (
@@ -41,7 +45,7 @@ function AppContent() {
           {/* Public Landing Route - Only Home is accessible without login */}
           <Route path="/" element={<Home />} />
 
-          {/* Protected Exploration & App Routes (Require Login / Registration) */}
+          {/* Exploration routes */}
           <Route
             path="/explore"
             element={
@@ -76,11 +80,7 @@ function AppContent() {
           />
           <Route
             path="/hotels"
-            element={
-              <ProtectedRoute>
-                <Hotels />
-              </ProtectedRoute>
-            }
+            element={<Hotels />}
           />
           <Route
             path="/transport"
@@ -185,6 +185,21 @@ function AppContent() {
             }
           />
 
+          {/* Partner Routes - Public */}
+          <Route path="/partner/register" element={<PartnerRegister />} />
+          <Route path="/partner/status" element={<PartnerStatus />} />
+          <Route path="/partner/activate" element={<PartnerActivate />} />
+
+          {/* Partner Protected Dashboard */}
+          <Route
+            path="/partner/dashboard"
+            element={
+              <ProtectedRoute>
+                <PartnerDashboard />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -206,4 +221,3 @@ export default function App() {
     </ThemeProvider>
   );
 }
-

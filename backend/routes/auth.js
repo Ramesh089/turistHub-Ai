@@ -236,7 +236,7 @@ router.post('/register', async (req, res) => {
       role: assignedRole
     };
 
-    const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '15m' });
+    const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '24h' });
     const refreshToken = jwt.sign(tokenPayload, JWT_REFRESH_SECRET, { expiresIn: '7d' });
 
     setAuthCookies(res, accessToken, refreshToken, false);
@@ -371,6 +371,33 @@ router.post('/login', async (req, res) => {
       }
     }
 
+    if (user.must_change_password) {
+      if (!user.temporary_password_expires_at || new Date(user.temporary_password_expires_at).getTime() <= Date.now()) {
+        return res.status(401).json({
+          success: false,
+          message: 'Your temporary password has expired. Check your approved application status to request a new one.'
+        });
+      }
+      if ((user.role || '').toLowerCase() !== 'business partner') {
+        return res.status(403).json({ success: false, message: 'This account cannot use temporary password sign-in.' });
+      }
+
+      await pool.query('UPDATE users SET failed_attempts = 0, lock_until = NULL WHERE id = ?', [user.id]);
+      const passwordChangeToken = jwt.sign({
+        id: user.id,
+        role: user.role,
+        tokenPurpose: 'required_password_change'
+      }, JWT_SECRET, { expiresIn: '10m' });
+      res.clearCookie('touristhub_access_token');
+      res.clearCookie('touristhub_refresh_token');
+      return res.json({
+        success: true,
+        requiresPasswordChange: true,
+        passwordChangeToken,
+        message: 'Set a new password to finish signing in.'
+      });
+    }
+
     // Reset failed attempts & lock on successful login
     await pool.query('UPDATE users SET failed_attempts = 0, lock_until = NULL WHERE id = ?', [user.id]);
 
@@ -384,7 +411,7 @@ router.post('/login', async (req, res) => {
       role: user.role
     };
 
-    const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '15m' });
+    const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '24h' });
     const refreshTokenLifetime = rememberPassword ? '30d' : '7d';
     const refreshToken = jwt.sign(tokenPayload, JWT_REFRESH_SECRET, { expiresIn: refreshTokenLifetime });
 
@@ -404,6 +431,69 @@ router.post('/login', async (req, res) => {
       success: false,
       message: 'Server error during login. Please try again.'
     });
+  }
+});
+
+router.post('/complete-required-password-change', async (req, res) => {
+  try {
+    const passwordChangeToken = sanitizeInput(req.body.passwordChangeToken);
+    const newPassword = req.body.newPassword || '';
+    const confirmPassword = req.body.confirmPassword || '';
+    if (!passwordChangeToken) {
+      return res.status(400).json({ success: false, message: 'A temporary sign-in session is required.' });
+    }
+
+    let tokenPayload;
+    try {
+      tokenPayload = jwt.verify(passwordChangeToken, JWT_SECRET);
+    } catch (_) {
+      return res.status(401).json({ success: false, message: 'Your temporary sign-in session expired. Please sign in again.' });
+    }
+    if (tokenPayload.tokenPurpose !== 'required_password_change' || !Number.isSafeInteger(tokenPayload.id)) {
+      return res.status(403).json({ success: false, message: 'This session cannot change the account password.' });
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])[A-Za-z\d!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]{8,}$/;
+    if (!passwordRegex.test(newPassword) || /\s/.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters, contain no spaces, and include uppercase, lowercase, a number, and a special character.'
+      });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ success: false, message: 'Passwords do not match.' });
+    }
+
+    const [users] = await pool.query(
+      `SELECT id, password_hash FROM users
+       WHERE id = ? AND role = 'Business Partner' AND must_change_password = 1
+         AND temporary_password_expires_at > NOW() AND is_active = 1
+       LIMIT 1`,
+      [tokenPayload.id]
+    );
+    if (!users.length) {
+      return res.status(409).json({ success: false, message: 'This temporary password is no longer valid. Request a new one from your application status page.' });
+    }
+    if (await bcrypt.compare(newPassword, users[0].password_hash)) {
+      return res.status(400).json({ success: false, message: 'Choose a password different from the temporary password.' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const [result] = await pool.query(
+      `UPDATE users
+       SET password_hash = ?, must_change_password = 0, temporary_password_expires_at = NULL,
+           failed_attempts = 0, lock_until = NULL
+       WHERE id = ? AND role = 'Business Partner' AND must_change_password = 1`,
+      [passwordHash, tokenPayload.id]
+    );
+    if (!result.affectedRows) {
+      return res.status(409).json({ success: false, message: 'This temporary password has already been used. Sign in with your new password.' });
+    }
+
+    return res.json({ success: true, message: 'Password updated. Sign in using your new password.' });
+  } catch (error) {
+    console.error('Required password change failed:', error);
+    return res.status(500).json({ success: false, message: 'Could not update your password.' });
   }
 });
 
@@ -430,6 +520,51 @@ router.post('/logout', (req, res) => {
 });
 
 // ==========================================
+// ==========================================
+// POST /api/auth/refresh
+// ==========================================
+router.post('/refresh', async (req, res) => {
+  try {
+    const refreshToken = req.body?.refreshToken || (req.cookies && req.cookies.touristhub_refresh_token);
+    if (!refreshToken) {
+      return res.status(401).json({ success: false, message: 'Refresh token required.' });
+    }
+
+    jwt.verify(refreshToken, JWT_REFRESH_SECRET, async (err, decoded) => {
+      if (err) {
+        return res.status(403).json({ success: false, message: 'Invalid or expired refresh token.' });
+      }
+
+      const [rows] = await pool.query('SELECT * FROM users WHERE id = ?', [decoded.id]);
+      if (rows.length === 0 || rows[0].is_active === 0) {
+        return res.status(403).json({ success: false, message: 'User account not active.' });
+      }
+
+      const user = rows[0];
+      const tokenPayload = {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        fullName: user.full_name,
+        name: user.full_name,
+        role: user.role
+      };
+
+      const newAccessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '24h' });
+      setAuthCookies(res, newAccessToken, refreshToken, false);
+
+      return res.json({
+        success: true,
+        token: newAccessToken,
+        user: formatUser(user)
+      });
+    });
+  } catch (error) {
+    console.error('Refresh Token Error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to refresh token.' });
+  }
+});
+
 // GET /api/auth/me
 // ==========================================
 router.get('/me', authenticateToken, async (req, res) => {

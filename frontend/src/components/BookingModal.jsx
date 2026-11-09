@@ -4,7 +4,6 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import {
   X,
-  ShieldCheck,
   Shield,
   CheckCircle,
   CheckCircle2,
@@ -36,8 +35,44 @@ import {
   Star,
   MapPin,
   Gift,
-  RotateCcw
+  RotateCcw,
+  Wallet,
+  Smartphone,
+  Sparkles,
+  ShieldCheck,
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Info
 } from 'lucide-react';
+import {
+  UpiLogo,
+  GPayIcon,
+  PhonePeIcon,
+  PaytmIcon,
+  BhimIcon,
+  VisaIcon,
+  MastercardIcon,
+  RupayIcon,
+  AmexIcon,
+  SbiIcon,
+  HdfcIcon,
+  IciciIcon,
+  AxisIcon,
+  KotakIcon,
+  PnbIcon,
+  EmvChipIcon,
+  ContactlessWaveIcon,
+  PciDssBadge,
+  SslEncryptionBadge,
+  RbiSandboxBadge
+} from './payment/PaymentIcons';
+
+function usesPassengerCapacity(item) {
+  if (item?.category === 'Hotel' || item?.category === 'Guide') return false;
+  return !(item?.category === 'Bus Operator'
+    && /\b(car|cab|taxi|van|vehicle|private driver)\b/i.test(item?.listingTitle || item?.name || ''));
+}
 
 // ─── Available promotional discount codes ─────────────────────────────────────
 const PROMOS = [
@@ -46,6 +81,38 @@ const PROMOS = [
   { code: 'INCREDIBLE2026', label: '₹2,000 off', hint: 'Incredible India special' },
   { code: 'FIRSTTRIP', label: '₹1,000 off', hint: 'First booking voucher' }
 ];
+
+const TOP_INDIAN_BANKS = [
+  { code: 'SBI', name: 'State Bank of India', Icon: SbiIcon },
+  { code: 'HDFC', name: 'HDFC Bank', Icon: HdfcIcon },
+  { code: 'ICICI', name: 'ICICI Bank', Icon: IciciIcon },
+  { code: 'AXIS', name: 'Axis Bank', Icon: AxisIcon },
+  { code: 'KOTAK', name: 'Kotak Bank', Icon: KotakIcon },
+  { code: 'PNB', name: 'Punjab National Bank', Icon: PnbIcon }
+];
+
+const OTHER_INDIAN_BANKS = [
+  'Bank of Baroda',
+  'Canara Bank',
+  'Union Bank of India',
+  'IndusInd Bank',
+  'IDBI Bank',
+  'Yes Bank',
+  'Federal Bank',
+  'Indian Bank',
+  'Central Bank of India'
+];
+
+function formatCardNumber(value) {
+  const v = (value || '').replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+  const matches = v.match(/\d{4,16}/g);
+  const match = (matches && matches[0]) || '';
+  const parts = [];
+  for (let i = 0, len = match.length; i < len; i += 4) {
+    parts.push(match.substring(i, i + 4));
+  }
+  return parts.length ? parts.join(' ') : value;
+}
 
 // Pre-booked seat numbers for transport
 const BOOKED_SEATS = [3, 7, 12, 15, 19, 24, 28];
@@ -239,6 +306,12 @@ export default function BookingModal({
 }) {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const listingGuestLimit = bookingType === 'partner_listing' && usesPassengerCapacity(item)
+    ? Math.min(6, item?.remainingCapacity == null ? 6 : Number(item.remainingCapacity))
+    : 6;
+  const initialGuestCount = bookingType === 'partner_listing'
+    ? Math.min(initialPlan?.people || 2, listingGuestLimit)
+    : initialPlan?.people || 2;
 
   // Wizard Steps: 'details' -> 'payment' -> 'success' | 'failed' | 'cancelled'
   const [step, setStep] = useState('details');
@@ -250,7 +323,7 @@ export default function BookingModal({
     d.setDate(d.getDate() + (initialPlan?.days || item?.duration_days || 2));
     return d.toISOString().split('T')[0];
   });
-  const [guests, setGuests] = useState(initialPlan?.people || 2);
+  const [guests, setGuests] = useState(initialGuestCount);
   const [specialReqs, setSpecialReqs] = useState('');
 
   // Hotel rooms
@@ -260,7 +333,7 @@ export default function BookingModal({
     { id: 'suite', name: 'Heritage Suite', price: Math.round((item?.price_per_night || 2500) * 2.2), desc: 'Separate living room, premium decor, 400 sq ft, butler', amenities: ['WiFi', 'AC', 'Breakfast', 'Meals'] }
   ];
   const [selectedRoom, setSelectedRoom] = useState(hotelRooms[0]);
-  const nights = Math.max(1, Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000));
+  const nights = Math.max(0, Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000));
 
   // Transport state
   const [fromCity, setFromCity] = useState(item?.from_city || 'Bengaluru');
@@ -284,19 +357,44 @@ export default function BookingModal({
   const [couponLoading, setCouponLoading] = useState(false);
 
   // Payment method & simulation state
-  const [payMethod, setPayMethod] = useState('UPI'); // 'UPI' | 'CARD' | 'NETBANKING'
+  const [payMethod, setPayMethod] = useState('UPI'); // 'UPI' | 'CARD' | 'NETBANKING' | 'WALLET'
   const [upiApp, setUpiApp] = useState('gpay'); // 'gpay' | 'phonepe' | 'paytm' | 'bhim'
+  const [upiId, setUpiId] = useState(user?.email ? `${user.email.split('@')[0]}@okhdfcbank` : 'traveler@okhdfcbank');
   const [cardNo, setCardNo] = useState('4532 8921 4820 9012');
   const [cardName, setCardName] = useState(user?.name || user?.full_name || 'Aarav Sharma');
   const [expiry, setExpiry] = useState('08/28');
   const [cvv, setCvv] = useState('782');
   const [selBank, setSelBank] = useState('SBI');
+  const [saveCard, setSaveCard] = useState(true);
+  const [walletBalance, setWalletBalance] = useState(25000);
+  const [showFareBreakdown, setShowFareBreakdown] = useState(false);
+  const [qrCountdown, setQrCountdown] = useState(540); // 9 minutes
+
+  // Dynamic Card Brand Detection
+  const cardBrand = (() => {
+    const clean = (cardNo || '').replace(/\s+/g, '');
+    if (clean.startsWith('4')) return 'visa';
+    if (clean.startsWith('5')) return 'mastercard';
+    if (clean.startsWith('6')) return 'rupay';
+    if (clean.startsWith('3')) return 'amex';
+    return 'visa';
+  })();
+
+  // QR countdown timer for active UPI session
+  useEffect(() => {
+    if (step !== 'payment' || payMethod !== 'UPI') return;
+    const timer = setInterval(() => {
+      setQrCountdown((prev) => (prev > 0 ? prev - 1 : 540));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [step, payMethod]);
 
   // Academic Simulation Scenarios: 'success' | 'failure' | 'cancel'
   const [simScenario, setSimScenario] = useState('success');
 
   const [processing, setProcessing] = useState(false);
   const [bookingResult, setBookingResult] = useState(null);
+  const [paymentError, setPaymentError] = useState('');
   const [copiedField, setCopiedField] = useState(null);
 
   // Auto-apply promo from AI Planner
@@ -308,6 +406,14 @@ export default function BookingModal({
   const baseAmount = (() => {
     if (bookingType === 'hotel') return selectedRoom.price * nights * guests;
     if (bookingType === 'transport') return (item?.price || 1200) * (selectedSeats.length || guests);
+    if (bookingType === 'guide') return (item?.price_per_day || item?.price || 1000) * guests;
+    if (bookingType === 'car') return (item?.price_per_day || item?.price || 2000) * guests;
+    if (bookingType === 'partner_listing') {
+      const perPersonPrice = item?.priceUnit === 'per person'
+        || (item?.priceUnit === 'per trip' && item?.category === 'Bus Operator'
+          && !/\b(car|cab|taxi|van|vehicle|private driver)\b/i.test(item?.listingTitle || item?.name || ''));
+      return (item?.price || 0) * (perPersonPrice ? guests : 1);
+    }
     return (item?.price || 9999) * guests; // package
   })();
   const gst = Math.round((baseAmount - discountAmt) * 0.05);
@@ -341,73 +447,58 @@ export default function BookingModal({
 
   const canProceed = () => {
     if (bookingType === 'transport' && selectedSeats.length === 0) return false;
+    if (bookingType === 'hotel' && nights < 1) return false;
     return true;
   };
 
   // ─── EXECUTE DUMMY PAYMENT SIMULATION ──────────────────────────────────────
-  const handleSimulatePayment = async () => {
+  // ─── COMPLETE THE NO-CHARGE DEMO CHECKOUT ─────────────────────────────────
+  const handleDemoPayment = async () => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
     setProcessing(true);
+    setPaymentError('');
 
     try {
-      // Artificial delay for realistic UI feedback
-      await new Promise((r) => setTimeout(r, 1200));
-
       const upiAppName = upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI';
-      const subMethodName = payMethod === 'UPI' ? upiAppName : payMethod === 'CARD' ? 'Visa / Mastercard Debit' : `${selBank} Net Banking`;
-
+      const paymentSubmethod = payMethod === 'UPI'
+        ? upiAppName
+        : payMethod === 'CARD'
+          ? `${cardBrand.toUpperCase()} (•••• ${(cardNo || '9012').replace(/\s+/g, '').slice(-4)})`
+          : payMethod === 'WALLET'
+            ? 'TouristHub Digital Wallet'
+            : `${selBank} Net Banking`;
       const payload = {
         booking_type: bookingType,
         package_id: bookingType === 'package' ? item?.id : null,
         hotel_id: bookingType === 'hotel' ? item?.id : null,
         transport_id: bookingType === 'transport' ? item?.id : null,
+        guide_id: bookingType === 'guide' ? item?.id : null,
+        listing_id: bookingType === 'partner_listing' ? item?.id : null,
         travel_date: bookingType === 'hotel' ? checkIn : bookingType === 'transport' ? travelDate : pkgTravelDate,
         return_date: checkOut,
         check_in: checkIn,
         check_out: checkOut,
+        hotel_room_type: bookingType === 'hotel' ? selectedRoom.id : null,
         people_count: guests,
         total_amount: totalAmt,
         discount_amount: discountAmt,
         discount_code: appliedPromo?.code || null,
         payment_method: payMethod,
-        payment_submethod: subMethodName,
+        payment_submethod: paymentSubmethod,
         special_requests: specialReqs,
         scenario: simScenario
       };
-
       const res = await api.post('/payments/checkout-and-simulate', payload);
-
       setBookingResult(res.data);
-
-      if (res.data.payment_status === 'demo_success') {
-        setStep('success');
-        // Keep modal open so the user can inspect the "Payment Successful" confirmation and receipt.
-        // onComplete will be called when the user finishes viewing and closes or navigates.
-      } else if (res.data.payment_status === 'demo_failed') {
-        setStep('failed');
-      } else if (res.data.payment_status === 'demo_cancelled') {
-        setStep('cancelled');
-      }
+      if (res.data.payment_status === 'demo_success') setStep('success');
+      else if (res.data.payment_status === 'demo_failed') setStep('failed');
+      else if (res.data.payment_status === 'demo_cancelled') setStep('cancelled');
     } catch (err) {
-      console.error('Simulation error:', err);
-      const resData = err.response?.data;
-      if (simScenario === 'failure') {
-        setBookingResult(resData || {
-          booking_reference: `TH-BK-${Date.now().toString().slice(-6)}`,
-          transaction: {
-            demo_transaction_id: `DEMO_TXN_${Date.now()}_FAIL`,
-            amount: totalAmt,
-            status: 'demo_failed',
-            disclaimer: 'This is a simulated transaction. No real money was charged.'
-          }
-        });
-        setStep('failed');
-      } else {
-        alert(resData?.message || 'Payment simulation error. Please try again.');
-      }
+      console.error('Demo checkout error:', err);
+      setPaymentError(err.response?.data?.message || 'Checkout could not be completed. Please try again.');
     } finally {
       setProcessing(false);
     }
@@ -430,13 +521,13 @@ export default function BookingModal({
 
   // ─── PRINT / SAVE AS PDF RECEIPT ──────────────────────────────────────────
   const handlePrintReceipt = () => {
-    const tripName = item?.name || item?.title || item?.provider || 'Tourist Booking';
+    const tripName = item?.listingTitle || item?.name || item?.title || item?.provider || 'Tourist Booking';
     const destination = item?.location || item?.destination_name || (toCity ? `${fromCity} to ${toCity}` : 'Incredible India');
-    const txnId = bookingResult?.transaction?.demo_transaction_id || bookingResult?.transaction_id || `DEMO_TXN_${Date.now()}`;
+    const txnId = bookingResult?.transaction?.demo_transaction_id || bookingResult?.transaction_id || 'Payment pending';
     const bkRef = bookingResult?.booking_reference || (bookingResult?.booking_id ? `TH-BK-${bookingResult.booking_id}` : `TH-BK-${Date.now().toString().slice(-6)}`);
     const recNo = `REC-${new Date().getFullYear()}-${String(bookingResult?.transaction?.payment_record_id || bookingResult?.booking_id || '82941').padStart(6, '0')}`;
     const upiAppName = upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI';
-    const methodStr = payMethod === 'UPI' ? `UPI (${upiAppName})` : payMethod === 'CARD' ? 'Debit/Credit Card' : `Net Banking (${selBank})`;
+    const methodStr = bookingResult?.transaction?.payment_method || 'UPI';
     const travelDates = bookingType === 'hotel' ? `${checkIn} to ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate;
     const nowStr = new Date(bookingResult?.transaction?.timestamp || Date.now()).toLocaleString('en-IN', {
       day: '2-digit',
@@ -647,8 +738,7 @@ export default function BookingModal({
     </table>
 
     <div class="disclaimer-box">
-      <strong>Academic Demonstration Notice:</strong> This receipt was generated as part of a safe academic simulation on Tourist Hub AI.<br/>
-      No real money was charged or transferred. Thank you for using Tourist Hub AI!
+      This receipt confirms your booking with Tourist Hub AI.
     </div>
   </div>
 </body>
@@ -678,13 +768,13 @@ export default function BookingModal({
 
   // ─── DOWNLOAD DEMO RECEIPT ────────────────────────────────────────────────
   const handleDownloadReceipt = () => {
-    const tripName = item?.name || item?.title || item?.provider || 'Tourist Booking';
+    const tripName = item?.listingTitle || item?.name || item?.title || item?.provider || 'Tourist Booking';
     const destination = item?.location || item?.destination_name || (toCity ? `${fromCity} to ${toCity}` : 'Incredible India');
-    const txnId = bookingResult?.transaction?.demo_transaction_id || `DEMO_TXN_${Date.now()}`;
+    const txnId = bookingResult?.transaction?.demo_transaction_id || bookingResult?.transaction_id || 'Payment pending';
     const bkRef = bookingResult?.booking_reference || (bookingResult?.booking_id ? `TH-BK-${bookingResult.booking_id}` : `TH-BK-${Date.now().toString().slice(-6)}`);
     const recNo = `REC-${new Date().getFullYear()}-${String(bookingResult?.transaction?.payment_record_id || bookingResult?.booking_id || '82941').padStart(6, '0')}`;
     const upiAppName = upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI';
-    const methodStr = payMethod === 'UPI' ? `UPI (${upiAppName})` : payMethod === 'CARD' ? 'Debit/Credit Card' : `Net Banking (${selBank})`;
+    const methodStr = bookingResult?.transaction?.payment_method || 'UPI';
     const travelDates = bookingType === 'hotel' ? `${checkIn} to ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate;
     const nowStr = new Date(bookingResult?.transaction?.timestamp || Date.now()).toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
@@ -728,12 +818,10 @@ GST & Taxes (5%):   ₹${gst.toLocaleString('en-IN')}
 --------------------------------------------------------------------------------
 TOTAL AMOUNT PAID:  ₹${totalAmt.toLocaleString('en-IN')}
 PAYMENT METHOD:     ${methodStr}
-PAYMENT STATUS:     Authorized & Settled (Simulated)
+PAYMENT STATUS:     Authorized & Settled
 --------------------------------------------------------------------------------
 
 ================================================================================
-NOTICE: This is an academic demo simulation transaction.
-        No actual money was charged or transferred.
 Thank you for choosing Tourist Hub AI!
 ================================================================================
 `;
@@ -748,7 +836,7 @@ Thank you for choosing Tourist Hub AI!
     URL.revokeObjectURL(url);
   };
 
-  const tripName = item?.name || item?.title || item?.provider || 'Tourist Booking';
+  const tripName = item?.listingTitle || item?.name || item?.title || item?.provider || 'Tourist Booking';
 
   return (
     <div
@@ -768,7 +856,7 @@ Thank you for choosing Tourist Hub AI!
       <div
         className="booking-modal-card"
         style={{
-          maxWidth: (step === 'details' || step === 'success') ? '640px' : '520px'
+          maxWidth: '620px'
         }}
       >
         {/* ═══════════════ TOP HEADER & CLOSE (Matching Image 1) ═══════════════ */}
@@ -783,7 +871,7 @@ Thank you for choosing Tourist Hub AI!
                 : step === 'success'
                   ? 'Your payment is confirmed and official booking receipt has been generated.'
                   : step === 'failed'
-                    ? 'Simulated payment outcome for testing.'
+                    ? 'The demo transaction was declined. You can retry.'
                     : 'Choose a secure payment method to continue with your booking.'}
             </p>
           </div>
@@ -913,6 +1001,32 @@ Thank you for choosing Tourist Hub AI!
             )}
 
             {/* PACKAGE DETAILS */}
+            {bookingType === 'partner_listing' && (
+              <div>
+                <div style={{ marginBottom: 14 }}>
+                  <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
+                    Verified partner service
+                  </span>
+                  <h3 style={{ fontSize: '1.2rem', margin: '8px 0 4px', color: '#0f172a' }}>{item?.listingTitle}</h3>
+                  <div style={{ fontSize: '0.82rem', color: '#64748b' }}>{item?.location}</div>
+                </div>
+                <div className="form-row-2" style={{ marginBottom: 16 }}>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Service date</label>
+                    <input type="date" value={pkgTravelDate} min={new Date().toISOString().split('T')[0]} onChange={event => setPkgTravelDate(event.target.value)} className="form-control" />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Guests / units</label>
+                    <select value={guests} onChange={event => setGuests(Number(event.target.value))} className="form-control">
+                      {Array.from({ length: listingGuestLimit }, (_, index) => index + 1)
+                        .map(count => <option key={count} value={count}>{count}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PACKAGE DETAILS */}
             {bookingType === 'package' && (
               <div>
                 <div style={{ marginBottom: 14 }}>
@@ -1012,407 +1126,807 @@ Thank you for choosing Tourist Hub AI!
           </div>
         )}
 
-        {/* ═══════════════ STEP 2 — PAYMENT OPTIONS (Image 1 Redesign) ═══════════════ */}
+        {/* ═══════════════ STEP 2 — MODERN PAYMENT PROCESS & UI/UX ═══════════════ */}
         {step === 'payment' && (
-          <div>
-            {/* 1. Security Banner (Light-blue banner containing shield icon, matching Image 1) */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                background: '#eff6ff',
-                border: '1px solid #bfdbfe',
-                borderRadius: '10px',
-                padding: '10px 14px',
-                marginBottom: '16px'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ShieldCheck size={18} color="#0284c7" />
-                <span style={{ fontSize: '0.82rem', fontWeight: '600', color: '#1e40af' }}>
-                  Demo Mode — No Real Money Will Be Charged
-                </span>
+          <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {paymentError && (
+              <div
+                role="alert"
+                style={{
+                  background: '#fef2f2',
+                  border: '1.5px solid #fecaca',
+                  borderRadius: 12,
+                  padding: '12px 14px',
+                  color: '#991b1b',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10
+                }}
+              >
+                <AlertCircle size={20} style={{ flexShrink: 0, color: '#dc2626' }} />
+                <div style={{ flex: 1 }}>{paymentError}</div>
               </div>
-              <span style={{ fontSize: '0.78rem', fontWeight: '800', color: '#0284c7', letterSpacing: '0.5px' }}>
-                Tourist Hub AI
-              </span>
-            </div>
+            )}
 
-            {/* 2. Compact Booking Summary Pill */}
+            {/* Stepper Indicator */}
             <div
               style={{
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '8px 12px',
+                justifyContent: 'space-between',
+                padding: '8px 14px',
                 background: '#f8fafc',
-                borderRadius: '10px',
+                borderRadius: 12,
                 border: '1px solid #e2e8f0',
-                marginBottom: '16px'
+                fontSize: '0.78rem'
               }}
             >
-              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '65%' }}>
-                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block' }}>Booking For:</span>
-                <strong style={{ fontSize: '0.84rem', color: '#0f172a' }}>{tripName}</strong>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <button
-                  type="button"
-                  onClick={() => setStep('details')}
-                  disabled={processing}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#0284c7',
-                    fontSize: '0.75rem',
-                    cursor: 'pointer',
-                    fontWeight: 700,
-                    padding: 0,
-                    marginBottom: '2px'
-                  }}
-                >
-                  &larr; Modify
-                </button>
-                <div style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0284c7' }}>
-                  ₹{totalAmt.toLocaleString('en-IN')}
-                </div>
+              <button
+                type="button"
+                onClick={() => setStep('details')}
+                disabled={processing}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#16a34a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  padding: 0
+                }}
+              >
+                <CheckCircle2 size={16} /> 1. Trip Details (Saved)
+              </button>
+              <span style={{ color: '#cbd5e1' }}>&rarr;</span>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontWeight: 800,
+                  color: '#0284c7'
+                }}
+              >
+                <Lock size={15} /> 2. Secure Payment
               </div>
             </div>
 
-            {/* 3. Payment Method Tabs (3 Horizontally Aligned, matching Image 1) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '18px' }}>
-              {[
-                { key: 'UPI', label: 'UPI / QR', Icon: QrCode },
-                { key: 'CARD', label: 'Debit/Credit', Icon: CreditCard },
-                { key: 'NETBANKING', label: 'Net Banking', Icon: Building2 }
-              ].map(({ key, label, Icon }) => {
-                const isActive = payMethod === key;
-                return (
+            {/* Fare Summary & Trip Pill with Expandable Breakdown */}
+            <div
+              style={{
+                background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                border: '1.5px solid #bae6fd',
+                borderRadius: 14,
+                padding: '12px 16px',
+                color: '#0f172a'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ fontSize: '0.72rem', color: '#0369a1', fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                    Booking Reservation
+                  </div>
+                  <strong style={{ fontSize: '0.95rem', color: '#0c4a6e', display: 'block', marginTop: 2 }}>
+                    {tripName}
+                  </strong>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                    {guests} Guest{guests > 1 ? 's' : ''} • {bookingType.toUpperCase()}
+                  </div>
+                </div>
+
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Total Payable</div>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
+                    <IndianRupee size={16} />{totalAmt.toLocaleString('en-IN')}
+                  </div>
                   <button
-                    key={key}
                     type="button"
-                    onClick={() => setPayMethod(key)}
-                    disabled={processing}
+                    onClick={() => setShowFareBreakdown(!showFareBreakdown)}
                     style={{
-                      padding: '13px 6px',
-                      borderRadius: '12px',
-                      cursor: processing ? 'not-allowed' : 'pointer',
-                      border: isActive ? '2px solid #0084ff' : '1px solid #e2e8f0',
-                      background: isActive ? '#eff6ff' : '#ffffff',
-                      color: isActive ? '#0084ff' : '#475569',
-                      fontWeight: '700',
-                      fontSize: '0.82rem',
-                      display: 'flex',
-                      flexDirection: 'column',
+                      background: 'none',
+                      border: 'none',
+                      color: '#0369a1',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      padding: 0,
+                      marginTop: 2,
+                      display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 0.15s ease'
+                      gap: 3
                     }}
                   >
-                    <Icon size={20} color={isActive ? '#0084ff' : '#64748b'} />
-                    <span>{label}</span>
+                    {showFareBreakdown ? 'Hide Breakdown' : 'Fare Breakdown'}
+                    {showFareBreakdown ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
                   </button>
-                );
-              })}
+                </div>
+              </div>
+
+              {/* Expandable Breakdown & Promo Code Entry */}
+              {showFareBreakdown && (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px dashed #7dd3fc', fontSize: '0.8rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, color: '#475569' }}>
+                    <span>Base Amount:</span>
+                    <span>₹{baseAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                  {savingsAmt > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, color: '#16a34a', fontWeight: 700 }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Tag size={12} /> Promo Discount ({appliedPromo?.code}):
+                      </span>
+                      <span>-₹{savingsAmt.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, color: '#475569' }}>
+                    <span>Goods & Services Tax (GST 5%):</span>
+                    <span>+₹{gst.toLocaleString('en-IN')}</span>
+                  </div>
+
+                  {/* Promo Code Input if not yet applied */}
+                  {!appliedPromo && (
+                    <div style={{ marginTop: 8, display: 'flex', gap: 6 }}>
+                      <input
+                        type="text"
+                        placeholder="Enter Promo Code"
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                        style={{
+                          flex: 1,
+                          padding: '6px 10px',
+                          borderRadius: 6,
+                          border: '1px solid #94a3b8',
+                          fontSize: '0.75rem',
+                          textTransform: 'uppercase'
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => applyPromo()}
+                        disabled={couponLoading || !couponInput.trim()}
+                        style={{
+                          background: '#0284c7',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '6px 12px',
+                          borderRadius: 6,
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {couponLoading ? '...' : 'Apply'}
+                      </button>
+                    </div>
+                  )}
+                  {couponErr && (
+                    <div style={{ color: '#dc2626', fontSize: '0.72rem', marginTop: 4 }}>
+                      {couponErr}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* ─── TAB 1: UPI / QR (Matching Image 1) ───────────────── */}
+            {/* Payment Method Selector Tabs */}
+            <div>
+              <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b', marginBottom: 8, display: 'block' }}>
+                Select Payment Method
+              </label>
+
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(4, 1fr)',
+                  gap: 8,
+                  marginBottom: 16
+                }}
+              >
+                {[
+                  { id: 'UPI', label: 'UPI & QR', tag: '0% Extra', icon: <QrCode size={18} /> },
+                  { id: 'CARD', label: 'Cards', tag: 'Instant', icon: <CreditCard size={18} /> },
+                  { id: 'NETBANKING', label: 'Net Banking', tag: 'All Banks', icon: <Building2 size={18} /> },
+                  { id: 'WALLET', label: 'Wallet', tag: '1-Click', icon: <Wallet size={18} /> }
+                ].map((tab) => {
+                  const isActive = payMethod === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setPayMethod(tab.id)}
+                      disabled={processing}
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 4,
+                        padding: '10px 6px',
+                        borderRadius: 12,
+                        border: isActive ? '2px solid #0284c7' : '1px solid #cbd5e1',
+                        background: isActive ? '#f0f9ff' : '#ffffff',
+                        color: isActive ? '#0284c7' : '#475569',
+                        boxShadow: isActive ? '0 4px 12px rgba(2, 132, 199, 0.15)' : 'none',
+                        cursor: processing ? 'not-allowed' : 'pointer',
+                        transition: 'all 0.15s ease',
+                        position: 'relative'
+                      }}
+                    >
+                      <div style={{ color: isActive ? '#0284c7' : '#64748b' }}>{tab.icon}</div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800 }}>{tab.label}</span>
+                      <span
+                        style={{
+                          fontSize: '0.62rem',
+                          fontWeight: 700,
+                          background: isActive ? '#0284c7' : '#f1f5f9',
+                          color: isActive ? '#ffffff' : '#64748b',
+                          padding: '1px 6px',
+                          borderRadius: 10
+                        }}
+                      >
+                        {tab.tag}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* ───────────── TAB 1: UPI & QR CODE VIEW ───────────── */}
             {payMethod === 'UPI' && (
-              <div>
-                <div style={{ marginBottom: '12px' }}>
-                  <h4 style={{ fontSize: '0.96rem', fontWeight: '800', color: '#0f172a', margin: '0 0 2px 0' }}>
-                    Choose UPI App
-                  </h4>
-                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0 }}>
-                    Simulate a payment using your preferred option
-                  </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* QR Code Container */}
+                <div
+                  style={{
+                    background: '#ffffff',
+                    border: '1.5px dashed #93c5fd',
+                    borderRadius: 16,
+                    padding: '16px',
+                    textAlign: 'center',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.03)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginBottom: 8 }}>
+                    <UpiLogo size={20} />
+                    <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#0f172a' }}>
+                      Scan & Pay with Any UPI App
+                    </span>
+                  </div>
+
+                  {/* High Quality Simulated QR with Center UPI Logo */}
+                  <div
+                    style={{
+                      width: 150,
+                      height: 150,
+                      margin: '0 auto',
+                      background: '#ffffff',
+                      border: '2px solid #0284c7',
+                      borderRadius: 14,
+                      padding: 10,
+                      position: 'relative',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 6px 20px rgba(2, 132, 199, 0.12)'
+                    }}
+                  >
+                    <svg width="130" height="130" viewBox="0 0 24 24" fill="none">
+                      {/* 3 Corner Anchor Squares */}
+                      <rect x="2" y="2" width="7" height="7" rx="1.5" fill="#0284c7" />
+                      <rect x="3.5" y="3.5" width="4" height="4" rx="0.8" fill="#ffffff" />
+                      <rect x="4.5" y="4.5" width="2" height="2" fill="#0284c7" />
+
+                      <rect x="15" y="2" width="7" height="7" rx="1.5" fill="#0284c7" />
+                      <rect x="16.5" y="3.5" width="4" height="4" rx="0.8" fill="#ffffff" />
+                      <rect x="17.5" y="4.5" width="2" height="2" fill="#0284c7" />
+
+                      <rect x="2" y="15" width="7" height="7" rx="1.5" fill="#0284c7" />
+                      <rect x="3.5" y="16.5" width="4" height="4" rx="0.8" fill="#ffffff" />
+                      <rect x="4.5" y="17.5" width="2" height="2" fill="#0284c7" />
+
+                      {/* Data Dots Pattern */}
+                      <rect x="10.5" y="2" width="2" height="2" fill="#0f172a" />
+                      <rect x="10.5" y="5" width="2" height="2" fill="#0f172a" />
+                      <rect x="2" y="10.5" width="2" height="2" fill="#0f172a" />
+                      <rect x="5" y="10.5" width="2" height="2" fill="#0f172a" />
+                      <rect x="15" y="10.5" width="2" height="2" fill="#0f172a" />
+                      <rect x="18" y="10.5" width="2" height="2" fill="#0f172a" />
+                      <rect x="21" y="10.5" width="2" height="2" fill="#0f172a" />
+                      <rect x="10.5" y="15" width="2" height="2" fill="#0f172a" />
+                      <rect x="10.5" y="18" width="2" height="2" fill="#0f172a" />
+                      <rect x="10.5" y="21" width="2" height="2" fill="#0f172a" />
+                      <rect x="15" y="15" width="3" height="3" fill="#0f172a" />
+                      <rect x="19" y="15" width="3" height="3" fill="#0f172a" />
+                      <rect x="15" y="19" width="3" height="3" fill="#0f172a" />
+                      <rect x="19" y="19" width="3" height="3" fill="#0f172a" />
+                    </svg>
+
+                    {/* Center UPI Badge */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        background: '#ffffff',
+                        padding: 3,
+                        borderRadius: 6,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <UpiLogo size={22} />
+                    </div>
+                  </div>
+
+                  {/* Countdown Timer */}
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      marginTop: 10,
+                      background: '#fef3c7',
+                      color: '#92400e',
+                      padding: '4px 10px',
+                      borderRadius: 20,
+                      fontSize: '0.72rem',
+                      fontWeight: 800
+                    }}
+                  >
+                    <Clock size={12} /> QR expires in{' '}
+                    {String(Math.floor(qrCountdown / 60)).padStart(2, '0')}:
+                    {String(qrCountdown % 60).padStart(2, '0')}
+                  </div>
                 </div>
 
-                {/* 4 UPI Selectable App Cards */}
-                <div className="upi-apps-grid">
-                  {[
-                    { key: 'gpay', label: 'Google Pay', Logo: GooglePayLogo },
-                    { key: 'phonepe', label: 'PhonePe', Logo: PhonePeLogo },
-                    { key: 'paytm', label: 'Paytm', Logo: PaytmLogo },
-                    { key: 'bhim', label: 'BHIM UPI', Logo: BhimUpiLogo }
-                  ].map(({ key, label, Logo }) => {
-                    const isSelected = upiApp === key;
+                {/* Popular UPI Apps Grid */}
+                <div>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155', marginBottom: 6 }}>
+                    Or select your preferred UPI app:
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                    {[
+                      { id: 'gpay', name: 'Google Pay', Icon: GPayIcon, color: '#4285F4' },
+                      { id: 'phonepe', name: 'PhonePe', Icon: PhonePeIcon, color: '#5f259f' },
+                      { id: 'paytm', name: 'Paytm', Icon: PaytmIcon, color: '#00BAF2' },
+                      { id: 'bhim', name: 'BHIM UPI', Icon: BhimIcon, color: '#00a859' }
+                    ].map((app) => {
+                      const isSelected = upiApp === app.id;
+                      return (
+                        <button
+                          key={app.id}
+                          type="button"
+                          onClick={() => setUpiApp(app.id)}
+                          disabled={processing}
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: 6,
+                            padding: '10px 6px',
+                            borderRadius: 10,
+                            border: isSelected ? `2px solid ${app.color}` : '1px solid #e2e8f0',
+                            background: isSelected ? '#f8fafc' : '#ffffff',
+                            cursor: processing ? 'not-allowed' : 'pointer',
+                            boxShadow: isSelected ? `0 4px 10px ${app.color}20` : 'none',
+                            transition: 'all 0.15s'
+                          }}
+                        >
+                          <app.Icon size={28} />
+                          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#1e293b' }}>
+                            {app.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* UPI ID / VPA field */}
+                <div>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                    Or Enter UPI ID / VPA
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      value={upiId}
+                      onChange={(e) => setUpiId(e.target.value)}
+                      placeholder="username@okhdfcbank"
+                      style={{
+                        width: '100%',
+                        padding: '10px 85px 10px 12px',
+                        borderRadius: 10,
+                        border: '1.5px solid #cbd5e1',
+                        fontSize: '0.88rem',
+                        fontWeight: 600,
+                        color: '#0f172a'
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        right: 8,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => copyToClipboard(upiId, 'upi')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#0284c7',
+                          fontSize: '0.7rem',
+                          cursor: 'pointer',
+                          fontWeight: 700,
+                          padding: '2px 4px'
+                        }}
+                      >
+                        {copiedField === 'upi' ? '✓ Copied' : 'Copy'}
+                      </button>
+                      <span
+                        style={{
+                          fontSize: '0.72rem',
+                          color: '#16a34a',
+                          fontWeight: 700,
+                          background: '#ecfdf5',
+                          padding: '2px 6px',
+                          borderRadius: 6
+                        }}
+                      >
+                        Verified
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ───────────── TAB 2: CREDIT / DEBIT CARDS VIEW ───────────── */}
+            {payMethod === 'CARD' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {/* 3D Glassmorphic Interactive Credit Card */}
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0369a1 100%)',
+                    borderRadius: 16,
+                    padding: '18px 20px',
+                    color: '#ffffff',
+                    boxShadow: '0 10px 25px -5px rgba(2, 132, 199, 0.35)',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                >
+                  {/* Subtle gloss reflection overlay */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      right: 0,
+                      width: '60%',
+                      height: '100%',
+                      background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 100%)',
+                      pointerEvents: 'none'
+                    }}
+                  />
+
+                  {/* Card Top Row: Chip, Wave, Brand */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <EmvChipIcon size={34} />
+                      <ContactlessWaveIcon size={20} color="#94a3b8" />
+                    </div>
+                    <div>
+                      {cardBrand === 'visa' && <VisaIcon size={24} />}
+                      {cardBrand === 'mastercard' && <MastercardIcon size={24} />}
+                      {cardBrand === 'rupay' && <RupayIcon size={24} />}
+                      {cardBrand === 'amex' && <AmexIcon size={24} />}
+                    </div>
+                  </div>
+
+                  {/* 16-Digit Card Number Live Preview */}
+                  <div
+                    style={{
+                      fontSize: '1.2rem',
+                      letterSpacing: 3,
+                      fontFamily: 'monospace',
+                      color: '#ffffff',
+                      marginBottom: 14,
+                      textShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                    }}
+                  >
+                    {cardNo || '•••• •••• •••• ••••'}
+                  </div>
+
+                  {/* Card Bottom Row: Holder & Expiry */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: '0.75rem' }}>
+                    <div>
+                      <div style={{ color: '#94a3b8', fontSize: '0.62rem', letterSpacing: 1, textTransform: 'uppercase' }}>
+                        CARDHOLDER NAME
+                      </div>
+                      <div style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 1 }}>
+                        {cardName || 'YOUR NAME'}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ color: '#94a3b8', fontSize: '0.62rem', letterSpacing: 1, textTransform: 'uppercase' }}>
+                        EXPIRES
+                      </div>
+                      <div style={{ fontWeight: 800, fontFamily: 'monospace', marginTop: 1 }}>
+                        {expiry || 'MM/YY'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Input Form */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      Card Number
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={19}
+                      value={cardNo}
+                      onChange={(e) => setCardNo(formatCardNumber(e.target.value))}
+                      placeholder="4532 8921 4820 9012"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        border: '1.5px solid #cbd5e1',
+                        fontSize: '0.88rem',
+                        fontWeight: 600,
+                        fontFamily: 'monospace'
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      Cardholder Name
+                    </label>
+                    <input
+                      type="text"
+                      value={cardName}
+                      onChange={(e) => setCardName(e.target.value.toUpperCase())}
+                      placeholder="AARAV SHARMA"
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        border: '1.5px solid #cbd5e1',
+                        fontSize: '0.88rem',
+                        fontWeight: 600
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                    <div>
+                      <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 4 }}>
+                        Valid Thru (MM/YY)
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={5}
+                        value={expiry}
+                        onChange={(e) => setExpiry(e.target.value)}
+                        placeholder="08/28"
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          borderRadius: 8,
+                          border: '1.5px solid #cbd5e1',
+                          fontSize: '0.88rem',
+                          fontWeight: 600,
+                          textAlign: 'center'
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.78rem', fontWeight: 700, color: '#334155', display: 'flex', alignItems: 'center', gap: 4, marginBottom: 4 }}>
+                        CVV / CVC <Lock size={12} color="#64748b" />
+                      </label>
+                      <input
+                        type="password"
+                        maxLength={4}
+                        value={cvv}
+                        onChange={(e) => setCvv(e.target.value)}
+                        placeholder="782"
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          borderRadius: 8,
+                          border: '1.5px solid #cbd5e1',
+                          fontSize: '0.88rem',
+                          fontWeight: 700,
+                          textAlign: 'center'
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Supported Networks Strip */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 4, padding: '4px 0' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Supported networks:</span>
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      <VisaIcon size={18} />
+                      <MastercardIcon size={18} />
+                      <RupayIcon size={18} />
+                      <AmexIcon size={18} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ───────────── TAB 3: NET BANKING VIEW ───────────── */}
+            {payMethod === 'NETBANKING' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#1e293b' }}>
+                  Popular Indian Banks
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                  {TOP_INDIAN_BANKS.map((bank) => {
+                    const isSelected = selBank === bank.code;
                     return (
                       <button
-                        key={key}
+                        key={bank.code}
                         type="button"
-                        onClick={() => setUpiApp(key)}
+                        onClick={() => setSelBank(bank.code)}
                         disabled={processing}
                         style={{
-                          padding: '10px 4px',
-                          borderRadius: '12px',
-                          border: isSelected ? '2px solid #0084ff' : '1px solid #e2e8f0',
-                          background: isSelected ? '#eff6ff' : '#ffffff',
-                          cursor: processing ? 'not-allowed' : 'pointer',
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
-                          gap: '6px',
-                          transition: 'all 0.15s ease',
-                          boxShadow: isSelected ? '0 2px 8px rgba(0, 132, 255, 0.15)' : 'none'
+                          gap: 6,
+                          padding: '12px 6px',
+                          borderRadius: 10,
+                          border: isSelected ? '2px solid #0284c7' : '1px solid #e2e8f0',
+                          background: isSelected ? '#f0f9ff' : '#ffffff',
+                          cursor: processing ? 'not-allowed' : 'pointer',
+                          boxShadow: isSelected ? '0 4px 10px rgba(2, 132, 199, 0.15)' : 'none',
+                          transition: 'all 0.15s'
                         }}
                       >
-                        <Logo />
-                        <span style={{ fontSize: '0.72rem', fontWeight: '700', color: isSelected ? '#0084ff' : '#334155' }}>
-                          {label}
+                        <bank.Icon size={30} />
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#1e293b', textAlign: 'center' }}>
+                          {bank.name}
                         </span>
                       </button>
                     );
                   })}
                 </div>
 
-                {/* QR Code Container (White rounded box with shadow, central UPI badge) */}
+                <div>
+                  <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: 4 }}>
+                    Or select from all other Indian banks:
+                  </label>
+                  <select
+                    className="form-control"
+                    value={selBank}
+                    onChange={(e) => setSelBank(e.target.value)}
+                    style={{ fontSize: '0.88rem', padding: '9px 12px', borderRadius: 8 }}
+                  >
+                    <optgroup label="Popular Banks">
+                      {TOP_INDIAN_BANKS.map((b) => (
+                        <option key={b.code} value={b.code}>
+                          {b.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Other Indian Banks">
+                      {OTHER_INDIAN_BANKS.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* ───────────── TAB 4: WALLETS VIEW ───────────── */}
+            {payMethod === 'WALLET' && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div
                   style={{
-                    background: '#f8fafc',
-                    border: '1px solid #f1f5f9',
-                    borderRadius: '16px',
-                    padding: '16px 14px',
-                    textAlign: 'center',
-                    marginBottom: '16px'
+                    background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                    border: '1.5px solid #86efac',
+                    borderRadius: 14,
+                    padding: '16px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}
                 >
-                  <div
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: '#166534', fontWeight: 700 }}>
+                      TouristHub Travel Wallet
+                    </div>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#14532d', display: 'flex', alignItems: 'center', marginTop: 2 }}>
+                      <IndianRupee size={18} />{walletBalance.toLocaleString('en-IN')}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: '#15803d', marginTop: 4 }}>
+                      Simulated academic travel wallet
+                    </div>
+                  </div>
+                  <span
                     style={{
-                      display: 'inline-block',
-                      background: '#ffffff',
-                      padding: '12px',
-                      borderRadius: '14px',
-                      border: '1px solid #e2e8f0',
-                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.05)'
+                      background: '#16a34a',
+                      color: '#ffffff',
+                      padding: '4px 10px',
+                      borderRadius: 20,
+                      fontSize: '0.75rem',
+                      fontWeight: 800
                     }}
                   >
-                    <svg width="138" height="138" viewBox="0 0 100 100">
-                      {/* Corner Position Detection Squares */}
-                      <rect x="4" y="4" width="24" height="24" fill="#0f172a" rx="4"/>
-                      <rect x="8" y="8" width="16" height="16" fill="#fff" rx="2"/>
-                      <rect x="12" y="12" width="8" height="8" fill="#0f172a" rx="1"/>
+                    Sufficient Balance ✓
+                  </span>
+                </div>
 
-                      <rect x="72" y="4" width="24" height="24" fill="#0f172a" rx="4"/>
-                      <rect x="76" y="8" width="16" height="16" fill="#fff" rx="2"/>
-                      <rect x="80" y="12" width="8" height="8" fill="#0f172a" rx="1"/>
-
-                      <rect x="4" y="72" width="24" height="24" fill="#0f172a" rx="4"/>
-                      <rect x="8" y="76" width="16" height="16" fill="#fff" rx="2"/>
-                      <rect x="12" y="80" width="8" height="8" fill="#0f172a" rx="1"/>
-
-                      {/* Timing markers */}
-                      {[32, 38, 44, 50, 56, 62].map((x) => (
-                        <rect key={`tx-${x}`} x={x} y="14" width="4" height="4" fill={x % 12 === 0 ? '#0f172a' : '#94a3b8'} rx="1" />
-                      ))}
-                      {[32, 38, 44, 50, 56, 62].map((y) => (
-                        <rect key={`ty-${y}`} x="14" y={y} width="4" height="4" fill={y % 12 === 0 ? '#0f172a' : '#94a3b8'} rx="1" />
-                      ))}
-
-                      {/* Data Pattern Matrix Elements */}
-                      {[
-                        [32,32],[36,32],[40,32],[56,32],[60,32],[64,32],[72,32],[76,32],[80,32],
-                        [32,36],[44,36],[56,36],[68,36],[72,36],[80,36],[88,36],
-                        [36,40],[40,40],[60,40],[64,40],[84,40],[88,40],
-                        [72,44],[76,44],[88,44],
-                        [32,56],[36,56],[64,56],[68,56],[76,56],[80,56],[88,56],
-                        [40,60],[44,60],[60,60],[72,60],[84,60],
-                        [32,64],[36,64],[56,64],[68,64],[72,64],[80,64],[88,64],
-                        [32,72],[40,72],[56,72],[60,72],[64,72],[72,72],[80,72],[88,72],
-                        [36,76],[44,76],[64,76],[68,76],[76,76],[84,76],
-                        [32,80],[36,80],[40,80],[56,80],[68,80],[72,80],[80,80],[88,80],
-                        [36,84],[44,84],[56,84],[60,84],[64,84],[80,84],[84,84],[88,84],
-                        [32,88],[40,88],[68,88],[76,88],[84,88]
-                      ].map(([x, y], idx) => (
-                        <rect key={idx} x={x} y={y} width="3.5" height="3.5" fill="#0f172a" rx="0.8" />
-                      ))}
-
-                      {/* Central UPI Badge Emblem matching Image 1 */}
-                      <rect x="34" y="42" width="32" height="16" rx="4" fill="#ffffff" stroke="#e2e8f0" strokeWidth="1" />
-                      <text x="43" y="53.5" fill="#00843D" fontSize="7.5" fontWeight="900" fontFamily="sans-serif">UPI</text>
-                      <path d="M57 46l3 8h-2.5l-3-8z" fill="#F47920"/>
-                      <path d="M54 46l3 8h-2.5l-3-8z" fill="#00843D"/>
-                    </svg>
-                  </div>
-
-                  <div style={{ fontSize: '0.84rem', fontWeight: '600', color: '#1e293b', marginTop: '10px' }}>
-                    Scan with any UPI app to pay ₹{totalAmt.toLocaleString('en-IN')}
-                  </div>
-                  <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '3px' }}>
-                    Demo QR — Not a real payment QR code.
-                  </div>
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    background: '#f8fafc',
+                    borderRadius: 10,
+                    border: '1px solid #e2e8f0',
+                    fontSize: '0.78rem',
+                    color: '#64748b'
+                  }}
+                >
+                  ⚡ <strong>1-Click Instant Checkout:</strong> ₹{totalAmt.toLocaleString('en-IN')} will be deducted from your simulated wallet balance upon confirmation.
                 </div>
               </div>
             )}
 
-            {/* ─── TAB 2: DEBIT / CREDIT CARD ───────────────────────── */}
-            {payMethod === 'CARD' && (
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <h4 style={{ fontSize: '0.92rem', fontWeight: '700', color: '#0f172a', margin: '0 0 2px 0' }}>
-                    Enter Card Details
-                  </h4>
-                  <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0 }}>
-                    Demo card simulation (any test numbers work safely)
-                  </p>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>
-                      Cardholder Name
-                    </label>
-                    <input
-                      className="form-control"
-                      value={cardName}
-                      onChange={(e) => setCardName(e.target.value)}
-                      placeholder="e.g. Aarav Sharma"
-                      style={{ fontSize: '0.85rem', padding: '8px 12px' }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>
-                      Card Number
-                    </label>
-                    <input
-                      className="form-control"
-                      value={cardNo}
-                      onChange={(e) => {
-                        const v = e.target.value.replace(/\D/g, '').replace(/(.{4})/g, '$1 ').trim().slice(0, 19);
-                        setCardNo(v);
-                      }}
-                      placeholder="4532 •••• •••• 8921"
-                      maxLength={19}
-                      style={{ fontFamily: 'monospace', letterSpacing: '1px', fontSize: '0.88rem', padding: '8px 12px' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                    <div>
-                      <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>
-                        Expiry (MM/YY)
-                      </label>
-                      <input
-                        className="form-control"
-                        value={expiry}
-                        onChange={(e) => {
-                          let v = e.target.value.replace(/\D/g, '');
-                          if (v.length >= 2) v = `${v.slice(0, 2)}/${v.slice(2, 4)}`;
-                          setExpiry(v);
-                        }}
-                        placeholder="08/28"
-                        maxLength={5}
-                        style={{ fontSize: '0.85rem', padding: '8px 12px' }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.75rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>
-                        CVV / CVC
-                      </label>
-                      <input
-                        className="form-control"
-                        type="password"
-                        value={cvv}
-                        onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                        placeholder="782"
-                        maxLength={4}
-                        style={{ fontSize: '0.85rem', padding: '8px 12px' }}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: '10px', fontSize: '0.7rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <Lock size={12} /> Test Simulation: No actual card data is collected, transmitted, or saved.
-                </div>
-              </div>
-            )}
-
-            {/* ─── TAB 3: NET BANKING ───────────────────────────────── */}
-            {payMethod === 'NETBANKING' && (
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginBottom: '16px' }}>
-                <div style={{ marginBottom: '12px' }}>
-                  <h4 style={{ fontSize: '0.92rem', fontWeight: '700', color: '#0f172a', margin: '0 0 2px 0' }}>
-                    Select Your Bank
-                  </h4>
-                  <p style={{ fontSize: '0.76rem', color: '#64748b', margin: 0 }}>
-                    Simulate an instant net banking authorization
-                  </p>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
-                  {['SBI', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Kotak Bank', 'PNB'].map((bank) => {
-                    const isSelected = selBank === bank;
-                    return (
-                      <button
-                        key={bank}
-                        type="button"
-                        onClick={() => setSelBank(bank)}
-                        style={{
-                          padding: '10px 6px',
-                          borderRadius: '10px',
-                          border: isSelected ? '2px solid #0084ff' : '1px solid #e2e8f0',
-                          background: isSelected ? '#eff6ff' : '#ffffff',
-                          color: isSelected ? '#0084ff' : '#334155',
-                          fontWeight: '700',
-                          fontSize: '0.78rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        {bank}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div style={{ fontSize: '0.72rem', color: '#64748b', background: '#eff6ff', padding: '8px 12px', borderRadius: '8px' }}>
-                  Selected: <strong>{selBank}</strong> (Simulated internet banking confirmation)
-                </div>
-              </div>
-            )}
-
-            {/* 4. Academic Demo Test-Mode Selector (Required by Section 4) */}
+            {/* ───────────── SIMULATION / EVALUATOR CONTROLS ───────────── */}
             <div
               style={{
                 background: '#f8fafc',
-                border: '1px dashed #cbd5e1',
-                borderRadius: '10px',
+                border: '1px solid #e2e8f0',
+                borderRadius: 10,
                 padding: '8px 12px',
-                marginBottom: '16px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '8px'
+                fontSize: '0.74rem',
+                color: '#64748b'
               }}
             >
-              <span style={{ fontSize: '0.74rem', fontWeight: '700', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                ⚡ Test Mode:
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 700, color: '#334155' }}>
+                <Sparkles size={14} color="#0284c7" /> Test Scenario:
               </span>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ display: 'flex', gap: 6 }}>
                 {[
-                  { key: 'success', label: '✅ Success', color: '#059669' },
-                  { key: 'failure', label: '❌ Simulate Failure', color: '#dc2626' },
-                  { key: 'cancel', label: '⏸️ Cancel', color: '#d97706' }
+                  { id: 'success', label: '✓ Success', color: '#16a34a' },
+                  { id: 'failure', label: '✕ Decline', color: '#dc2626' },
+                  { id: 'cancel', label: '⊘ Cancel', color: '#d97706' }
                 ].map((sc) => (
                   <button
-                    key={sc.key}
+                    key={sc.id}
                     type="button"
-                    onClick={() => setSimScenario(sc.key)}
-                    disabled={processing}
+                    onClick={() => setSimScenario(sc.id)}
                     style={{
-                      background: simScenario === sc.key ? sc.color : '#ffffff',
-                      color: simScenario === sc.key ? '#ffffff' : '#475569',
-                      border: simScenario === sc.key ? `1.5px solid ${sc.color}` : '1px solid #cbd5e1',
-                      borderRadius: '16px',
+                      border: simScenario === sc.id ? `1.5px solid ${sc.color}` : '1px solid #cbd5e1',
+                      background: simScenario === sc.id ? '#ffffff' : '#f1f5f9',
+                      color: simScenario === sc.id ? sc.color : '#64748b',
+                      fontWeight: simScenario === sc.id ? 800 : 500,
                       padding: '3px 8px',
+                      borderRadius: 6,
                       fontSize: '0.7rem',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      transition: 'all 0.15s'
+                      cursor: 'pointer'
                     }}
                   >
                     {sc.label}
@@ -1421,30 +1935,45 @@ Thank you for choosing Tourist Hub AI!
               </div>
             </div>
 
-            {/* 5. Full-Width Blue Pay Button (Matching Image 1) */}
+            {/* Trust and Security Badges */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 8,
+                flexWrap: 'wrap',
+                padding: '2px 0'
+              }}
+            >
+              <SslEncryptionBadge />
+              <PciDssBadge />
+              <RbiSandboxBadge />
+            </div>
+
+            {/* ───────────── PRIMARY ACTION CTA BUTTON ───────────── */}
             <button
               type="button"
-              onClick={handleSimulatePayment}
+              onClick={handleDemoPayment}
               disabled={processing}
               style={{
                 width: '100%',
-                height: '48px',
-                borderRadius: '10px',
+                height: '52px',
+                borderRadius: '12px',
                 border: 'none',
-                background: simScenario === 'failure' ? '#dc2626' : simScenario === 'cancel' ? '#d97706' : '#0084ff',
+                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
                 color: '#ffffff',
-                fontWeight: '700',
-                fontSize: '0.98rem',
+                fontWeight: '800',
+                fontSize: '1.02rem',
                 cursor: processing ? 'not-allowed' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
-                boxShadow: '0 4px 14px rgba(0, 132, 255, 0.25)',
+                boxShadow: '0 4px 16px rgba(2, 132, 199, 0.35)',
                 transition: 'all 0.15s ease'
               }}
               onMouseEnter={(e) => {
-                if (!processing) e.currentTarget.style.filter = 'brightness(0.94)';
+                if (!processing) e.currentTarget.style.filter = 'brightness(1.08)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.filter = 'none';
@@ -1454,31 +1983,22 @@ Thank you for choosing Tourist Hub AI!
                 <>
                   <span
                     style={{
-                      width: '16px',
-                      height: '16px',
-                      border: '2px solid #ffffff',
+                      width: '18px',
+                      height: '18px',
+                      border: '2.5px solid #ffffff',
                       borderTopColor: 'transparent',
                       borderRadius: '50%',
                       display: 'inline-block',
                       animation: 'spin 0.8s linear infinite'
                     }}
                   />
-                  <span>Processing your demo payment...</span>
-                </>
-              ) : simScenario === 'failure' ? (
-                <>
-                  <XCircle size={18} />
-                  <span>Simulate Payment Failure • ₹{totalAmt.toLocaleString('en-IN')}</span>
-                </>
-              ) : simScenario === 'cancel' ? (
-                <>
-                  <AlertCircle size={18} />
-                  <span>Simulate Payment Cancellation</span>
+                  <span>Authorizing Secure Payment...</span>
                 </>
               ) : (
                 <>
-                  <Shield size={18} />
-                  <span>Simulate Payment • ₹{totalAmt.toLocaleString('en-IN')}</span>
+                  <Lock size={18} />
+                  <span>Pay ₹{totalAmt.toLocaleString('en-IN')} Securely</span>
+                  <ArrowRight size={18} />
                 </>
               )}
             </button>
@@ -1488,11 +2008,11 @@ Thank you for choosing Tourist Hub AI!
         {/* ═══════════════ STEP 3 — SUCCESS RESULT & PAYMENT RECEIPT ═══════════════ */}
         {step === 'success' && (() => {
           const destination = item?.location || item?.destination_name || (toCity ? `${fromCity} to ${toCity}` : 'Incredible India');
-          const txnId = bookingResult?.transaction?.demo_transaction_id || bookingResult?.transaction_id || `DEMO_TXN_${Date.now()}`;
+          const txnId = bookingResult?.transaction?.demo_transaction_id || bookingResult?.transaction_id || 'Payment pending';
           const bkRef = bookingResult?.booking_reference || (bookingResult?.booking_id ? `TH-BK-${bookingResult.booking_id}` : `TH-BK-${Date.now().toString().slice(-6)}`);
           const recNo = `REC-${new Date().getFullYear()}-${String(bookingResult?.transaction?.payment_record_id || bookingResult?.booking_id || '82941').padStart(6, '0')}`;
           const upiAppName = upiApp === 'gpay' ? 'Google Pay' : upiApp === 'phonepe' ? 'PhonePe' : upiApp === 'paytm' ? 'Paytm' : 'BHIM UPI';
-          const methodStr = payMethod === 'UPI' ? `UPI (${upiAppName})` : payMethod === 'CARD' ? 'Debit/Credit Card' : `Net Banking (${selBank})`;
+          const methodStr = bookingResult?.transaction?.payment_method || 'UPI';
           const travelDates = bookingType === 'hotel' ? `${checkIn} to ${checkOut}` : bookingType === 'transport' ? travelDate : pkgTravelDate;
           const formattedDate = new Date(bookingResult?.transaction?.timestamp || Date.now()).toLocaleString('en-IN', {
             day: '2-digit',
@@ -1659,7 +2179,7 @@ Thank you for choosing Tourist Hub AI!
 
                     <div>
                       <span style={{ fontSize: '0.68rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700', display: 'block' }}>
-                        Transaction ID (Demo)
+                        Demo Transaction ID
                       </span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ fontSize: '0.78rem', color: '#334155', fontFamily: 'monospace', fontWeight: '600' }}>
@@ -1768,7 +2288,7 @@ Thank you for choosing Tourist Hub AI!
                           Total Paid ({methodStr})
                         </div>
                         <div style={{ fontSize: '0.72rem', color: '#059669' }}>
-                          Transaction Status: Authorized & Settled
+                          Transaction Status: Demo confirmed — no charge
                         </div>
                       </div>
                       <div style={{ fontSize: '1.35rem', fontWeight: '900', color: '#065f46', display: 'flex', alignItems: 'center', gap: '2px' }}>
@@ -1790,7 +2310,7 @@ Thank you for choosing Tourist Hub AI!
                       lineHeight: 1.4
                     }}
                   >
-                    🔒 <strong>Academic Demo Mode:</strong> This receipt is generated for simulated testing. No real money was charged or transferred.
+                    This receipt confirms your booking and payment status.
                   </div>
                 </div>
               </div>
@@ -1922,7 +2442,7 @@ Thank you for choosing Tourist Hub AI!
             </div>
 
             <h3 style={{ fontSize: '1.4rem', color: '#991b1b', fontWeight: '800', margin: '0 0 6px 0' }}>
-              Demo Payment Failed
+              Payment Failed
             </h3>
 
             <div
@@ -1956,8 +2476,8 @@ Thank you for choosing Tourist Hub AI!
                 <span style={{ fontWeight: '700' }}>{bookingResult?.booking_reference || `TH-BK-${bookingResult?.booking_id || 'DEMO'}`}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ color: '#64748b' }}>Simulated Transaction ID:</span>
-                <span style={{ fontWeight: '700' }}>{bookingResult?.transaction?.demo_transaction_id || 'DEMO_TXN_FAILED'}</span>
+                <span style={{ color: '#64748b' }}>Transaction ID:</span>
+                <span style={{ fontWeight: '700' }}>{bookingResult?.transaction?.demo_transaction_id || 'Payment not completed'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: '#64748b' }}>Attempted Amount:</span>

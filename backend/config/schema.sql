@@ -256,6 +256,8 @@ CREATE TABLE IF NOT EXISTS bookings (
   hotel_id INT NULL,
   transport_id INT NULL,
   guide_id INT NULL,
+  listing_id INT NULL,
+  capacity_units INT NOT NULL DEFAULT 1,
   booking_type VARCHAR(50) DEFAULT 'Package',
   booking_reference VARCHAR(100) NULL,
   total_price DECIMAL(10,2) DEFAULT 0.00,

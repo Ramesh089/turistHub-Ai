@@ -23,7 +23,8 @@ import {
   Plane,
   Car,
   Ticket,
-  XCircle
+  XCircle,
+  Zap
 } from 'lucide-react';
 import TicketModal from '../components/transport/TicketModal';
 
@@ -34,38 +35,61 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('plans');
   const [plans, setPlans] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [bookingsError, setBookingsError] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTicket, setSelectedTicket] = useState(null);
   const [cancellingId, setCancellingId] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [partnerStatus, setPartnerStatus] = useState(null);
+
+  // Redirect business partners directly to their dedicated Partner Dashboard
+  useEffect(() => {
+    if (user?.role?.toLowerCase() === 'business partner') {
+      navigate('/partner/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
 
   const fetchBookings = async () => {
     try {
       const bookingsRes = await api.get('/bookings/my-bookings');
-      if (bookingsRes.data.success) setBookings(bookingsRes.data.bookings);
+      if (bookingsRes.data.success) {
+        setBookings(bookingsRes.data.bookings || []);
+        setBookingsError(false);
+      }
     } catch (err) {
       console.error('Failed to reload bookings:', err);
+      setBookingsError(true);
     }
   };
 
   useEffect(() => {
     async function loadDashboardData() {
       setLoading(true);
-      try {
-        const [plansRes, bookingsRes, recsRes] = await Promise.all([
+      const results = await Promise.allSettled([
           api.get('/ai/my-plans'),
           api.get('/bookings/my-bookings'),
           api.post('/ai/recommend', {})
-        ]);
+      ]);
 
-        if (plansRes.data.success) setPlans(plansRes.data.plans);
-        if (bookingsRes.data.success) setBookings(bookingsRes.data.bookings);
-        if (recsRes.data.success) setRecommendations(recsRes.data.recommendations.slice(0, 4));
-      } catch (err) {
-        console.error('Failed to load dashboard data:', err);
-      } finally {
-        setLoading(false);
+      const [plansResult, bookingsResult, recommendationsResult] = results;
+      if (plansResult.status === 'fulfilled' && plansResult.value.data.success) {
+        setPlans(plansResult.value.data.plans || []);
+      } else if (plansResult.status === 'rejected') {
+        console.error('Failed to load travel plans:', plansResult.reason);
       }
+      if (bookingsResult.status === 'fulfilled' && bookingsResult.value.data.success) {
+        setBookings(bookingsResult.value.data.bookings || []);
+        setBookingsError(false);
+      } else if (bookingsResult.status === 'rejected') {
+        console.error('Failed to load bookings:', bookingsResult.reason);
+        setBookingsError(true);
+      }
+      if (recommendationsResult.status === 'fulfilled' && recommendationsResult.value.data.success) {
+        setRecommendations((recommendationsResult.value.data.recommendations || []).slice(0, 4));
+      } else if (recommendationsResult.status === 'rejected') {
+        console.error('Failed to load recommendations:', recommendationsResult.reason);
+      }
+      setLoading(false);
     }
     loadDashboardData();
   }, []);
@@ -93,28 +117,6 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    async function loadDashboardData() {
-      setLoading(true);
-      try {
-        const [plansRes, bookingsRes, recsRes] = await Promise.all([
-          api.get('/ai/my-plans'),
-          api.get('/bookings/my-bookings'),
-          api.post('/ai/recommend', {})
-        ]);
-
-        if (plansRes.data.success) setPlans(plansRes.data.plans);
-        if (bookingsRes.data.success) setBookings(bookingsRes.data.bookings);
-        if (recsRes.data.success) setRecommendations(recsRes.data.recommendations.slice(0, 4));
-      } catch (err) {
-        console.error('Failed to load dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadDashboardData();
-  }, []);
-
   const handleDeletePlan = async (planId) => {
     try {
       const res = await api.delete(`/ai/my-plans/${planId}`);
@@ -127,8 +129,8 @@ export default function Dashboard() {
   };
 
   const downloadBookingReceipt = (b) => {
-    const itemName = b.package_title || b.destination_name || b.hotel_name || b.transport_provider || 'Travel Booking';
-    const bkRef = `TH-BK-${b.id}`;
+    const itemName = b.partner_listing_title || b.package_title || b.destination_name || b.hotel_name || b.transport_provider || 'Travel Booking';
+    const bkRef = b.booking_reference || `TH-BK-${b.id}`;
     const txnId = b.transaction_id || `DEMO_TXN_${b.id}_PAID`;
     const recNo = `REC-${new Date(b.created_at || Date.now()).getFullYear()}-${String(b.id).padStart(6, '0')}`;
     const nowStr = new Date(b.created_at || Date.now()).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'medium' });
@@ -219,9 +221,11 @@ Thank you for choosing Tourist Hub AI!
           </div>
 
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <Link to="/ai-planner" className="btn btn-primary">
-              <Sparkles size={16} /> Plan New Trip
-            </Link>
+            {partnerStatus === 'approved' && (
+              <Link to="/partner/dashboard" className="btn btn-secondary" style={{ marginLeft: '8px' }}>
+                <Zap size={16} /> Quick Add Service
+              </Link>
+            )}
             <Link to="/profile" className="btn btn-secondary">
               <Settings size={16} /> Edit Preferences
             </Link>
@@ -233,7 +237,7 @@ Thank you for choosing Tourist Hub AI!
         {/* Navigation Tabs */}
         <div className="tabs-nav" style={{ background: '#ffffff', padding: '8px 16px', borderRadius: '12px', boxShadow: 'var(--shadow-sm)' }}>
           <button onClick={() => setActiveTab('plans')} className={`tab-btn ${activeTab === 'plans' ? 'active' : ''}`}>
-            My AI Travel Plans ({plans.length})
+            My Mitra AI Plans ({plans.length})
           </button>
           <button onClick={() => setActiveTab('bookings')} className={`tab-btn ${activeTab === 'bookings' ? 'active' : ''}`}>
             My Bookings ({bookings.length})
@@ -257,10 +261,10 @@ Thank you for choosing Tourist Hub AI!
                     <Compass size={48} color="#d97706" style={{ margin: '0 auto 16px auto' }} />
                     <h3 style={{ fontSize: '1.3rem', marginBottom: '8px' }}>No Saved Travel Plans Yet</h3>
                     <p style={{ color: 'var(--slate)', maxWidth: '400px', margin: '0 auto 20px auto' }}>
-                      Use our AI Travel Planner to generate and save your personalized Day 1..N trip itinerary.
+                      Use Mitra AI to generate and save your personalized day-by-day trip itinerary.
                     </p>
                     <Link to="/ai-planner" className="btn btn-primary">
-                      Generate Your First Plan &rarr;
+                      Plan a Trip with Mitra AI &rarr;
                     </Link>
                   </div>
                 ) : (
@@ -269,7 +273,7 @@ Thank you for choosing Tourist Hub AI!
                       <div key={p.id} className="card dashboard-item-card">
                         <div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                            <span className="badge badge-heritage">AI Itinerary</span>
+                            <span className="badge badge-heritage">Mitra AI Itinerary</span>
                             <span style={{ fontSize: '0.82rem', color: 'var(--slate)' }}>
                               Created on {new Date(p.created_at).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })}
                             </span>
@@ -331,7 +335,14 @@ Thank you for choosing Tourist Hub AI!
             {/* Tab 2: Bookings */}
             {activeTab === 'bookings' && (
               <div className="animate-fade-in">
-                {bookings.length === 0 ? (
+                {bookingsError ? (
+                  <div className="card" role="alert" style={{ padding: '40px 20px', textAlign: 'center' }}>
+                    <AlertCircle size={42} color="#b91c1c" style={{ margin: '0 auto 12px auto' }} />
+                    <h3 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Bookings Couldn’t Load</h3>
+                    <p style={{ color: 'var(--slate)', marginBottom: '16px' }}>Please check your connection and try again.</p>
+                    <button type="button" className="btn btn-primary" onClick={fetchBookings}>Try Again</button>
+                  </div>
+                ) : bookings.length === 0 ? (
                   <div className="card" style={{ padding: '60px 20px', textAlign: 'center' }}>
                     <Package size={48} color="#d97706" style={{ margin: '0 auto 16px auto' }} />
                     <h3 style={{ fontSize: '1.3rem', marginBottom: '8px' }}>No Active Bookings Found</h3>
@@ -390,7 +401,7 @@ Thank you for choosing Tourist Hub AI!
                             </div>
 
                             <h3 style={{ fontSize: '1.25rem', marginBottom: '4px' }}>
-                              {b.transport_provider || b.package_title || b.destination_name || 'Custom Travel Package'}
+                              {b.partner_listing_title || b.transport_provider || b.package_title || b.destination_name || 'Custom Travel Package'}
                               {b.transport_number && <span style={{ fontSize: '0.9rem', color: '#64748b', fontWeight: 600 }}> ({b.transport_number})</span>}
                             </h3>
 
@@ -466,7 +477,7 @@ Thank you for choosing Tourist Hub AI!
                               </button>
 
                               {/* Cancel Booking button */}
-                              {isTransport && !isCancelled && (
+                              {isTransport && !isCancelled && b.canCancel !== false && (
                                 <button
                                   type="button"
                                   disabled={cancellingId === b.id}
@@ -535,4 +546,3 @@ Thank you for choosing Tourist Hub AI!
     </div>
   );
 }
-

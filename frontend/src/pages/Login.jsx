@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -7,6 +7,7 @@ import AuthToolbar from '../components/AuthToolbar';
 import SliderCaptcha from '../components/SliderCaptcha';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import AuthVisualShowcase from '../components/AuthVisualShowcase';
+import api from '../services/api';
 import {
   User,
   Lock,
@@ -25,6 +26,7 @@ export default function Login() {
   const { t, language } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
+  const roleSelectRef = useRef(null);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -32,6 +34,8 @@ export default function Login() {
       const role = (user.role || '').toLowerCase();
       if (role === 'admin' || role === 'super admin') {
         navigate('/admin', { replace: true });
+      } else if (role === 'business partner') {
+        navigate('/partner/dashboard', { replace: true });
       } else {
         navigate('/dashboard', { replace: true });
       }
@@ -39,9 +43,12 @@ export default function Login() {
   }, [isAuthenticated, user, navigate]);
 
   // Form states - simplified to Admin and User
-  const [role, setRole] = useState('Admin');
-  const [account, setAccount] = useState(() => localStorage.getItem('touristhub_remember_account') || 'admin');
+  const [role, setRole] = useState(() => location.state?.role || 'Admin');
+  const [account, setAccount] = useState(() => location.state?.role === 'Business Partner' ? '' : (localStorage.getItem('touristhub_remember_account') || 'admin'));
   const [password, setPassword] = useState('Admin@1234');
+  const [passwordChangeToken, setPasswordChangeToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberPassword, setRememberPassword] = useState(true);
 
@@ -53,6 +60,7 @@ export default function Login() {
   // Status states
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [forgotModalOpen, setForgotModalOpen] = useState(false);
 
@@ -64,9 +72,12 @@ export default function Login() {
     if (newRole === 'Admin') {
       setAccount('admin');
       setPassword('Admin@1234');
-    } else {
+    } else if (newRole === 'User') {
       setAccount('user01');
       setPassword('User@1234');
+    } else {
+      setAccount('');
+      setPassword('');
     }
   };
 
@@ -116,21 +127,54 @@ export default function Login() {
 
     if (res.success) {
       const loggedRole = (res.user?.role || '').toLowerCase();
-      const redirectState = location.state?.from?.pathname;
+      const rawFrom = location.state?.from;
+      const redirectState = typeof rawFrom === 'string' ? rawFrom : rawFrom?.pathname;
 
-      if (redirectState) {
-        navigate(redirectState, { replace: true });
+      if (loggedRole === 'business partner') {
+        const partnerRedirect = (redirectState && redirectState.startsWith('/partner/')) ? redirectState : '/partner/dashboard';
+        navigate(partnerRedirect, { replace: true });
       } else if (loggedRole === 'admin' || loggedRole === 'super admin') {
-        navigate('/admin', { replace: true });
+        const adminRedirect = (redirectState && redirectState.startsWith('/admin')) ? redirectState : '/admin';
+        navigate(adminRedirect, { replace: true });
+      } else if (redirectState && !redirectState.includes('/login') && redirectState !== '/') {
+        navigate(redirectState, { replace: true });
       } else {
         navigate('/dashboard', { replace: true });
       }
+    } else if (res.requiresPasswordChange) {
+      setPasswordChangeToken(res.passwordChangeToken);
+      setPassword('');
+      setErrorMsg('');
+      setSuccessMsg('');
     } else {
       setErrorMsg(res.message);
       // Reset slider on failure
       setSliderVerified(false);
       setSliderToken(null);
       setResetSliderTrigger(prev => prev + 1);
+    }
+  };
+
+  const handleRequiredPasswordChange = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrorMsg('');
+    setSuccessMsg('');
+    try {
+      const response = await api.post('/auth/complete-required-password-change', {
+        passwordChangeToken,
+        newPassword,
+        confirmPassword: confirmNewPassword
+      });
+      setPasswordChangeToken('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setPassword('');
+      setSuccessMsg(response.data.message || 'Password updated. Sign in with your new password.');
+    } catch (changeError) {
+      setErrorMsg(changeError.response?.data?.message || 'Could not update your password. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -215,10 +259,10 @@ export default function Login() {
                 letterSpacing: '-0.4px'
               }}
             >
-              {t('welcomeBack')}
+              {passwordChangeToken ? 'Set a new password' : t('welcomeBack')}
             </h2>
             <p style={{ fontSize: '0.88rem', color: subtextColor }}>
-              {t('loginSubtext')}
+              {passwordChangeToken ? 'Choose a new password to complete partner sign-in.' : t('loginSubtext')}
             </p>
           </div>
 
@@ -265,12 +309,47 @@ export default function Login() {
               <span>{errorMsg}</span>
             </div>
           )}
+          {successMsg && (
+            <div role="status" style={{ padding: '12px 14px', backgroundColor: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.35)', borderRadius: '8px', color: isDark ? '#6ee7b7' : '#047857', fontSize: '0.85rem', marginBottom: '18px' }}>
+              {successMsg}
+            </div>
+          )}
 
-          <form onSubmit={handleSubmit} noValidate>
+          <form onSubmit={passwordChangeToken ? handleRequiredPasswordChange : handleSubmit} noValidate>
+            {passwordChangeToken ? (
+              <div style={{ display: 'grid', gap: 14 }}>
+                <p style={{ color: subtextColor, fontSize: '0.88rem', lineHeight: 1.5, margin: '0 0 4px' }}>
+                  Your temporary password is accepted. Choose a new password to finish signing in.
+                </p>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  placeholder="New password"
+                  autoComplete="new-password"
+                  required
+                  style={{ width: '100%', padding: '12px 16px', backgroundColor: inputBgColor, border: `1px solid ${borderColor}`, borderRadius: 8, color: textColor, fontSize: '0.92rem' }}
+                />
+                <input
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(event) => setConfirmNewPassword(event.target.value)}
+                  placeholder="Confirm new password"
+                  autoComplete="new-password"
+                  required
+                  style={{ width: '100%', padding: '12px 16px', backgroundColor: inputBgColor, border: `1px solid ${borderColor}`, borderRadius: 8, color: textColor, fontSize: '0.92rem' }}
+                />
+                <p style={{ color: subtextColor, fontSize: '0.78rem', margin: 0 }}>
+                  Use at least 8 characters with uppercase, lowercase, a number, and a special character.
+                </p>
+              </div>
+            ) : (
+              <>
             {/* 1. Role Dropdown */}
             <div style={{ marginBottom: '16px' }}>
               <div style={{ position: 'relative' }}>
                 <select
+                  ref={roleSelectRef}
                   value={role}
                   onChange={(e) => handleRoleChange(e.target.value)}
                   style={{
@@ -296,6 +375,9 @@ export default function Login() {
                   </option>
                   <option value="User" style={{ background: '#1e2029', color: '#fff' }}>
                     {t('roleUser')}
+                  </option>
+                  <option value="Business Partner" style={{ background: '#1e2029', color: '#fff' }}>
+                    Business Partner
                   </option>
                 </select>
                 <ChevronDown
@@ -464,6 +546,8 @@ export default function Login() {
                 {t('forgotPassword')}
               </button>
             </div>
+              </>
+            )}
 
             {/* 6. Primary Login Button */}
             <button
@@ -500,13 +584,13 @@ export default function Login() {
                   <span>Logging in...</span>
                 </>
               ) : (
-                t('loginButton')
+                passwordChangeToken ? 'Update password' : t('loginButton')
               )}
             </button>
           </form>
 
           {/* 7. Footer: Register Link */}
-          <div
+          {!passwordChangeToken && <div
             style={{
               marginTop: '22px',
               textAlign: 'left',
@@ -526,9 +610,64 @@ export default function Login() {
             >
               {t('registerLink')}
             </Link>
-          </div>
+          </div>}
         </div>
 
+
+          {/* Business Partner sign-in shortcut */}
+          {!passwordChangeToken && <div
+            style={{
+              marginTop: '16px',
+              padding: '12px 16px',
+              borderRadius: '10px',
+              background: isDark
+                ? 'linear-gradient(135deg, rgba(2,132,199,0.18) 0%, rgba(16,185,129,0.12) 100%)'
+                : 'linear-gradient(135deg, rgba(2,132,199,0.08) 0%, rgba(16,185,129,0.06) 100%)',
+              border: isDark
+                ? '1px solid rgba(2,132,199,0.3)'
+                : '1px solid rgba(2,132,199,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              flexWrap: 'wrap'
+            }}
+          >
+            <div>
+              <div style={{ fontSize: '0.82rem', fontWeight: '700', color: isDark ? '#38bdf8' : '#0284c7', marginBottom: '2px' }}>
+                🤝 Are you a Business Partner?
+              </div>
+              <div style={{ fontSize: '0.76rem', color: subtextColor, lineHeight: 1.4 }}>
+                Sign in to manage your services, prices, and partner questions.
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                handleRoleChange('Business Partner');
+                roleSelectRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                roleSelectRef.current?.focus();
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '7px 14px',
+                borderRadius: '7px',
+                background: 'linear-gradient(135deg, #0284c7, #0369a1)',
+                color: '#fff',
+                fontSize: '0.78rem',
+                fontWeight: '700',
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 2px 8px rgba(2,132,199,0.3)',
+                flexShrink: 0
+              }}
+            >
+              Partner Login →
+            </button>
+          </div>
+          }
         {/* Bottom subtle note / spacer */}
         <div style={{ height: '24px' }} />
       </div>

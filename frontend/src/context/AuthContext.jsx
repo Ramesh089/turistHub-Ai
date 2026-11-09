@@ -57,6 +57,15 @@ export function AuthProvider({ children }) {
         sliderVerified
       });
 
+      if (res.data?.requiresPasswordChange) {
+        return {
+          success: false,
+          requiresPasswordChange: true,
+          passwordChangeToken: res.data.passwordChangeToken,
+          message: res.data.message
+        };
+      }
+
       if (res.data?.success) {
         const loggedUser = res.data.user;
         const jwtToken = res.data.token;
@@ -149,6 +158,7 @@ export function AuthProvider({ children }) {
   const isSuperAdmin = userRole === 'super admin';
   const isAdmin = userRole === 'admin' || isSuperAdmin;
   const isUser = userRole === 'user' || userRole === 'tourist';
+  const isBusinessPartner = userRole === 'business partner';
 
   return (
     <AuthContext.Provider
@@ -161,6 +171,7 @@ export function AuthProvider({ children }) {
         isAdmin,
         isUser,
         isTourist: isUser,
+        isBusinessPartner,
         login,
         register,
         logout,
