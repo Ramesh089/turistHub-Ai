@@ -1,10 +1,12 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { MapPin, Star, Clock, IndianRupee, ArrowRight } from 'lucide-react';
+import { useWeather } from '../context/WeatherContext';
+import { MapPin, Star, Clock, IndianRupee, ArrowRight, CloudSun } from 'lucide-react';
 
 export default function DestinationCard({ destination }) {
   const { isAuthenticated } = useAuth();
+  const { openWeather, setSelectedDestination } = useWeather();
   const navigate = useNavigate();
   const {
     id,
@@ -51,6 +53,40 @@ export default function DestinationCard({ destination }) {
             {category || 'Heritage'}
           </span>
         </div>
+
+        {/* 1-Click Weather Forecast Chip */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            openWeather(name || location);
+          }}
+          title={`Check live weather for ${name}`}
+          style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            zIndex: 2,
+            background: 'rgba(255, 255, 255, 0.92)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(2, 132, 199, 0.25)',
+            borderRadius: '20px',
+            padding: '3px 10px',
+            fontSize: '0.74rem',
+            fontWeight: '700',
+            color: '#0284c7',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            transition: 'all 0.15s'
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#e0f2fe'; e.currentTarget.style.transform = 'scale(1.05)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.92)'; e.currentTarget.style.transform = 'none'; }}
+        >
+          <CloudSun size={13} color="#0284c7" /> Weather
+        </button>
 
         <div style={{
           position: 'absolute',
@@ -175,6 +211,7 @@ export default function DestinationCard({ destination }) {
 
           <button
             onClick={() => {
+              setSelectedDestination(name || location);
               const target = `/destination/${id}`;
               if (!isAuthenticated) {
                 navigate('/login', { state: { from: target } });

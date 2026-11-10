@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useWeather } from '../context/WeatherContext';
+import DestinationWeatherCard from '../components/weather/DestinationWeatherCard';
 import {
   MapPin,
   Star,
@@ -17,12 +19,14 @@ import {
   Send,
   Calendar,
   CheckCircle,
-  PhoneCall
+  PhoneCall,
+  CloudSun
 } from 'lucide-react';
 
 export default function DestinationDetails() {
   const { id } = useParams();
   const { user, isAuthenticated } = useAuth();
+  const { setSelectedDestination, openWeather } = useWeather();
   const navigate = useNavigate();
 
   const [dest, setDest] = useState(null);
@@ -41,7 +45,11 @@ export default function DestinationDetails() {
       try {
         const res = await api.get(`/destinations/${id}`);
         if (res.data.success) {
-          setDest(res.data.destination);
+          const destinationData = res.data.destination;
+          setDest(destinationData);
+          if (destinationData) {
+            setSelectedDestination(destinationData.name || destinationData.location);
+          }
         }
       } catch (err) {
         console.error('Failed to load destination details:', err);
@@ -50,7 +58,7 @@ export default function DestinationDetails() {
       }
     }
     loadDestination();
-  }, [id]);
+  }, [id, setSelectedDestination]);
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
@@ -138,6 +146,29 @@ export default function DestinationDetails() {
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <Star size={16} fill="#f59e0b" color="#f59e0b" /> {dest.rating} ({dest.reviews_count} Reviews)
             </span>
+            <button
+              type="button"
+              onClick={() => openWeather(dest.name || dest.location)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: 'rgba(255, 255, 255, 0.18)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.35)',
+                color: '#ffffff',
+                padding: '4px 12px',
+                borderRadius: '20px',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.15s'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.18)'; }}
+            >
+              <CloudSun size={15} color="#38bdf8" /> Live Weather Forecast
+            </button>
           </div>
         </div>
       </div>
@@ -146,6 +177,7 @@ export default function DestinationDetails() {
         {/* Navigation Tabs */}
         <div className="tabs-nav" style={{ background: '#ffffff', padding: '8px 16px', borderRadius: '12px', boxShadow: 'var(--shadow-sm)' }}>
           <button onClick={() => setActiveTab('overview')} className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}>Overview & History</button>
+          <button onClick={() => setActiveTab('weather')} className={`tab-btn ${activeTab === 'weather' ? 'active' : ''}`} style={{ color: '#0284c7' }}>Climate & Weather</button>
           <button onClick={() => setActiveTab('attractions')} className={`tab-btn ${activeTab === 'attractions' ? 'active' : ''}`}>Attractions & Activities</button>
           <button onClick={() => setActiveTab('culture_food')} className={`tab-btn ${activeTab === 'culture_food' ? 'active' : ''}`}>Culture & Cuisine</button>
           <button onClick={() => setActiveTab('hotels')} className={`tab-btn ${activeTab === 'hotels' ? 'active' : ''}`}>Hotels ({dest.hotels?.length || 0})</button>
@@ -155,10 +187,20 @@ export default function DestinationDetails() {
           <button onClick={() => setActiveTab('reviews')} className={`tab-btn ${activeTab === 'reviews' ? 'active' : ''}`}>Reviews ({dest.reviews?.length || 0})</button>
         </div>
 
+        {/* Tab: Climate & Weather */}
+        {activeTab === 'weather' && (
+          <div className="animate-fade-in" style={{ maxWidth: 840, margin: '0 auto' }}>
+            <DestinationWeatherCard destinationName={dest.name || dest.location} />
+          </div>
+        )}
+
         {/* Tab 1: Overview & History */}
         {activeTab === 'overview' && (
           <div className="destination-detail-grid animate-fade-in">
             <div>
+              {/* Dynamic Real-Time Weather Forecast Card */}
+              <DestinationWeatherCard destinationName={dest.name || dest.location} />
+
               <div className="card" style={{ padding: '30px', marginBottom: '24px' }}>
                 <h3 style={{ fontSize: '1.4rem', marginBottom: '14px', color: 'var(--dark)' }}>About {dest.name}</h3>
                 <p style={{ fontSize: '1rem', color: '#334155', lineHeight: 1.8, marginBottom: '20px' }}>

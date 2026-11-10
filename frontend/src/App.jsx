@@ -3,9 +3,12 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { I18nProvider } from './context/I18nContext';
+import { WeatherProvider } from './context/WeatherContext';
 import Navbar from './components/Navbar';
 import EmergencyBanner from './components/EmergencyBanner';
 import Footer from './components/Footer';
+import FloatingWeatherWidget from './components/weather/FloatingWeatherWidget';
+import WeatherModal from './components/weather/WeatherModal';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import PublicAuthRoute from './components/PublicAuthRoute';
@@ -206,6 +209,10 @@ function AppContent() {
       </main>
 
       {!isAuthPage && !isAdminPortal && <Footer />}
+
+      {/* Floating Dynamic Weather Forecast Button & Telemetry Modal */}
+      {!isAdminPortal && <FloatingWeatherWidget />}
+      <WeatherModal />
     </div>
   );
 }
@@ -215,7 +222,9 @@ export default function App() {
     <ThemeProvider>
       <I18nProvider>
         <AuthProvider>
-          <AppContent />
+          <WeatherProvider>
+            <AppContent />
+          </WeatherProvider>
         </AuthProvider>
       </I18nProvider>
     </ThemeProvider>

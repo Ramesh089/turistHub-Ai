@@ -13,7 +13,7 @@ import {
   Sparkles
 } from 'lucide-react';
 
-export default function UserMenu() {
+export default function UserMenu({ compact = false, dark = false }) {
   const { user, isAdmin, isSuperAdmin, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
@@ -54,43 +54,50 @@ export default function UserMenu() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
+        title={displayName}
+        aria-label="User Account Menu"
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
-          padding: '6px 12px',
+          gap: compact ? '6px' : '8px',
+          padding: compact ? '4px 10px 4px 5px' : '6px 12px',
           borderRadius: '999px',
-          backgroundColor: '#f0f9ff',
-          border: '1px solid rgba(2, 132, 199, 0.22)',
+          backgroundColor: dark ? 'rgba(255, 255, 255, 0.08)' : '#f0f9ff',
+          border: dark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(2, 132, 199, 0.22)',
           cursor: 'pointer',
-          color: '#0369a1',
+          color: dark ? '#ffffff' : '#0369a1',
           fontSize: '0.84rem',
           fontWeight: '600',
-          transition: 'all 0.2s ease'
+          transition: 'all 0.2s ease',
+          height: '38px'
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0f2fe')}
-        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#f0f9ff')}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = dark ? 'rgba(255, 255, 255, 0.14)' : '#e0f2fe')}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = dark ? 'rgba(255, 255, 255, 0.08)' : '#f0f9ff')}
       >
         <div
           style={{
-            width: '24px',
-            height: '24px',
+            width: compact ? '28px' : '24px',
+            height: compact ? '28px' : '24px',
             borderRadius: '50%',
-            backgroundColor: '#0284c7',
+            background: 'linear-gradient(135deg, #38bdf8 0%, #06b6d4 100%)',
             color: '#ffffff',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '0.75rem',
-            fontWeight: '700'
+            fontSize: compact ? '0.85rem' : '0.75rem',
+            fontWeight: '800',
+            boxShadow: '0 2px 6px rgba(6, 182, 212, 0.35)',
+            flexShrink: 0
           }}
         >
           {displayName.charAt(0).toUpperCase()}
         </div>
-        <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {displayName.split(' ')[0]}
-        </span>
-        <ChevronDown size={14} color="#0369a1" />
+        {!compact && (
+          <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {displayName.split(' ')[0]}
+          </span>
+        )}
+        <ChevronDown size={14} color={dark ? '#cbd5e1' : '#0369a1'} />
       </button>
 
       {open && (

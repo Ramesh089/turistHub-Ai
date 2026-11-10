@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useWeather } from '../context/WeatherContext';
+import DestinationWeatherCard from '../components/weather/DestinationWeatherCard';
 import {
   Sparkles,
   Send,
@@ -28,6 +30,7 @@ import {
   Sunset,
   Camera,
   Coins,
+  CloudSun,
   Share2,
   ExternalLink
 } from 'lucide-react';
@@ -287,6 +290,7 @@ function FormattedMessage({ text }) {
 export default function AIPlanner() {
   const [searchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
+  const { setSelectedDestination, openWeather } = useWeather();
   const navigate = useNavigate();
   const chatEndRef = useRef(null);
 
@@ -439,9 +443,13 @@ Where would you like to travel today?`,
         // If an itinerary was generated or modified, update right-hand plan canvas
         if (res.data.is_destination_change || (res.data.destination && travelContext.activeDestination && res.data.destination.toLowerCase() !== travelContext.activeDestination.toLowerCase())) {
           setPlanResult(null);
+          if (res.data.destination) setSelectedDestination(res.data.destination);
         } else if (res.data.plan) {
           setPlanResult(res.data.plan);
+          if (res.data.plan.destination) setSelectedDestination(res.data.plan.destination);
           setSavedSuccess(false);
+        } else if (res.data.destination) {
+          setSelectedDestination(res.data.destination);
         }
 
         // Update dynamic suggested follow-up prompts
@@ -1158,6 +1166,16 @@ I'm ready for a fresh travel conversation! Ask me anything about Indian tourist 
                     </button>
                   </div>
                 </div>
+
+                {/* Destination Weather & Travel Forecast Card */}
+                {(planResult.destination || travelContext.activeDestination) && (
+                  <div style={{ marginBottom: '18px' }}>
+                    <DestinationWeatherCard
+                      destinationName={planResult.destination || travelContext.activeDestination}
+                      onOpenForecast={() => openWeather(planResult.destination || travelContext.activeDestination)}
+                    />
+                  </div>
+                )}
 
                 {/* Day-by-Day Detailed Schedule with Timeline Icons */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 
 export default function BrandLogo({ size = 'default', showTagline = true, light = false, to = '/' }) {
   const isLarge = size === 'large';
-  const logoSize = isLarge ? 72 : 56;
+  const isSmall = size === 'small';
+  const logoSize = isSmall ? 36 : (isLarge ? 72 : 48);
 
   return (
     <Link
@@ -11,7 +12,7 @@ export default function BrandLogo({ size = 'default', showTagline = true, light 
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '10px',
+        gap: isSmall ? '8px' : '12px',
         textDecoration: 'none'
       }}
     >
@@ -22,10 +23,10 @@ export default function BrandLogo({ size = 'default', showTagline = true, light 
         style={{
           height: `${logoSize}px`,
           width: `${logoSize}px`,
-          borderRadius: '12px',
+          borderRadius: '10px',
           objectFit: 'contain',
           filter: light
-            ? 'drop-shadow(0 4px 14px rgba(0, 0, 0, 0.6))'
+            ? 'drop-shadow(0 2px 10px rgba(56, 189, 248, 0.35))'
             : 'drop-shadow(0 3px 10px rgba(2, 132, 199, 0.32))',
           transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           flexShrink: 0
@@ -39,7 +40,7 @@ export default function BrandLogo({ size = 'default', showTagline = true, light 
           className="brand-logo-text"
           style={{
             fontFamily: "'Outfit', var(--font-serif), sans-serif",
-            fontSize: isLarge ? '1.65rem' : '1.36rem',
+            fontSize: isSmall ? '1.1rem' : (isLarge ? '1.65rem' : '1.32rem'),
             fontWeight: '800',
             lineHeight: 1.05,
             color: light ? '#ffffff' : '#0f172a',
@@ -67,11 +68,11 @@ export default function BrandLogo({ size = 'default', showTagline = true, light 
           <div
             className="brand-logo-tagline"
             style={{
-              fontSize: isLarge ? '0.8rem' : '0.72rem',
-              color: light ? '#93c5fd' : '#64748b',
-              letterSpacing: '1px',
+              fontSize: isSmall ? '0.62rem' : (isLarge ? '0.8rem' : '0.66rem'),
+              color: light ? '#94a3b8' : '#64748b',
+              letterSpacing: '1.4px',
               textTransform: 'uppercase',
-              fontWeight: '700',
+              fontWeight: '800',
               marginTop: '3px',
               display: 'flex',
               alignItems: 'center',
@@ -86,11 +87,11 @@ export default function BrandLogo({ size = 'default', showTagline = true, light 
       <style>{`
         @media (max-width: 540px) {
           .brand-logo-img {
-            height: 42px !important;
-            width: 42px !important;
+            height: 38px !important;
+            width: 38px !important;
           }
           .brand-logo-text {
-            font-size: 1.15rem !important;
+            font-size: 1.12rem !important;
           }
           .brand-logo-tagline {
             display: none !important;

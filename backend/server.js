@@ -131,6 +131,7 @@ app.use('/api/stats', require('./routes/stats'));
 app.use('/api/nearby', require('./routes/nearby'));
 app.use('/api/partner', require('./routes/partner'));
 app.use('/api/listings', require('./routes/listings'));
+app.use('/api/weather', require('./routes/weather'));
 
 // 404 handler
 app.use((req, res) => {

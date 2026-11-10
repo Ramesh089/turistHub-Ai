@@ -1,7 +1,9 @@
 import React from 'react';
-import { Star, MapPin, IndianRupee, ShieldCheck } from 'lucide-react';
+import { Star, MapPin, IndianRupee, ShieldCheck, CloudSun } from 'lucide-react';
+import { useWeather } from '../context/WeatherContext';
 
 export default function PackageCard({ pkg, onBook }) {
+  const { openWeather, setSelectedDestination } = useWeather();
   const {
     id,
     title,
@@ -40,6 +42,49 @@ export default function PackageCard({ pkg, onBook }) {
         }}>
           {duration_days} Days / {duration_nights} Nights
         </div>
+
+        {/* 1-Click Weather Forecast Chip */}
+        {destination_name && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedDestination(destination_name);
+              openWeather(destination_name);
+            }}
+            title={`Check live weather for ${destination_name}`}
+            style={{
+              position: 'absolute',
+              bottom: '10px',
+              left: '12px',
+              background: 'rgba(255, 255, 255, 0.94)',
+              backdropFilter: 'blur(6px)',
+              color: '#0369a1',
+              border: '1px solid #bae6fd',
+              padding: '4px 10px',
+              borderRadius: '999px',
+              fontSize: '0.76rem',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#0284c7';
+              e.currentTarget.style.color = '#ffffff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.94)';
+              e.currentTarget.style.color = '#0369a1';
+            }}
+          >
+            <CloudSun size={13} color="currentColor" />
+            <span>Weather</span>
+          </button>
+        )}
 
         <div style={{
           position: 'absolute',

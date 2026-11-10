@@ -1,53 +1,78 @@
 import React from 'react';
-import { PhoneCall, ShieldAlert, HeartHandshake } from 'lucide-react';
+import { ShieldAlert } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function EmergencyBanner() {
   return (
-    <div style={{
-      background: '#f0f9ff',
-      color: '#1e293b',
-      fontSize: '0.82rem',
-      padding: '7px 0',
-      borderBottom: '1px solid rgba(2, 132, 199, 0.14)'
-    }}>
-      <div className="container" style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px'
-      }}>
+    <div
+      style={{
+        background: '#07131e',
+        color: '#f8fafc',
+        fontSize: '0.78rem',
+        padding: '5px 0',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+        zIndex: 901
+      }}
+    >
+      <div
+        className="container"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '8px'
+        }}
+      >
+        {/* Left: Tourist Helpline */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <ShieldAlert size={14} color="#0284c7" />
-          <span>
-            <strong style={{ color: '#0369a1' }}>Incredible India 24x7 Tourist Helpline:</strong>{' '}
-            <a href="tel:1363" style={{ color: '#0284c7', fontWeight: '700', textDecoration: 'underline' }}>
+          <ShieldAlert size={14} color="#38bdf8" style={{ flexShrink: 0 }} />
+          <span style={{ color: '#ffffff', fontWeight: '600' }}>
+            India 24×7 Tourist Helpline:{' '}
+            <a
+              href="tel:1363"
+              style={{
+                color: '#38bdf8',
+                fontWeight: '800',
+                textDecoration: 'none'
+              }}
+            >
               1363 / 1800-11-1363
-            </a>{' '}
-            (Toll-Free, 12 Languages)
+            </a>
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: '#ecfdf5',
-            border: '1px solid #a7f3d0',
-            color: '#065f46',
-            padding: '2px 10px',
-            borderRadius: '999px',
-            fontWeight: '600'
-          }}>
-            <PhoneCall size={12} color="#10b981" /> All-in-One Emergency: <strong>112</strong>
-          </span>
-          <Link to="/emergency" style={{ color: '#059669', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <HeartHandshake size={14} /> Emergency Directory &rarr;
-          </Link>
+
+        {/* Right: All-in-One Emergency 112 Capsule */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <a
+            href="tel:112"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.18)',
+              color: '#ffffff',
+              padding: '2px 14px',
+              borderRadius: '999px',
+              fontWeight: '600',
+              fontSize: '0.76rem',
+              textDecoration: 'none',
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+              e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
+              e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.18)';
+            }}
+          >
+            All-in-One Emergency: <strong style={{ color: '#ffffff' }}>112</strong>
+          </a>
         </div>
       </div>
     </div>
   );
 }
-
