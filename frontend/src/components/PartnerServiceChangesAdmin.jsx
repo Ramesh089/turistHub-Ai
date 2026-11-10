@@ -36,7 +36,13 @@ export default function PartnerServiceChangesAdmin() {
       setRequests(response.data.changeRequests || []);
       setMessage(null);
     } catch (error) {
-      setMessage({ error: true, text: error.response?.data?.message || 'Could not load service update requests.' });
+      const errText = error.response?.data?.message || 'Could not load service update requests.';
+      const isAuthError = error.response?.status === 401 || error.response?.status === 403 || errText.includes('token') || errText.includes('Access denied');
+      setMessage({
+        error: true,
+        isAuthError,
+        text: isAuthError ? 'Your administrator session has expired or requires authentication. Please log in again.' : errText
+      });
     } finally {
       setLoading(false);
     }
@@ -83,8 +89,22 @@ export default function PartnerServiceChangesAdmin() {
       </header>
 
       {message && (
-        <div role="status" style={{ padding: 12, borderRadius: 8, background: message.error ? '#fee2e2' : '#dcfce7', color: message.error ? '#991b1b' : '#166534' }}>
-          {message.text}
+        <div role="status" style={{
+          padding: 14, borderRadius: 10,
+          background: message.error ? '#fee2e2' : '#dcfce7',
+          border: `1px solid ${message.error ? '#fecaca' : '#bbf7d0'}`,
+          color: message.error ? '#991b1b' : '#166534',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10
+        }}>
+          <span>{message.text}</span>
+          {message.isAuthError && (
+            <a href="/login" style={{
+              background: '#dc2626', color: 'white', padding: '6px 14px', borderRadius: '7px',
+              fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none'
+            }}>
+              Log In Again
+            </a>
+          )}
         </div>
       )}
       {loading ? <p style={{ color: '#64748b' }}>Loading update requests…</p>

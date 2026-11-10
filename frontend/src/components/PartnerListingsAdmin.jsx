@@ -49,7 +49,13 @@ export default function PartnerListingsAdmin() {
       const response = await api.get(`/listings/admin?${params}`);
       setListings(response.data.listings || []);
     } catch (error) {
-      setMessage({ error: true, text: error.response?.data?.message || 'Could not load partner listings.' });
+      const errText = error.response?.data?.message || 'Could not load partner listings.';
+      const isAuthError = error.response?.status === 401 || error.response?.status === 403 || errText.includes('token') || errText.includes('Access denied');
+      setMessage({
+        error: true,
+        isAuthError,
+        text: isAuthError ? 'Your administrator session has expired. Please log in again.' : errText
+      });
     } finally {
       setLoading(false);
     }
@@ -277,10 +283,19 @@ export default function PartnerListingsAdmin() {
       <main style={{ minWidth: 0 }}>
         {message && (
           <div role="status" style={{
-            padding: 11, borderRadius: 9, marginBottom: 12,
+            padding: 12, borderRadius: 9, marginBottom: 12,
             color: message.error ? '#991b1b' : '#166534',
-            background: message.error ? '#fee2e2' : '#dcfce7'
-          }}>{message.text}</div>
+            background: message.error ? '#fee2e2' : '#dcfce7',
+            border: `1px solid ${message.error ? '#fecaca' : '#bbf7d0'}`,
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10
+          }}>
+            <span>{message.text}</span>
+            {message.isAuthError && (
+              <a href="/login" style={{ background: '#dc2626', color: 'white', padding: '5px 12px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '700', textDecoration: 'none' }}>
+                Log In Again
+              </a>
+            )}
+          </div>
         )}
         {!selected || !form ? (
           <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: 12, padding: 30, textAlign: 'center', color: '#64748b' }}>

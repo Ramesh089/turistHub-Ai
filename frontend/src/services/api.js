@@ -30,8 +30,12 @@ api.interceptors.request.use(
     const token = localStorage.getItem('touristhub_token');
 
     if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
+      if (config.headers && typeof config.headers.set === 'function') {
+        config.headers.set('Authorization', `Bearer ${token}`);
+      } else {
+        config.headers = config.headers || {};
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     return config;
@@ -68,13 +72,19 @@ api.interceptors.response.use(
       } catch (refreshErr) {
         localStorage.removeItem('touristhub_token');
         localStorage.removeItem('touristhub_user');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('touristhub:session_expired'));
+        }
       }
     } else if (
       error.response?.status === 401 &&
       (originalRequest?.url?.includes('/auth/refresh') || !originalRequest)
     ) {
       localStorage.removeItem('touristhub_token');
-      localStorage.removeItem('touristhub_user');
+        localStorage.removeItem('touristhub_user');
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('touristhub:session_expired'));
+        }
     }
 
     return Promise.reject(error);

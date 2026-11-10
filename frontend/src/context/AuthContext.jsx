@@ -16,6 +16,15 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem('touristhub_token') || null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const handleExpired = () => {
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener('touristhub:session_expired', handleExpired);
+    return () => window.removeEventListener('touristhub:session_expired', handleExpired);
+  }, []);
+
   // Verify session on initial load or token change
   useEffect(() => {
     async function verifyAuth() {
@@ -28,14 +37,11 @@ export function AuthProvider({ children }) {
           localStorage.setItem('touristhub_user', JSON.stringify(freshUser));
         }
       } catch (err) {
-        // If 401 or no active session
-        if (token) {
-          // Token in localStorage was invalid
-          setToken(null);
-          setUser(null);
-          localStorage.removeItem('touristhub_token');
-          localStorage.removeItem('touristhub_user');
-        }
+        // If 401 or no active session, reset both token and user
+        setToken(null);
+        setUser(null);
+        localStorage.removeItem('touristhub_token');
+        localStorage.removeItem('touristhub_user');
       } finally {
         setLoading(false);
       }
@@ -166,7 +172,7 @@ export function AuthProvider({ children }) {
         user,
         token,
         loading,
-        isAuthenticated: !!user,
+        isAuthenticated: Boolean(user && token),
         isSuperAdmin,
         isAdmin,
         isUser,
