@@ -258,8 +258,14 @@ export default function PartnerListingsAdmin() {
             <option value="">All categories</option>{CATEGORIES.map(category => <option key={category}>{category}</option>)}
           </select>
           <input className="form-control" placeholder="Partner/business name" value={filters.partner} onChange={event => setFilters(current => ({ ...current, partner: event.target.value }))} />
-          <label className="form-label">Submitted from<input className="form-control" type="date" value={filters.dateFrom} onChange={event => setFilters(current => ({ ...current, dateFrom: event.target.value }))} /></label>
-          <label className="form-label">Submitted to<input className="form-control" type="date" value={filters.dateTo} onChange={event => setFilters(current => ({ ...current, dateTo: event.target.value }))} /></label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Submitted from</span>
+            <input className="form-control" type="date" value={filters.dateFrom} onChange={event => setFilters(current => ({ ...current, dateFrom: event.target.value }))} style={{ height: '38px', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '0 10px', fontSize: '0.82rem' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Submitted to</span>
+            <input className="form-control" type="date" value={filters.dateTo} onChange={event => setFilters(current => ({ ...current, dateTo: event.target.value }))} style={{ height: '38px', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '0 10px', fontSize: '0.82rem' }} />
+          </div>
         </div>
         {loading ? <div style={{ padding: 15, color: '#64748b' }}>Loading queue…</div> : listings.length === 0 ? (
           <div style={{ padding: 15, color: '#64748b' }}>No listings match these filters.</div>

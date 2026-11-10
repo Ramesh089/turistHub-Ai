@@ -366,8 +366,43 @@ export default function PartnerApplicationsAdmin({ onNavigateToListings }) {
           <option value="">All categories</option>
           {Object.keys(CATEGORY_ICONS).map(category => <option key={category}>{category}</option>)}
         </select>
-        <label style={{ fontSize: '0.75rem', color: '#64748b' }}>From <input aria-label="Submitted from" className="form-control" type="date" value={dateFrom} onChange={event => { setDateFrom(event.target.value); setPage(1); }} /></label>
-        <label style={{ fontSize: '0.75rem', color: '#64748b' }}>To <input aria-label="Submitted to" className="form-control" type="date" value={dateTo} onChange={event => { setDateTo(event.target.value); setPage(1); }} /></label>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '38px' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b', whiteSpace: 'nowrap' }}>From</span>
+          <input
+            aria-label="Submitted from"
+            className="form-control"
+            type="date"
+            value={dateFrom}
+            onChange={event => { setDateFrom(event.target.value); setPage(1); }}
+            style={{ width: 'auto', minWidth: '135px', height: '38px', fontSize: '0.82rem', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '0 10px', background: 'white', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '38px' }}>
+          <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#64748b', whiteSpace: 'nowrap' }}>To</span>
+          <input
+            aria-label="Submitted to"
+            className="form-control"
+            type="date"
+            value={dateTo}
+            onChange={event => { setDateTo(event.target.value); setPage(1); }}
+            style={{ width: 'auto', minWidth: '135px', height: '38px', fontSize: '0.82rem', borderRadius: '8px', border: '1px solid #cbd5e1', padding: '0 10px', background: 'white', boxSizing: 'border-box' }}
+          />
+        </div>
+
+        {(dateFrom || dateTo) && (
+          <button
+            type="button"
+            onClick={() => { setDateFrom(''); setDateTo(''); setPage(1); }}
+            style={{
+              height: '38px', padding: '0 10px', fontSize: '0.76rem', fontWeight: '700',
+              color: '#dc2626', background: '#fee2e2', border: 'none', borderRadius: '8px',
+              cursor: 'pointer', display: 'inline-flex', alignItems: 'center'
+            }}
+          >
+            Clear Dates
+          </button>
+        )}
 
         <div style={{ display: 'flex', gap: '4px', background: '#f1f5f9', padding: '3px', borderRadius: '8px' }}>
           {['All', 'Pending', 'Approved', 'Rejected'].map(s => (
