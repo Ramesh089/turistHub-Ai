@@ -111,17 +111,26 @@ export default function PartnerApplicationsAdmin({ onNavigateToListings }) {
   });
 
   const openQuickAddModal = (app) => {
+    const isHotel = (app.category || '').toLowerCase().includes('hotel');
+    const isTransport = (app.category || '').toLowerCase().includes('bus') || (app.category || '').toLowerCase().includes('travel') || (app.category || '').toLowerCase().includes('transport');
+    const isRestaurant = (app.category || '').toLowerCase().includes('restaurant');
+
+    const defaultPrice = isHotel ? '2500' : isTransport ? '650' : isRestaurant ? '800' : '1500';
+    const defaultCapacity = isHotel ? 10 : isTransport ? 40 : isRestaurant ? 50 : 20;
+    const defaultUnit = isHotel ? 'per night' : isTransport ? 'per person' : isRestaurant ? 'per person' : 'fixed';
+
     setQuickAddForm({
       listingTitle: `${app.business_name} Service`,
       category: app.category || 'Hotel',
       city: app.city || '',
       state: app.state || '',
-      price: app.category === 'Hotel' ? '2500' : app.category === 'Tour & Travel' ? '4500' : '1500',
-      capacity: app.category === 'Hotel' ? 10 : app.category === 'Bus Operator' ? 40 : 15,
-      priceUnit: app.category === 'Hotel' ? 'per night' : 'per person',
+      price: defaultPrice,
+      capacity: defaultCapacity,
+      priceUnit: defaultUnit,
       availability: 'Available daily with advance confirmation',
       terms: 'Free cancellation up to 24 hours before service.',
-      listingDescription: app.business_details || `Official verified service listing for ${app.business_name}.`
+      listingDescription: app.business_details || `Official verified service listing for ${app.business_name}.`,
+      publishImmediately: true
     });
     setQuickAddModal(app);
   };
@@ -148,9 +157,17 @@ export default function PartnerApplicationsAdmin({ onNavigateToListings }) {
 
       const res = await api.post('/listings/admin', payload);
       if (res.data.success) {
-        setActionMsg(`Service listing "${quickAddForm.listingTitle}" created successfully for ${quickAddModal.business_name}!`);
+        const listingId = res.data.listing?.id;
+        if (quickAddForm.publishImmediately && listingId) {
+          try {
+            await api.patch(`/listings/admin/${listingId}/publish`);
+          } catch (pubErr) {
+            console.warn('Publish warning:', pubErr);
+          }
+        }
+        setActionMsg(`Service listing "${quickAddForm.listingTitle}" created and published successfully for ${quickAddModal.business_name}!`);
         setQuickAddModal(null);
-        setTimeout(() => setActionMsg(null), 5000);
+        setTimeout(() => setActionMsg(null), 6000);
       } else {
         setActionMsg('Failed to create listing: ' + (res.data.message || 'Unknown error'));
       }
@@ -546,52 +563,7 @@ export default function PartnerApplicationsAdmin({ onNavigateToListings }) {
                 <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '6px' }}>
                   Submitted {new Date(app.created_at).toLocaleDateString('en-IN')}
                 </div>
-                {app.status === 'Approved' ? (
-                  <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openQuickAddModal(app);
-                      }}
-                      title="Quick Add a service listing for this approved partner"
-                      style={{
-                        background: '#f0f9ff',
-                        color: '#0284c7',
-                        border: '1px solid #bae6fd',
-                        borderRadius: '6px',
-                        padding: '4px 10px',
-                        fontSize: '0.74rem',
-                        fontWeight: '700',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        transition: 'all 0.15s ease'
-                      }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = '#0284c7'; e.currentTarget.style.color = 'white'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = '#f0f9ff'; e.currentTarget.style.color = '#0284c7'; }}
-                    >
-                      <Plus size={12} />
-                      Quick Add
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end' }}>
-                    <span
-                      title="Quick Add is only available for approved partners"
-                      style={{
-                        color: '#cbd5e1',
-                        fontSize: '0.72rem',
-                        fontWeight: '600',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '3px'
-                      }}
-                    >
-                      <Plus size={11} /> Quick Add (Locked)
-                    </span>
-                  </div>
-                )}
+
               </div>
             ))
           )}
@@ -766,6 +738,7 @@ export default function PartnerApplicationsAdmin({ onNavigateToListings }) {
               <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
                 {selectedApp.status === 'Approved' ? (
                   <button
+                    type="button"
                     onClick={() => openQuickAddModal(selectedApp)}
                     style={{
                       width: '100%',
@@ -773,19 +746,19 @@ export default function PartnerApplicationsAdmin({ onNavigateToListings }) {
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '8px',
-                      background: 'linear-gradient(135deg, #0284c7, #0ea5e9)',
+                      background: '#0284c7',
                       color: 'white',
                       border: 'none',
                       borderRadius: '10px',
                       padding: '12px 18px',
                       fontWeight: '700',
-                      fontSize: '0.88rem',
+                      fontSize: '0.92rem',
                       cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)',
+                      boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
                       transition: 'all 0.15s ease'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.92'}
-                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = '#0369a1'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = '#0284c7'; e.currentTarget.style.transform = 'translateY(0)'; }}
                   >
                     <Plus size={18} />
                     Quick Add Service for {selectedApp.business_name}
@@ -819,6 +792,265 @@ export default function PartnerApplicationsAdmin({ onNavigateToListings }) {
           </div>
         ) : null}
       </div>
+
+
+      {/* Quick Add Service Listing Modal */}
+      {quickAddModal && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 10000, padding: '20px'
+        }}>
+          <div style={{
+            background: 'white', borderRadius: '16px', maxWidth: '640px', width: '100%',
+            maxHeight: '90vh', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)', overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '20px 24px', borderBottom: '1px solid #f1f5f9', background: '#f8fafc'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '38px', height: '38px', borderRadius: '10px',
+                  background: '#e0f2fe', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <Plus size={20} color="#0284c7" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#0f172a', fontWeight: '800' }}>
+                    Quick Add Service Listing
+                  </h3>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
+                    Partner: <strong>{quickAddModal.business_name}</strong> ({quickAddModal.category || 'Business'})
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuickAddModal(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: '4px' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body / Form */}
+            <form onSubmit={handleCreateQuickAdd} style={{ padding: '24px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                  Service / Listing Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={quickAddForm.listingTitle}
+                  onChange={e => setQuickAddForm({ ...quickAddForm, listingTitle: e.target.value })}
+                  placeholder="e.g. Luxury AC Sleeper / Deluxe Suite / Tour Package"
+                  className="form-control"
+                  style={{ height: '38px', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                    Category *
+                  </label>
+                  <select
+                    value={quickAddForm.category}
+                    onChange={e => setQuickAddForm({ ...quickAddForm, category: e.target.value })}
+                    className="form-control"
+                    style={{ height: '38px', fontSize: '0.85rem' }}
+                  >
+                    {['Hotel', 'Bus Operator', 'Tour & Travel', 'Restaurant', 'Adventure', 'Guide', 'Other'].map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                    Price Unit *
+                  </label>
+                  <select
+                    value={quickAddForm.priceUnit}
+                    onChange={e => setQuickAddForm({ ...quickAddForm, priceUnit: e.target.value })}
+                    className="form-control"
+                    style={{ height: '38px', fontSize: '0.85rem' }}
+                  >
+                    <option value="per night">per night</option>
+                    <option value="per person">per person</option>
+                    <option value="per day">per day</option>
+                    <option value="per trip">per trip</option>
+                    <option value="fixed">fixed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={quickAddForm.city}
+                    onChange={e => setQuickAddForm({ ...quickAddForm, city: e.target.value })}
+                    placeholder="e.g. Mysuru / Bengaluru"
+                    className="form-control"
+                    style={{ height: '38px', fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                    State
+                  </label>
+                  <input
+                    type="text"
+                    value={quickAddForm.state}
+                    onChange={e => setQuickAddForm({ ...quickAddForm, state: e.target.value })}
+                    placeholder="e.g. Karnataka"
+                    className="form-control"
+                    style={{ height: '38px', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                    Base Price (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    required
+                    value={quickAddForm.price}
+                    onChange={e => setQuickAddForm({ ...quickAddForm, price: e.target.value })}
+                    placeholder="2500"
+                    className="form-control"
+                    style={{ height: '38px', fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                    Total Capacity / Units *
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    required
+                    value={quickAddForm.capacity}
+                    onChange={e => setQuickAddForm({ ...quickAddForm, capacity: e.target.value })}
+                    placeholder="10"
+                    className="form-control"
+                    style={{ height: '38px', fontSize: '0.85rem' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                  Availability Schedule
+                </label>
+                <input
+                  type="text"
+                  value={quickAddForm.availability}
+                  onChange={e => setQuickAddForm({ ...quickAddForm, availability: e.target.value })}
+                  placeholder="e.g. Daily departures 9:00 PM / Check-in 12:00 PM"
+                  className="form-control"
+                  style={{ height: '38px', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                  Service Description
+                </label>
+                <textarea
+                  rows={3}
+                  value={quickAddForm.listingDescription}
+                  onChange={e => setQuickAddForm({ ...quickAddForm, listingDescription: e.target.value })}
+                  placeholder="Official verified service listing details..."
+                  className="form-control"
+                  style={{ fontSize: '0.85rem', resize: 'vertical' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: '700', color: '#334155', marginBottom: '6px' }}>
+                  Terms & Cancellation Policy
+                </label>
+                <input
+                  type="text"
+                  value={quickAddForm.terms}
+                  onChange={e => setQuickAddForm({ ...quickAddForm, terms: e.target.value })}
+                  placeholder="e.g. Free cancellation up to 24 hours prior to travel."
+                  className="form-control"
+                  style={{ height: '38px', fontSize: '0.85rem' }}
+                />
+              </div>
+
+              <div style={{
+                background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px',
+                padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '10px'
+              }}>
+                <input
+                  type="checkbox"
+                  id="publishImmediately"
+                  checked={quickAddForm.publishImmediately}
+                  onChange={e => setQuickAddForm({ ...quickAddForm, publishImmediately: e.target.checked })}
+                  style={{ width: '17px', height: '17px', cursor: 'pointer', accentColor: '#16a34a' }}
+                />
+                <label htmlFor="publishImmediately" style={{ fontSize: '0.83rem', color: '#166534', fontWeight: '600', cursor: 'pointer' }}>
+                  Publish immediately to public service catalogue (Live for tourists to book)
+                </label>
+              </div>
+
+              {/* Modal Actions */}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setQuickAddModal(null)}
+                  style={{
+                    flex: 1, padding: '11px', border: '1px solid #cbd5e1',
+                    borderRadius: '8px', background: 'white', color: '#475569',
+                    fontWeight: '600', fontSize: '0.85rem', cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={quickAddLoading}
+                  style={{
+                    flex: 1.5, padding: '11px', border: 'none',
+                    borderRadius: '8px', background: '#0284c7',
+                    color: 'white', fontWeight: '700', fontSize: '0.85rem',
+                    cursor: quickAddLoading ? 'not-allowed' : 'pointer',
+                    opacity: quickAddLoading ? 0.7 : 1,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    boxShadow: '0 2px 8px rgba(2, 132, 199, 0.3)'
+                  }}
+                >
+                  {quickAddLoading ? (
+                    <><RefreshCw size={14} className="spin" /> Creating Listing...</>
+                  ) : (
+                    <><Plus size={16} /> Create & Publish Service</>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Review Confirmation Modal */}
       {reviewModal && (
