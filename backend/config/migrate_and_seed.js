@@ -109,7 +109,7 @@ async function migrateAndSeed() {
   try {
     await pool.query('ALTER TABLE hotels DROP FOREIGN KEY fk_hotels_destination');
   } catch (e) {}
-  await pool.query('ALTER TABLE hotels MODIFY COLUMN city VARCHAR(100) NULL DEFAULT ""');
+  await pool.query("ALTER TABLE hotels MODIFY COLUMN city VARCHAR(100) NULL DEFAULT ''");
   await pool.query('ALTER TABLE hotels MODIFY COLUMN destination_id INT NULL DEFAULT NULL');
   await addColumnIfNotExists('hotels', 'location', 'VARCHAR(255)');
   await addColumnIfNotExists('hotels', 'room_type', 'VARCHAR(100)');
@@ -159,9 +159,9 @@ async function migrateAndSeed() {
     await pool.query('ALTER TABLE emergency_services DROP FOREIGN KEY fk_emergency_services_destination');
   } catch (e) {}
   await pool.query('ALTER TABLE emergency_services MODIFY COLUMN destination_id INT NULL DEFAULT NULL');
-  await pool.query('ALTER TABLE emergency_services MODIFY COLUMN city VARCHAR(100) NULL DEFAULT ""');
-  await pool.query('ALTER TABLE emergency_services MODIFY COLUMN phone_primary VARCHAR(50) NULL DEFAULT ""');
-  await pool.query('ALTER TABLE emergency_services MODIFY COLUMN service_type VARCHAR(100) DEFAULT "Hospital"');
+  await pool.query("ALTER TABLE emergency_services MODIFY COLUMN city VARCHAR(100) NULL DEFAULT ''");
+  await pool.query("ALTER TABLE emergency_services MODIFY COLUMN phone_primary VARCHAR(50) NULL DEFAULT ''");
+  await pool.query("ALTER TABLE emergency_services MODIFY COLUMN service_type VARCHAR(100) DEFAULT 'Hospital'");
   await addColumnIfNotExists('emergency_services', 'contact_number', 'VARCHAR(100)');
   await addColumnIfNotExists('emergency_services', 'distance_km', 'DECIMAL(6,2)');
 

@@ -121,7 +121,7 @@ async function initDatabase() {
     for (const col of userCols) {
       if (!col.EXTRA.includes('GENERATED')) {
         if (col.COLUMN_NAME === 'name') {
-          await connection.query('UPDATE users SET name = full_name WHERE name IS NULL OR name = ""');
+          await connection.query("UPDATE users SET name = full_name WHERE name IS NULL OR name = ''");
         }
         if (col.COLUMN_NAME === 'avatar_url') {
           await connection.query('UPDATE users SET avatar_url = profile_image_url WHERE avatar_url IS NULL AND profile_image_url IS NOT NULL');
