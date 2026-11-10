@@ -812,7 +812,7 @@ export default function Transport() {
       </div>
 
       <div className="container">
-        <PublicPartnerListings categories={['Bus Operator', 'Tour & Travel']} title="Verified partner transport services" />
+        <PublicPartnerListings categories={['Bus Operator', 'Tour & Travel']} title="Verified partner transport services" layout="transport" />
       </div>
 
       {/* Floating Success Toast */}
