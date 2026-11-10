@@ -370,98 +370,107 @@ export default function PartnerBookings({ application }) {
           </div>
         </div>
 
-        {/* Date & Detailed Filters Accordion */}
+        {/* Date & Detailed Filters Toolbar - Single Row Alignment */}
         <div style={{
           marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #f1f5f9',
-          display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between'
+          display: 'flex', flexWrap: 'nowrap', gap: '10px', alignItems: 'center',
+          overflowX: 'auto', paddingBottom: '3px'
         }}>
-          {/* Left Controls: Date Type, From, To, Payment */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
-            {/* Date Type Selector */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '34px' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', whiteSpace: 'nowrap' }}>Filter by:</span>
-              <div style={{ display: 'inline-flex', gap: '3px', background: '#f8fafc', padding: '2px', borderRadius: '8px', border: '1px solid #cbd5e1', height: '34px', boxSizing: 'border-box', alignItems: 'center' }}>
-                <button
-                  type="button"
-                  onClick={() => setDateType('travel')}
-                  style={{
-                    border: 'none', cursor: 'pointer', borderRadius: '6px',
-                    height: '28px', padding: '0 10px', fontSize: '0.76rem', fontWeight: '700',
-                    background: dateType === 'travel' ? '#0284c7' : 'transparent',
-                    color: dateType === 'travel' ? 'white' : '#64748b',
-                    display: 'inline-flex', alignItems: 'center', transition: 'all 0.15s'
-                  }}
-                >
-                  Travel Date
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDateType('booking')}
-                  style={{
-                    border: 'none', cursor: 'pointer', borderRadius: '6px',
-                    height: '28px', padding: '0 10px', fontSize: '0.76rem', fontWeight: '700',
-                    background: dateType === 'booking' ? '#0284c7' : 'transparent',
-                    color: dateType === 'booking' ? 'white' : '#64748b',
-                    display: 'inline-flex', alignItems: 'center', transition: 'all 0.15s'
-                  }}
-                >
-                  Booking Date
-                </button>
-              </div>
-            </div>
-
-            {/* Date From */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '34px' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', whiteSpace: 'nowrap' }}>From:</span>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="form-control"
-                style={{ fontSize: '0.8rem', height: '34px', padding: '0 10px', width: 'auto', minWidth: '130px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', boxSizing: 'border-box' }}
-              />
-            </div>
-
-            {/* Date To */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '34px' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', whiteSpace: 'nowrap' }}>To:</span>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="form-control"
-                style={{ fontSize: '0.8rem', height: '34px', padding: '0 10px', width: 'auto', minWidth: '130px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', boxSizing: 'border-box' }}
-              />
-            </div>
-
-            {/* Payment Status Filter */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '34px' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', whiteSpace: 'nowrap' }}>Payment:</span>
-              <select
-                value={paymentFilter}
-                onChange={(e) => setPaymentFilter(e.target.value)}
-                className="form-control"
-                style={{ fontSize: '0.8rem', height: '34px', padding: '0 10px', width: 'auto', minWidth: '130px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', boxSizing: 'border-box' }}
+          {/* Date Type Selector */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', height: '34px', flexShrink: 0 }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569', whiteSpace: 'nowrap' }}>Filter by:</span>
+            <div style={{ display: 'inline-flex', gap: '2px', background: '#f8fafc', padding: '2px', borderRadius: '8px', border: '1px solid #cbd5e1', height: '34px', boxSizing: 'border-box', alignItems: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setDateType('travel')}
+                style={{
+                  border: 'none', cursor: 'pointer', borderRadius: '6px',
+                  height: '28px', padding: '0 8px', fontSize: '0.75rem', fontWeight: '700',
+                  background: dateType === 'travel' ? '#0284c7' : 'transparent',
+                  color: dateType === 'travel' ? 'white' : '#64748b',
+                  display: 'inline-flex', alignItems: 'center', transition: 'all 0.15s'
+                }}
               >
-                <option value="All">All Payments</option>
-                <option value="Paid">Paid</option>
-                <option value="Pending">Pending</option>
-                <option value="Refunded">Refunded</option>
-                <option value="Failed">Failed</option>
-              </select>
+                Travel Date
+              </button>
+              <button
+                type="button"
+                onClick={() => setDateType('booking')}
+                style={{
+                  border: 'none', cursor: 'pointer', borderRadius: '6px',
+                  height: '28px', padding: '0 8px', fontSize: '0.75rem', fontWeight: '700',
+                  background: dateType === 'booking' ? '#0284c7' : 'transparent',
+                  color: dateType === 'booking' ? 'white' : '#64748b',
+                  display: 'inline-flex', alignItems: 'center', transition: 'all 0.15s'
+                }}
+              >
+                Booking Date
+              </button>
             </div>
           </div>
 
-          {/* Right Controls: Sort By (Aligned cleanly with no awkward line breaks or detached floating) */}
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '34px' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', whiteSpace: 'nowrap' }}>Sort:</span>
+          {/* Date From */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', height: '34px', flexShrink: 0 }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569', whiteSpace: 'nowrap' }}>From:</span>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="form-control"
+              style={{ fontSize: '0.78rem', height: '34px', padding: '0 6px 0 8px', width: '125px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', boxSizing: 'border-box' }}
+            />
+          </div>
+
+          {/* Date To */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', height: '34px', flexShrink: 0 }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569', whiteSpace: 'nowrap' }}>To:</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="form-control"
+              style={{ fontSize: '0.78rem', height: '34px', padding: '0 6px 0 8px', width: '125px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', boxSizing: 'border-box' }}
+            />
+          </div>
+
+          {/* Payment Status Filter */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', height: '34px', flexShrink: 0 }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569', whiteSpace: 'nowrap' }}>Payment:</span>
+            <select
+              value={paymentFilter}
+              onChange={(e) => setPaymentFilter(e.target.value)}
+              className="form-control"
+              style={{ fontSize: '0.78rem', height: '34px', padding: '0 8px', width: '120px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', boxSizing: 'border-box' }}
+            >
+              <option value="All">All Payments</option>
+              <option value="Paid">Paid</option>
+              <option value="Pending">Pending</option>
+              <option value="Refunded">Refunded</option>
+              <option value="Failed">Failed</option>
+            </select>
+          </div>
+
+          {/* Sort By - In Same Row, perfectly centered text with zero vertical clipping */}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', height: '34px', flexShrink: 0 }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: '600', color: '#475569', whiteSpace: 'nowrap' }}>Sort:</span>
             <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-              <ArrowUpDown size={13} style={{ position: 'absolute', left: '10px', color: '#94a3b8', pointerEvents: 'none' }} />
+              <ArrowUpDown size={13} style={{ position: 'absolute', left: '8px', color: '#94a3b8', pointerEvents: 'none' }} />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="form-control"
-                style={{ fontSize: '0.8rem', height: '34px', paddingLeft: '28px', paddingRight: '12px', width: 'auto', minWidth: '145px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', boxSizing: 'border-box' }}
+                style={{
+                  fontSize: '0.78rem',
+                  height: '34px',
+                  padding: '0 10px 0 26px',
+                  lineHeight: '34px',
+                  width: 'auto',
+                  minWidth: '160px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: 'white',
+                  boxSizing: 'border-box'
+                }}
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>
