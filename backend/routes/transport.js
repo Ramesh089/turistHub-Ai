@@ -830,9 +830,9 @@ router.post('/bookings/:id/cancel', authenticateToken, async (req, res) => {
 });
 
 // -------------------------------------------------------------
-// Admin Management Routes
+// Admin Management Routes (Supports both REST and /admin paths)
 // -------------------------------------------------------------
-router.post('/admin/create', authenticateToken, requireAdmin, async (req, res) => {
+const handleCreateTransport = async (req, res) => {
   try {
     const {
       destination_id,
@@ -853,9 +853,22 @@ router.post('/admin/create', authenticateToken, requireAdmin, async (req, res) =
       amenities
     } = req.body;
 
-    if (!transport_type || !provider || !price) {
-      return res.status(400).json({ success: false, message: 'Provider, type, and price are required.' });
+    if (!transport_type || !provider || price === undefined || price === null || isNaN(parseFloat(price))) {
+      return res.status(400).json({ success: false, message: 'Provider, type, and valid price are required.' });
     }
+
+    // Resolve from_city and to_city if route was provided without explicit cities
+    let resolvedFromCity = from_city || '';
+    let resolvedToCity = to_city || '';
+    if ((!resolvedFromCity || !resolvedToCity) && route) {
+      const parts = route.split(/\s*(?:->|→|to|-)\s*/i);
+      if (parts.length >= 2) {
+        resolvedFromCity = resolvedFromCity || parts[0].trim();
+        resolvedToCity = resolvedToCity || parts[1].trim();
+      }
+    }
+
+    const resolvedRoute = route || (resolvedFromCity && resolvedToCity ? `${resolvedFromCity} → ${resolvedToCity}` : provider);
 
     const [result] = await pool.query(`
       INSERT INTO transport (
@@ -867,33 +880,49 @@ router.post('/admin/create', authenticateToken, requireAdmin, async (req, res) =
       destination_id || null,
       transport_type,
       provider,
-      from_city || '',
-      to_city || '',
-      route || `${from_city || ''} → ${to_city || ''}`,
+      resolvedFromCity,
+      resolvedToCity,
+      resolvedRoute,
       service_number || null,
       vehicle_model || null,
       departure_time || '06:00 AM',
       arrival_time || '10:00 AM',
       parseFloat(price),
       duration || '4h 00m',
-      seats_total ? parseInt(seats_total) : 40,
+      seats_total ? parseInt(seats_total, 10) : 40,
       booking_info || null,
-      class_options ? JSON.stringify(class_options) : null,
-      amenities ? JSON.stringify(amenities) : null
+      class_options ? (typeof class_options === 'string' ? class_options : JSON.stringify(class_options)) : null,
+      amenities ? (typeof amenities === 'string' ? amenities : JSON.stringify(amenities)) : null
     ]);
 
     return res.status(201).json({
       success: true,
       message: `${transport_type} service created successfully.`,
-      transportId: result.insertId
+      transportId: result.insertId,
+      transport: {
+        id: result.insertId,
+        destination_id: destination_id || null,
+        transport_type,
+        provider,
+        from_city: resolvedFromCity,
+        to_city: resolvedToCity,
+        route: resolvedRoute,
+        price: parseFloat(price),
+        departure_time: departure_time || '06:00 AM',
+        arrival_time: arrival_time || '10:00 AM',
+        duration: duration || '4h 00m'
+      }
     });
   } catch (error) {
     console.error('Admin Create Transport Error:', error);
     return res.status(500).json({ success: false, message: 'Failed to create transport.' });
   }
-});
+};
 
-router.put('/admin/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.post('/', authenticateToken, requireAdmin, handleCreateTransport);
+router.post('/admin/create', authenticateToken, requireAdmin, handleCreateTransport);
+
+const handleUpdateTransport = async (req, res) => {
   try {
     const {
       transport_type,
@@ -909,6 +938,16 @@ router.put('/admin/:id', authenticateToken, requireAdmin, async (req, res) => {
       duration,
       seats_total
     } = req.body;
+
+    let resolvedFromCity = from_city;
+    let resolvedToCity = to_city;
+    if ((!resolvedFromCity || !resolvedToCity) && route) {
+      const parts = route.split(/\s*(?:->|→|to|-)\s*/i);
+      if (parts.length >= 2) {
+        resolvedFromCity = resolvedFromCity || parts[0].trim();
+        resolvedToCity = resolvedToCity || parts[1].trim();
+      }
+    }
 
     await pool.query(`
       UPDATE transport SET
@@ -928,16 +967,16 @@ router.put('/admin/:id', authenticateToken, requireAdmin, async (req, res) => {
     `, [
       transport_type,
       provider,
-      from_city,
-      to_city,
+      resolvedFromCity,
+      resolvedToCity,
       route,
       service_number,
       vehicle_model,
       departure_time,
       arrival_time,
-      price !== undefined ? parseFloat(price) : null,
+      price !== undefined && price !== null ? parseFloat(price) : null,
       duration,
-      seats_total !== undefined ? parseInt(seats_total) : null,
+      seats_total !== undefined && seats_total !== null ? parseInt(seats_total, 10) : null,
       req.params.id
     ]);
 
@@ -946,9 +985,12 @@ router.put('/admin/:id', authenticateToken, requireAdmin, async (req, res) => {
     console.error('Admin Update Transport Error:', error);
     return res.status(500).json({ success: false, message: 'Failed to update transport.' });
   }
-});
+};
 
-router.delete('/admin/:id', authenticateToken, requireAdmin, async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, handleUpdateTransport);
+router.put('/admin/:id', authenticateToken, requireAdmin, handleUpdateTransport);
+
+const handleDeleteTransport = async (req, res) => {
   try {
     await pool.query('DELETE FROM transport WHERE id = ?', [req.params.id]);
     return res.json({ success: true, message: 'Transport option deleted successfully.' });
@@ -956,6 +998,9 @@ router.delete('/admin/:id', authenticateToken, requireAdmin, async (req, res) =>
     console.error('Admin Delete Transport Error:', error);
     return res.status(500).json({ success: false, message: 'Failed to delete transport.' });
   }
-});
+};
+
+router.delete('/:id', authenticateToken, requireAdmin, handleDeleteTransport);
+router.delete('/admin/:id', authenticateToken, requireAdmin, handleDeleteTransport);
 
 module.exports = router;
