@@ -12,6 +12,7 @@ import WeatherModal from './components/weather/WeatherModal';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
 import PublicAuthRoute from './components/PublicAuthRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Pages
 import Home from './pages/Home';

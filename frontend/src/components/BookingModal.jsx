@@ -342,7 +342,7 @@ export default function BookingModal({
     { id: 'suite', name: 'Heritage Suite', price: Math.round((item?.price_per_night || 2500) * 2.2), desc: 'Separate living room, premium decor, 400 sq ft, butler', amenities: ['WiFi', 'AC', 'Breakfast', 'Meals'] }
   ];
   const [selectedRoom, setSelectedRoom] = useState(hotelRooms[0]);
-  const nights = Math.max(0, Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000));
+  const nights = Math.max(1, Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000) || 1);
 
   // Transport state
   const [fromCity, setFromCity] = useState(
@@ -352,6 +352,7 @@ export default function BookingModal({
     item?.to_city || (item?.locationOrRoute ? (item.locationOrRoute.split(/\s*(?:->|→|to|-)\s*/i)[1] || item.locationOrRoute) : '') || 'Mysore'
   );
   const [travelDate, setTravelDate] = useState(initialPlan?.travel_date || new Date().toISOString().split('T')[0]);
+  const [pkgTravelDate, setPkgTravelDate] = useState(initialPlan?.travel_date || new Date().toISOString().split('T')[0]);
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [liveBookedSeats, setLiveBookedSeats] = useState([]);
   const [loadingSeats, setLoadingSeats] = useState(false);
@@ -403,8 +404,7 @@ export default function BookingModal({
     });
   }, [guests]);
 
-  // Package state
-  const [pkgTravelDate, setPkgTravelDate] = useState(initialPlan?.travel_date || new Date().toISOString().split('T')[0]);
+
 
   // Coupons
   const [couponInput, setCouponInput] = useState(initialPlan ? 'AIPLAN1500' : '');
@@ -454,14 +454,9 @@ export default function BookingModal({
   const [paymentError, setPaymentError] = useState('');
   const [copiedField, setCopiedField] = useState(null);
 
-  // Auto-apply promo from AI Planner
-  useEffect(() => {
-    if (initialPlan) applyPromo('AIPLAN1500');
-  }, []);
-
   // Price calculations
   const baseAmount = (() => {
-    if (bookingType === 'hotel') return selectedRoom.price * nights * guests;
+    if (bookingType === 'hotel') return (selectedRoom?.price || 2500) * nights * guests;
     if (isTransport) return (Number(item?.price) || 1200) * (selectedSeats.length || guests || 1);
     if (bookingType === 'guide') return (Number(item?.price_per_day || item?.price) || 1000) * (guests || 1);
     if (bookingType === 'car') return (Number(item?.price_per_day || item?.price) || 2000) * (guests || 1);
@@ -502,6 +497,11 @@ export default function BookingModal({
     setCouponInput('');
     setCouponErr('');
   };
+
+  // Auto-apply promo from AI Planner
+  useEffect(() => {
+    if (initialPlan) applyPromo('AIPLAN1500');
+  }, []);
 
   const canProceed = () => {
     if (isTransport && selectedSeats.length === 0) return false;
@@ -1010,7 +1010,7 @@ Thank you for choosing Tourist Hub AI!
                 </div>
 
                 <div style={{ background: '#f0f9ff', borderRadius: 10, padding: '12px 16px', marginBottom: 14, fontSize: '0.85rem', color: '#0369a1' }}>
-                  🛏️ <strong>{selectedRoom.name}</strong> × {nights} night{nights > 1 ? 's' : ''} × {guests} guest{guests > 1 ? 's' : ''} = <strong>₹{baseAmount.toLocaleString('en-IN')}</strong>
+                  🛏️ <strong>{selectedRoom?.name || 'Standard Room'}</strong> × {nights} night{nights > 1 ? 's' : ''} × {guests} guest{guests > 1 ? 's' : ''} = <strong>₹{baseAmount.toLocaleString('en-IN')}</strong>
                 </div>
               </div>
             )}
