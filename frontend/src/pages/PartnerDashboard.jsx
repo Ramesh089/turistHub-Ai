@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import PartnerListings from '../components/PartnerListings';
 import PartnerQueries from '../components/PartnerQueries';
+import PartnerBookings from '../components/PartnerBookings';
 import {
   Briefcase,
   Globe,
@@ -27,7 +28,9 @@ import {
   ChevronRight,
   MessageCircle,
   FilePlus2,
-  Zap
+  Zap,
+
+  CalendarCheck
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -227,6 +230,7 @@ export default function PartnerDashboard() {
             { id: 'status', label: 'Application Status', icon: ShieldCheck },
             { id: 'profile', label: 'My Profile', icon: User },
             { id: 'listings', label: 'My Services & Prices', icon: Briefcase },
+            { id: 'bookings', label: 'Bookings', icon: CalendarCheck },
             { id: 'questions', label: 'Questions to Admin', icon: MessageCircle }
           ].map(({ id, label, icon: Icon }) => (
             <button
@@ -262,6 +266,8 @@ export default function PartnerDashboard() {
               Try Again
             </button>
           </div>
+        ) : activeTab === 'bookings' ? (
+          <PartnerBookings application={application} />
         ) : activeTab === 'listings' ? (
           <PartnerListings application={application} applicationStatus={application?.status} />
         ) : activeTab === 'questions' ? (

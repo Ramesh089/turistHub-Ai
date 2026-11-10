@@ -19,7 +19,11 @@ import {
   Calendar,
   ShieldCheck,
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
+
+  Plus,
+
+  Sparkles
 } from 'lucide-react';
 
 const STATUS_COLORS = {
@@ -79,7 +83,7 @@ function normalizeApplication(application) {
   };
 }
 
-export default function PartnerApplicationsAdmin() {
+export default function PartnerApplicationsAdmin({ onNavigateToListings }) {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('All');
@@ -90,6 +94,74 @@ export default function PartnerApplicationsAdmin() {
   const [reviewNote, setReviewNote] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
   const [actionMsg, setActionMsg] = useState(null);
+  // Quick Add state for approved partner applications
+  const [quickAddModal, setQuickAddModal] = useState(null);
+  const [quickAddLoading, setQuickAddLoading] = useState(false);
+  const [quickAddForm, setQuickAddForm] = useState({
+    listingTitle: '',
+    category: 'Hotel',
+    city: '',
+    state: '',
+    price: '2000',
+    capacity: 10,
+    priceUnit: 'per night',
+    availability: 'Daily from 09:00 AM to 08:00 PM',
+    terms: 'Free cancellation up to 24 hours prior to travel.',
+    listingDescription: ''
+  });
+
+  const openQuickAddModal = (app) => {
+    setQuickAddForm({
+      listingTitle: `${app.business_name} Service`,
+      category: app.category || 'Hotel',
+      city: app.city || '',
+      state: app.state || '',
+      price: app.category === 'Hotel' ? '2500' : app.category === 'Tour & Travel' ? '4500' : '1500',
+      capacity: app.category === 'Hotel' ? 10 : app.category === 'Bus Operator' ? 40 : 15,
+      priceUnit: app.category === 'Hotel' ? 'per night' : 'per person',
+      availability: 'Available daily with advance confirmation',
+      terms: 'Free cancellation up to 24 hours before service.',
+      listingDescription: app.business_details || `Official verified service listing for ${app.business_name}.`
+    });
+    setQuickAddModal(app);
+  };
+
+  const handleCreateQuickAdd = async (e) => {
+    e.preventDefault();
+    if (!quickAddModal) return;
+    setQuickAddLoading(true);
+    try {
+      const payload = {
+        applicationId: quickAddModal.id,
+        listingTitle: quickAddForm.listingTitle.trim(),
+        listingDescription: quickAddForm.listingDescription.trim(),
+        category: quickAddForm.category,
+        locationOrRoute: `${quickAddForm.city}, ${quickAddForm.state}`.trim(),
+        city: quickAddForm.city.trim(),
+        state: quickAddForm.state.trim(),
+        price: quickAddForm.price ? parseFloat(quickAddForm.price) : 0,
+        capacity: parseInt(quickAddForm.capacity, 10) || 1,
+        priceUnit: quickAddForm.priceUnit,
+        availability: quickAddForm.availability.trim(),
+        terms: quickAddForm.terms.trim()
+      };
+
+      const res = await api.post('/listings/admin', payload);
+      if (res.data.success) {
+        setActionMsg(`Service listing "${quickAddForm.listingTitle}" created successfully for ${quickAddModal.business_name}!`);
+        setQuickAddModal(null);
+        setTimeout(() => setActionMsg(null), 5000);
+      } else {
+        setActionMsg('Failed to create listing: ' + (res.data.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Quick Add Listing error:', err);
+      setActionMsg('Failed to create listing: ' + (err.response?.data?.message || err.message || 'Server error'));
+    } finally {
+      setQuickAddLoading(false);
+    }
+  };
+
   const [auditLogs, setAuditLogs] = useState([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [showAudit, setShowAudit] = useState(false);
@@ -439,6 +511,52 @@ export default function PartnerApplicationsAdmin() {
                 <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '6px' }}>
                   Submitted {new Date(app.created_at).toLocaleDateString('en-IN')}
                 </div>
+                {app.status === 'Approved' ? (
+                  <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openQuickAddModal(app);
+                      }}
+                      title="Quick Add a service listing for this approved partner"
+                      style={{
+                        background: '#f0f9ff',
+                        color: '#0284c7',
+                        border: '1px solid #bae6fd',
+                        borderRadius: '6px',
+                        padding: '4px 10px',
+                        fontSize: '0.74rem',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        transition: 'all 0.15s ease'
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = '#0284c7'; e.currentTarget.style.color = 'white'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = '#f0f9ff'; e.currentTarget.style.color = '#0284c7'; }}
+                    >
+                      <Plus size={12} />
+                      Quick Add
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ marginTop: '8px', display: 'flex', justifyContent: 'flex-end' }}>
+                    <span
+                      title="Quick Add is only available for approved partners"
+                      style={{
+                        color: '#cbd5e1',
+                        fontSize: '0.72rem',
+                        fontWeight: '600',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '3px'
+                      }}
+                    >
+                      <Plus size={11} /> Quick Add (Locked)
+                    </span>
+                  </div>
+                )}
               </div>
             ))
           )}
@@ -609,6 +727,59 @@ export default function PartnerApplicationsAdmin() {
                   Reviewed by Admin on {selectedApp.reviewed_at ? new Date(selectedApp.reviewed_at).toLocaleDateString('en-IN') : '—'}
                 </div>
               )}
+              {/* Quick Add Action Workflow */}
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                {selectedApp.status === 'Approved' ? (
+                  <button
+                    onClick={() => openQuickAddModal(selectedApp)}
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      background: 'linear-gradient(135deg, #0284c7, #0ea5e9)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '10px',
+                      padding: '12px 18px',
+                      fontWeight: '700',
+                      fontSize: '0.88rem',
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)',
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.opacity = '0.92'}
+                    onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
+                  >
+                    <Plus size={18} />
+                    Quick Add Service for {selectedApp.business_name}
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    title="Quick Add is only available after administrator approves this application."
+                    style={{
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      background: '#f1f5f9',
+                      color: '#94a3b8',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '10px',
+                      padding: '11px 18px',
+                      fontWeight: '600',
+                      fontSize: '0.84rem',
+                      cursor: 'not-allowed'
+                    }}
+                  >
+                    <Plus size={15} />
+                    Quick Add Service (Requires Approval)
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         ) : null}

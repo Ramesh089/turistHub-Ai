@@ -1111,7 +1111,7 @@ export default function AdminDashboard() {
 
         {activeTab === 'partner-applications' && (
           <div className="animate-fade-in card" style={{ padding: 'clamp(16px, 3vw, 24px)' }}>
-            <PartnerApplicationsAdmin />
+            <PartnerApplicationsAdmin onNavigateToListings={() => setActiveTab('partner-listings')} />
           </div>
         )}
 
