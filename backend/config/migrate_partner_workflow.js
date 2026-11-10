@@ -73,7 +73,7 @@ async function migratePartnerWorkflow() {
         `ALTER TABLE partner_applications MODIFY COLUMN application_id ${legacyApplicationId.COLUMN_TYPE} NULL`
       );
     }
-    await conn.query("UPDATE partner_applications SET application_id = CAST(id AS CHAR) WHERE application_id IS NULL OR application_id = ''");
+    await conn.query("UPDATE partner_applications SET application_id = CAST(id AS CHAR) WHERE application_id IS NULL OR application_id = ?", ['']);
     if (applicationColumns.has('admin_notes')) {
       await conn.query(
         'UPDATE partner_applications SET admin_note = admin_notes WHERE admin_note IS NULL AND admin_notes IS NOT NULL'
@@ -108,7 +108,8 @@ async function migratePartnerWorkflow() {
 
     if (documentColumns.has('doc_type')) {
       await conn.query(
-        'UPDATE partner_documents SET document_type = doc_type WHERE document_type IS NULL OR document_type = \'\''
+        'UPDATE partner_documents SET document_type = doc_type WHERE document_type IS NULL OR document_type = ?',
+        ['']
       );
       const legacyDocumentType = documentColumns.get('doc_type');
       if (legacyDocumentType.IS_NULLABLE === 'NO') {

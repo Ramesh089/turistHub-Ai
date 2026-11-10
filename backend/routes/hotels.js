@@ -16,7 +16,13 @@ router.get('/', async (req, res) => {
     const { destination_id, budget_tier, min_rating, max_price } = req.query;
 
     let query = `
-      SELECT h.*, p.name as destination_name, p.location as destination_location, s.name as state_name
+      SELECT h.*, p.name as destination_name, p.location as destination_location, s.name as state_name,
+             COALESCE(h.capacity, 15) AS capacity,
+             COALESCE((
+               SELECT COUNT(*)
+               FROM bookings b
+               WHERE b.hotel_id = h.id AND b.status IN ('Confirmed', 'Completed', 'Paid')
+             ), 0) AS booked_count
       FROM hotels h
       LEFT JOIN tourist_places p ON h.destination_id = p.id
       LEFT JOIN states s ON p.state_id = s.id
@@ -50,10 +56,20 @@ router.get('/', async (req, res) => {
     query += ` ORDER BY h.rating DESC, h.price_per_night ASC`;
 
     const [rows] = await pool.query(query, params);
-    const hotels = rows.map(h => ({
-      ...h,
-      amenities: safeJson(h.amenities)
-    }));
+    const hotels = rows.map(h => {
+      const capacity = Number(h.capacity || 15);
+      const bookedCount = Number(h.booked_count || 0);
+      const remainingCapacity = Math.max(0, capacity - bookedCount);
+      return {
+        ...h,
+        amenities: safeJson(h.amenities),
+        capacity,
+        booked_count: bookedCount,
+        remaining_capacity: remainingCapacity,
+        is_available: remainingCapacity > 0,
+        availability_status: remainingCapacity <= 0 ? 'Fully booked' : 'Available'
+      };
+    });
 
     return res.json({ success: true, count: hotels.length, hotels });
   } catch (error) {
@@ -66,7 +82,13 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT h.*, p.name as destination_name, s.name as state_name
+      SELECT h.*, p.name as destination_name, s.name as state_name,
+             COALESCE(h.capacity, 15) AS capacity,
+             COALESCE((
+               SELECT COUNT(*)
+               FROM bookings b
+               WHERE b.hotel_id = h.id AND b.status IN ('Confirmed', 'Completed', 'Paid')
+             ), 0) AS booked_count
       FROM hotels h
       JOIN tourist_places p ON h.destination_id = p.id
       JOIN states s ON p.state_id = s.id
@@ -79,6 +101,15 @@ router.get('/:id', async (req, res) => {
 
     const hotel = rows[0];
     hotel.amenities = safeJson(hotel.amenities);
+    const capacity = Number(hotel.capacity || 15);
+    const bookedCount = Number(hotel.booked_count || 0);
+    const remainingCapacity = Math.max(0, capacity - bookedCount);
+    hotel.capacity = capacity;
+    hotel.booked_count = bookedCount;
+    hotel.remaining_capacity = remainingCapacity;
+    hotel.is_available = remainingCapacity > 0;
+    hotel.availability_status = remainingCapacity <= 0 ? 'Fully booked' : 'Available';
+
     return res.json({ success: true, hotel });
   } catch (error) {
     console.error('Get Hotel Error:', error);
@@ -99,7 +130,8 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       amenities,
       contact,
       image_url,
-      address
+      address,
+      capacity
     } = req.body;
 
     if (!destination_id || !name || !location || !price_per_night || !room_type) {
@@ -110,11 +142,13 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       ? amenities
       : (typeof amenities === 'string' && amenities.trim() ? amenities.split(',').map(s => s.trim()) : []);
 
+    const hotelCapacity = capacity && parseInt(capacity, 10) > 0 ? parseInt(capacity, 10) : 15;
+
     const [result] = await pool.query(`
       INSERT INTO hotels (
         destination_id, name, location, price_per_night, rating,
-        room_type, amenities, contact, image_url, address
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        room_type, amenities, contact, image_url, address, capacity
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       destination_id,
       name,
@@ -125,13 +159,17 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       JSON.stringify(amenArray),
       contact || 'N/A',
       image_url || '',
-      address || location
+      address || location,
+      hotelCapacity
     ]);
 
     return res.status(201).json({
       success: true,
       message: 'Hotel added successfully.',
-      hotelId: result.insertId
+      hotelId: result.insertId,
+      capacity: hotelCapacity,
+      remaining_capacity: hotelCapacity,
+      availability_status: 'Available'
     });
   } catch (error) {
     console.error('Create Hotel Error:', error);
@@ -151,7 +189,8 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       amenities,
       contact,
       image_url,
-      address
+      address,
+      capacity
     } = req.body;
 
     await pool.query(`
@@ -164,7 +203,8 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
         amenities = COALESCE(?, amenities),
         contact = COALESCE(?, contact),
         image_url = COALESCE(?, image_url),
-        address = COALESCE(?, address)
+        address = COALESCE(?, address),
+        capacity = COALESCE(?, capacity)
       WHERE id = ?
     `, [
       name,
@@ -176,6 +216,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       contact,
       image_url,
       address,
+      capacity !== undefined && capacity !== null ? parseInt(capacity, 10) : null,
       req.params.id
     ]);
 

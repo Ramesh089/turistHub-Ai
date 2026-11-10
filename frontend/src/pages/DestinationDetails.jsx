@@ -4,6 +4,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useWeather } from '../context/WeatherContext';
 import DestinationWeatherCard from '../components/weather/DestinationWeatherCard';
+import BookingModal from '../components/BookingModal';
 import {
   MapPin,
   Star,
@@ -32,6 +33,9 @@ export default function DestinationDetails() {
   const [dest, setDest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [bookingItem, setBookingItem] = useState(null);
+  const [bookingType, setBookingType] = useState('transport');
+  const [bookingSuccessMsg, setBookingSuccessMsg] = useState(null);
 
   // Review Form state
   const [rating, setRating] = useState(5);
@@ -352,9 +356,21 @@ export default function DestinationDetails() {
                         <span style={{ fontSize: '0.75rem', color: 'var(--slate)' }}>Per Night</span>
                         <div style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--primary)' }}>₹{Number(h.price_per_night).toLocaleString('en-IN')}</div>
                       </div>
-                      <a href={`tel:${h.contact}`} className="btn btn-outline-primary btn-sm">
-                        <PhoneCall size={14} /> Contact
-                      </a>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <a href={`tel:${h.contact}`} className="btn btn-outline-primary btn-sm">
+                          <PhoneCall size={14} /> Contact
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBookingItem(h);
+                            setBookingType('hotel');
+                          }}
+                          className="btn btn-primary btn-sm"
+                        >
+                          Book Stay
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -378,11 +394,32 @@ export default function DestinationDetails() {
                       <div style={{ fontSize: '0.88rem', color: 'var(--slate)' }}>Route: {t.route}</div>
                       <div style={{ fontSize: '0.82rem', color: '#475569', marginTop: '4px' }}>Duration: {t.duration} • Departure: {t.departure_time}</div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '1.3rem', fontWeight: '800', color: 'var(--primary)', marginBottom: '6px' }}>
+                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+                      <div style={{ fontSize: '1.3rem', fontWeight: '800', color: 'var(--primary)' }}>
                         ₹{Number(t.price).toLocaleString('en-IN')}
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: '#16a34a', fontWeight: '600' }}>Available Daily</div>
+                      <span style={{
+                        fontSize: '0.75rem',
+                        fontWeight: '700',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        background: t.availability_status === 'Fully booked' ? '#fee2e2' : '#dcfce7',
+                        color: t.availability_status === 'Fully booked' ? '#991b1b' : '#166534'
+                      }}>
+                        {t.availability_status || 'Available'} ({t.remaining_capacity !== undefined ? `${t.remaining_capacity} seats left` : 'Daily Service'})
+                      </span>
+                      <button
+                        type="button"
+                        disabled={t.availability_status === 'Fully booked'}
+                        onClick={() => {
+                          setBookingItem(t);
+                          setBookingType('transport');
+                        }}
+                        className="btn btn-primary btn-sm"
+                        style={{ marginTop: '2px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <Bus size={14} /> {t.availability_status === 'Fully booked' ? 'Fully Booked' : 'Book Transport'}
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -416,9 +453,21 @@ export default function DestinationDetails() {
                         <span style={{ fontSize: '0.72rem', color: 'var(--slate)' }}>Fee per day</span>
                         <div style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--dark)' }}>₹{g.price_per_day}</div>
                       </div>
-                      <a href={`tel:${g.contact}`} className="btn btn-primary btn-sm">
-                        Hire Guide
-                      </a>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <a href={`tel:${g.contact}`} className="btn btn-outline-primary btn-sm">
+                          Contact
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setBookingItem(g);
+                            setBookingType('guide');
+                          }}
+                          className="btn btn-primary btn-sm"
+                        >
+                          Book Guide
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -567,6 +616,34 @@ export default function DestinationDetails() {
           </div>
         )}
       </div>
+      {bookingItem && (
+        <BookingModal
+          isOpen={true}
+          onClose={() => setBookingItem(null)}
+          item={bookingItem}
+          bookingType={bookingType}
+          onComplete={(result) => {
+            setBookingSuccessMsg(`Booking confirmed! Ref: ${result?.booking_reference || result?.booking_id}`);
+            setTimeout(() => setBookingSuccessMsg(null), 6000);
+          }}
+        />
+      )}
+      {bookingSuccessMsg && (
+        <div style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          background: '#059669',
+          color: '#ffffff',
+          padding: '12px 20px',
+          borderRadius: '10px',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+          zIndex: 9999,
+          fontWeight: 700
+        }}>
+          {bookingSuccessMsg}
+        </div>
+      )}
     </div>
   );
 }

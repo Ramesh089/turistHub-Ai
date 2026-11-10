@@ -154,10 +154,20 @@ async function initDatabase() {
     await addColumnIfNotExists(connection, 'tourist_places', 'best_time', 'VARCHAR(150) NULL');
     await addColumnIfNotExists(connection, 'tourist_places', 'best_time_to_visit', 'VARCHAR(150) NULL');
 
+    // Table: travel_packages capacity
+    await addColumnIfNotExists(connection, 'travel_packages', 'capacity', 'INT DEFAULT 25');
+    await connection.query("UPDATE travel_packages SET capacity = 25 WHERE capacity IS NULL OR capacity <= 0");
+
     // Table: hotels
     await addColumnIfNotExists(connection, 'hotels', 'location', 'VARCHAR(255) NULL');
     await addColumnIfNotExists(connection, 'hotels', 'room_type', "VARCHAR(100) DEFAULT 'Deluxe Room'");
     await addColumnIfNotExists(connection, 'hotels', 'contact', 'VARCHAR(100) NULL');
+    await addColumnIfNotExists(connection, 'hotels', 'capacity', 'INT DEFAULT 15');
+    await connection.query("UPDATE hotels SET capacity = 15 WHERE capacity IS NULL OR capacity <= 0");
+
+    // Table: guides
+    await addColumnIfNotExists(connection, 'guides', 'capacity', 'INT DEFAULT 10');
+    await connection.query("UPDATE guides SET capacity = 10 WHERE capacity IS NULL OR capacity <= 0");
 
     // Table: emergency_services
     await addColumnIfNotExists(connection, 'emergency_services', 'contact_number', 'VARCHAR(100) NULL');
@@ -178,6 +188,7 @@ async function initDatabase() {
     await addColumnIfNotExists(connection, 'transport', 'amenities', 'JSON NULL');
     await addColumnIfNotExists(connection, 'transport', 'luggage_capacity', 'VARCHAR(150) NULL');
     await addColumnIfNotExists(connection, 'transport', 'seats_total', 'INT DEFAULT 40');
+    await connection.query("UPDATE transport SET seats_total = 40 WHERE seats_total IS NULL OR seats_total <= 0");
     await addColumnIfNotExists(connection, 'transport', 'rating', 'DECIMAL(3,2) DEFAULT 4.80');
     await addColumnIfNotExists(connection, 'transport', 'reviews_count', 'INT DEFAULT 85');
     await addColumnIfNotExists(connection, 'transport', 'driver_name', 'VARCHAR(150) NULL');
@@ -189,6 +200,7 @@ async function initDatabase() {
     // Bookings ticket extensions
     await addColumnIfNotExists(connection, 'bookings', 'booking_reference', 'VARCHAR(100) NULL');
     await addColumnIfNotExists(connection, 'bookings', 'return_date', 'DATE NULL');
+    await addColumnIfNotExists(connection, 'bookings', 'capacity_units', 'INT NULL');
     await addColumnIfNotExists(connection, 'bookings', 'booking_details', 'JSON NULL');
     await addColumnIfNotExists(connection, 'bookings', 'cancellation_reason', 'VARCHAR(255) NULL');
     await addColumnIfNotExists(connection, 'bookings', 'refund_amount', 'DECIMAL(10,2) DEFAULT 0.00');

@@ -10,7 +10,13 @@ router.get('/', async (req, res) => {
     const { destination_id, specialization } = req.query;
 
     let query = `
-      SELECT g.*, p.name as destination_name, s.name as state_name
+      SELECT g.*, p.name as destination_name, s.name as state_name,
+             COALESCE(g.capacity, 10) AS capacity,
+             COALESCE((
+               SELECT COUNT(*)
+               FROM bookings b
+               WHERE b.guide_id = g.id AND b.status IN ('Confirmed', 'Completed', 'Paid')
+             ), 0) AS booked_count
       FROM guides g
       LEFT JOIN tourist_places p ON g.destination_id = p.id
       LEFT JOIN states s ON p.state_id = s.id
@@ -30,7 +36,21 @@ router.get('/', async (req, res) => {
 
     query += ` ORDER BY g.rating DESC, g.experience_years DESC`;
 
-    const [guides] = await pool.query(query, params);
+    const [rows] = await pool.query(query, params);
+    const guides = rows.map(g => {
+      const capacity = Number(g.capacity || 10);
+      const bookedCount = Number(g.booked_count || 0);
+      const remainingCapacity = Math.max(0, capacity - bookedCount);
+      return {
+        ...g,
+        capacity,
+        booked_count: bookedCount,
+        remaining_capacity: remainingCapacity,
+        is_available: remainingCapacity > 0,
+        availability_status: remainingCapacity <= 0 ? 'Fully booked' : 'Available'
+      };
+    });
+
     return res.json({ success: true, count: guides.length, guides });
   } catch (error) {
     console.error('Get Guides Error:', error);
@@ -42,7 +62,13 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT g.*, p.name as destination_name, s.name as state_name
+      SELECT g.*, p.name as destination_name, s.name as state_name,
+             COALESCE(g.capacity, 10) AS capacity,
+             COALESCE((
+               SELECT COUNT(*)
+               FROM bookings b
+               WHERE b.guide_id = g.id AND b.status IN ('Confirmed', 'Completed', 'Paid')
+             ), 0) AS booked_count
       FROM guides g
       LEFT JOIN tourist_places p ON g.destination_id = p.id
       LEFT JOIN states s ON p.state_id = s.id
@@ -53,7 +79,17 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Guide not found.' });
     }
 
-    return res.json({ success: true, guide: rows[0] });
+    const guide = rows[0];
+    const capacity = Number(guide.capacity || 10);
+    const bookedCount = Number(guide.booked_count || 0);
+    const remainingCapacity = Math.max(0, capacity - bookedCount);
+    guide.capacity = capacity;
+    guide.booked_count = bookedCount;
+    guide.remaining_capacity = remainingCapacity;
+    guide.is_available = remainingCapacity > 0;
+    guide.availability_status = remainingCapacity <= 0 ? 'Fully booked' : 'Available';
+
+    return res.json({ success: true, guide });
   } catch (error) {
     console.error('Get Guide Error:', error);
     return res.status(500).json({ success: false, message: 'Failed to retrieve guide.' });
@@ -72,18 +108,21 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       price_per_day,
       rating,
       contact,
-      image_url
+      image_url,
+      capacity
     } = req.body;
 
     if (!destination_id || !name || !languages || !specialization || !price_per_day) {
       return res.status(400).json({ success: false, message: 'Required guide details are missing.' });
     }
 
+    const guideCapacity = capacity && parseInt(capacity, 10) > 0 ? parseInt(capacity, 10) : 10;
+
     const [result] = await pool.query(`
       INSERT INTO guides (
         destination_id, name, languages, experience_years,
-        specialization, price_per_day, rating, contact, image_url
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        specialization, price_per_day, rating, contact, image_url, capacity
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       destination_id,
       name,
@@ -93,13 +132,17 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       parseFloat(price_per_day),
       parseFloat(rating) || 4.8,
       contact || 'N/A',
-      image_url || ''
+      image_url || '',
+      guideCapacity
     ]);
 
     return res.status(201).json({
       success: true,
       message: 'Guide added successfully.',
-      guideId: result.insertId
+      guideId: result.insertId,
+      capacity: guideCapacity,
+      remaining_capacity: guideCapacity,
+      availability_status: 'Available'
     });
   } catch (error) {
     console.error('Create Guide Error:', error);
@@ -118,7 +161,8 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       price_per_day,
       rating,
       contact,
-      image_url
+      image_url,
+      capacity
     } = req.body;
 
     await pool.query(`
@@ -130,7 +174,8 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
         price_per_day = COALESCE(?, price_per_day),
         rating = COALESCE(?, rating),
         contact = COALESCE(?, contact),
-        image_url = COALESCE(?, image_url)
+        image_url = COALESCE(?, image_url),
+        capacity = COALESCE(?, capacity)
       WHERE id = ?
     `, [
       name,
@@ -141,6 +186,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       rating !== undefined ? parseFloat(rating) : null,
       contact,
       image_url,
+      capacity !== undefined && capacity !== null ? parseInt(capacity, 10) : null,
       req.params.id
     ]);
 

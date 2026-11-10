@@ -1,5 +1,6 @@
 const express = require('express');
 const pool = require('../config/db');
+// Handler
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -98,7 +99,17 @@ router.get('/', async (req, res) => {
       SELECT t.*, 
              p.name as destination_name, 
              p.location as destination_location, 
-             s.name as state_name
+             s.name as state_name,
+             COALESCE(t.seats_total, 40) AS capacity,
+             COALESCE((
+               SELECT COUNT(*)
+               FROM transport_seat_bookings tsb
+               WHERE tsb.transport_id = t.id AND tsb.status = 'booked'
+             ), 0) + COALESCE((
+               SELECT SUM(COALESCE(b.people_count, 1))
+               FROM bookings b
+               WHERE b.transport_id = t.id AND b.status IN ('Confirmed', 'Completed', 'Paid')
+             ), 0) AS booked_count
       FROM transport t
       LEFT JOIN tourist_places p ON t.destination_id = p.id
       LEFT JOIN states s ON p.state_id = s.id
@@ -168,13 +179,23 @@ router.get('/', async (req, res) => {
     const [rows] = await pool.query(query, params);
 
     // Safely parse JSON columns
-    const transports = rows.map(t => ({
-      ...t,
-      class_options: typeof t.class_options === 'string' ? JSON.parse(t.class_options || '[]') : (t.class_options || []),
+    const transports = rows.map(t => {
+      const capacity = Number(t.capacity || t.seats_total || 40);
+      const bookedCount = Number(t.booked_count || 0);
+      const remainingCapacity = Math.max(0, capacity - bookedCount);
+      return {
+        ...t,
+        capacity,
+        booked_count: bookedCount,
+        remaining_capacity: remainingCapacity,
+        is_available: remainingCapacity > 0,
+        availability_status: remainingCapacity <= 0 ? 'Fully booked' : 'Available',
+        class_options: typeof t.class_options === 'string' ? JSON.parse(t.class_options || '[]') : (t.class_options || []),
       boarding_points: typeof t.boarding_points === 'string' ? JSON.parse(t.boarding_points || '[]') : (t.boarding_points || []),
       dropping_points: typeof t.dropping_points === 'string' ? JSON.parse(t.dropping_points || '[]') : (t.dropping_points || []),
       amenities: typeof t.amenities === 'string' ? JSON.parse(t.amenities || '[]') : (t.amenities || [])
-    }));
+      };
+    });
 
     return res.json({ success: true, count: transports.length, transports });
   } catch (error) {
@@ -211,7 +232,17 @@ router.get('/meta/cities', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT t.*, p.name as destination_name, s.name as state_name
+      SELECT t.*, p.name as destination_name, s.name as state_name,
+             COALESCE(t.seats_total, 40) AS capacity,
+             COALESCE((
+               SELECT COUNT(*)
+               FROM transport_seat_bookings tsb
+               WHERE tsb.transport_id = t.id AND tsb.status = 'booked'
+             ), 0) + COALESCE((
+               SELECT SUM(COALESCE(b.people_count, 1))
+               FROM bookings b
+               WHERE b.transport_id = t.id AND b.status IN ('Confirmed', 'Completed', 'Paid')
+             ), 0) AS booked_count
       FROM transport t
       LEFT JOIN tourist_places p ON t.destination_id = p.id
       LEFT JOIN states s ON p.state_id = s.id
@@ -223,8 +254,16 @@ router.get('/:id', async (req, res) => {
     }
 
     const t = rows[0];
+    const capacity = Number(t.capacity || t.seats_total || 40);
+    const bookedCount = Number(t.booked_count || 0);
+    const remainingCapacity = Math.max(0, capacity - bookedCount);
     const transport = {
       ...t,
+      capacity,
+      booked_count: bookedCount,
+      remaining_capacity: remainingCapacity,
+      is_available: remainingCapacity > 0,
+      availability_status: remainingCapacity <= 0 ? 'Fully booked' : 'Available',
       class_options: typeof t.class_options === 'string' ? JSON.parse(t.class_options || '[]') : (t.class_options || []),
       boarding_points: typeof t.boarding_points === 'string' ? JSON.parse(t.boarding_points || '[]') : (t.boarding_points || []),
       dropping_points: typeof t.dropping_points === 'string' ? JSON.parse(t.dropping_points || '[]') : (t.dropping_points || []),
@@ -848,6 +887,7 @@ const handleCreateTransport = async (req, res) => {
       price,
       duration,
       seats_total,
+      capacity,
       booking_info,
       class_options,
       amenities
@@ -889,7 +929,7 @@ const handleCreateTransport = async (req, res) => {
       arrival_time || '10:00 AM',
       parseFloat(price),
       duration || '4h 00m',
-      seats_total ? parseInt(seats_total, 10) : 40,
+      (seats_total ? parseInt(seats_total, 10) : (capacity ? parseInt(capacity, 10) : 40)),
       booking_info || null,
       class_options ? (typeof class_options === 'string' ? class_options : JSON.stringify(class_options)) : null,
       amenities ? (typeof amenities === 'string' ? amenities : JSON.stringify(amenities)) : null
@@ -976,7 +1016,7 @@ const handleUpdateTransport = async (req, res) => {
       arrival_time,
       price !== undefined && price !== null ? parseFloat(price) : null,
       duration,
-      seats_total !== undefined && seats_total !== null ? parseInt(seats_total, 10) : null,
+      seats_total !== undefined && seats_total !== null ? parseInt(seats_total, 10) : (capacity !== undefined && capacity !== null ? parseInt(capacity, 10) : null),
       req.params.id
     ]);
 

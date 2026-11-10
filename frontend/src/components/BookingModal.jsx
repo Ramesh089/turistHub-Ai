@@ -147,7 +147,7 @@ function SeatMap({ totalSeats = 40, selectedSeats, onToggle }) {
               {rowSeats.map((seat, i) => {
                 if (seat === null) return <div key="aisle" style={{ width: 20 }} />;
                 if (seat > totalSeats) return <div key={`empty-${i}`} style={{ width: 34 }} />;
-                const isBooked = BOOKED_SEATS.includes(seat);
+                const isBooked = effectiveBooked.includes(seat);
                 const isSelected = selectedSeats.includes(seat);
                 return (
                   <button
@@ -995,7 +995,7 @@ Thank you for choosing Tourist Hub AI!
                       </span>
                     )}
                   </div>
-                  <SeatMap totalSeats={40} selectedSeats={selectedSeats} onToggle={toggleSeat} />
+                  <SeatMap totalSeats={item?.capacity || item?.seats_total || 40} selectedSeats={selectedSeats} bookedSeats={liveBookedSeats} onToggle={toggleSeat} />
                 </div>
               </div>
             )}

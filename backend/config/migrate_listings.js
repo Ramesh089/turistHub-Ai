@@ -25,7 +25,7 @@ async function migrateListings() {
         city                 VARCHAR(100) NULL,
         state                VARCHAR(100) NULL,
         price                DECIMAL(10,2) NULL,
-        capacity             INT NOT NULL DEFAULT 1,
+        capacity             INT NOT NULL DEFAULT 20,
         price_unit           VARCHAR(50) NULL COMMENT 'e.g. per night, per day, per person',
         availability         TEXT NULL,
         terms                TEXT NULL,
@@ -64,7 +64,8 @@ async function migrateListings() {
       await conn.query('ALTER TABLE partner_service_listings ADD COLUMN admin_note TEXT NULL AFTER status');
     }
     if (!listingColumnMap.has('capacity')) {
-      await conn.query('ALTER TABLE partner_service_listings ADD COLUMN capacity INT NOT NULL DEFAULT 1 AFTER price');
+      await conn.query('ALTER TABLE partner_service_listings ADD COLUMN capacity INT NOT NULL DEFAULT 20 AFTER price');
+      await conn.query("UPDATE partner_service_listings SET capacity = 20 WHERE capacity IS NULL OR capacity <= 1");
     }
     console.log('  ✅ Table partner_service_listings ready.');
 

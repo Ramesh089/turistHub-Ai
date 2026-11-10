@@ -478,33 +478,83 @@ router.patch('/partner/:id/status', authenticateToken, requirePartnerOrAdmin, as
 // ADMIN BOOKINGS ENDPOINTS
 // ============================================================================
 
-// GET /api/bookings/admin/all (Admin only)
+// GET /api/bookings/admin/all (Admin only) - Full details across all categories
 router.get('/admin/all', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const [rows] = await pool.query(`
       SELECT b.*,
              u.name as user_name, u.email as user_email, u.phone as user_phone,
-             pkg.title as package_title,
+             pkg.title as package_title, pkg.capacity as package_capacity,
              p.name as destination_name,
-             h.name as hotel_name,
-             psl.listing_title as partner_listing_title
+             h.name as hotel_name, h.capacity as hotel_capacity,
+             t.provider as transport_provider, t.transport_type, t.route as transport_route, t.seats_total as transport_capacity,
+             g.name as guide_name, g.specialization as guide_specialization, g.capacity as guide_capacity,
+             psl.listing_title as partner_listing_title, psl.category as partner_listing_category, psl.capacity as partner_listing_capacity
       FROM bookings b
       JOIN users u ON b.user_id = u.id
       LEFT JOIN travel_packages pkg ON b.package_id = pkg.id
-      LEFT JOIN tourist_places p ON pkg.destination_id = p.id
       LEFT JOIN hotels h ON b.hotel_id = h.id
+      LEFT JOIN transport t ON b.transport_id = t.id
+      LEFT JOIN guides g ON b.guide_id = g.id
       LEFT JOIN partner_service_listings psl ON b.listing_id = psl.id
+      LEFT JOIN tourist_places p ON (pkg.destination_id = p.id OR h.destination_id = p.id OR g.destination_id = p.id)
       ORDER BY b.created_at DESC
     `);
 
-    return res.json({ success: true, count: rows.length, bookings: rows });
+    const formatted = rows.map(r => {
+      let details = r.booking_details;
+      if (typeof details === 'string') {
+        try { details = JSON.parse(details); } catch (e) { details = null; }
+      }
+      if (!details || typeof details !== 'object') details = {};
+
+      const serviceName = r.partner_listing_title
+        || r.package_title
+        || (r.transport_provider ? `${r.transport_provider} (${r.transport_type || 'Transit'})` : '')
+        || r.hotel_name
+        || (r.guide_name ? `Guide: ${r.guide_name}` : '')
+        || r.destination_name
+        || 'Travel Service';
+
+      const serviceCategory = r.booking_type
+        || (r.partner_listing_category ? `Partner: ${r.partner_listing_category}` : '')
+        || (r.transport_id ? 'Transport' : (r.hotel_id ? 'Hotel' : (r.guide_id ? 'Guide' : 'Package')));
+
+      // Format customer selections
+      let customerSelections = [];
+      if (details.selected_seats && details.selected_seats.length > 0) {
+        customerSelections.push(`Seats: ${details.selected_seats.join(', ')}`);
+      } else if (details.seat_numbers) {
+        customerSelections.push(`Seats: ${details.seat_numbers}`);
+      }
+      if (details.room_type) {
+        customerSelections.push(`Room: ${details.room_type}`);
+      }
+      if (details.departure_time) {
+        customerSelections.push(`Dep: ${details.departure_time}`);
+      }
+      if (details.from_city && details.to_city) {
+        customerSelections.push(`${details.from_city} → ${details.to_city}`);
+      }
+
+      return {
+        ...r,
+        booking_details: details,
+        service_name: serviceName,
+        service_category: serviceCategory,
+        customer_selections: customerSelections.join(' • ') || 'Standard Selection',
+        service_capacity: Number(r.partner_listing_capacity || r.transport_capacity || r.package_capacity || r.hotel_capacity || r.guide_capacity || 20)
+      };
+    });
+
+    return res.json({ success: true, count: formatted.length, bookings: formatted });
   } catch (error) {
     console.error('Admin Get Bookings Error:', error);
     return res.status(500).json({ success: false, message: 'Failed to fetch all bookings.' });
   }
 });
 
-// PUT /api/bookings/:id/status (Admin only update status)
+// PUT /api/bookings/:id/status (Admin only update status with seat sync)
 router.put('/:id/status', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { status } = req.body;
@@ -514,7 +564,16 @@ router.put('/:id/status', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid booking status.' });
     }
 
-    await pool.query('UPDATE bookings SET status = ? WHERE id = ?', [status, req.params.id]);
+    const bookingId = parseInt(req.params.id, 10);
+    await pool.query('UPDATE bookings SET status = ? WHERE id = ?', [status, bookingId]);
+
+    // Keep seat inventory synchronized with booking status
+    if (status === 'Cancelled') {
+      await pool.query("UPDATE transport_seat_bookings SET status = 'cancelled' WHERE booking_id = ?", [bookingId]);
+    } else if (status === 'Confirmed' || status === 'Completed') {
+      await pool.query("UPDATE transport_seat_bookings SET status = 'booked' WHERE booking_id = ?", [bookingId]);
+    }
+
     return res.json({ success: true, message: `Booking status updated to ${status}.` });
   } catch (error) {
     console.error('Update Booking Status Error:', error);

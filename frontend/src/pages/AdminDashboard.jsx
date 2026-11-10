@@ -77,6 +77,7 @@ export default function AdminDashboard() {
   const [searchGuides, setSearchGuides] = useState('');
   const [searchTrans, setSearchTrans] = useState('');
   const [searchUsers, setSearchUsers] = useState('');
+  const [selectedBookingForModal, setSelectedBookingForModal] = useState(null);
 
   // Modals & Editing State
   const [newDestModal, setNewDestModal] = useState(false);
@@ -319,6 +320,7 @@ export default function AdminDashboard() {
       duration_days: pkg.duration_days || 3,
       duration_nights: pkg.duration_nights || 2,
       price: pkg.price || 9999,
+      capacity: pkg.capacity || 25,
       transport_type: pkg.transport_type || 'AC Luxury Coach',
       hotel_type: pkg.hotel_type || 'Heritage 4-Star Resort',
       food_included: pkg.food_included !== undefined ? Boolean(pkg.food_included) : true,
@@ -337,6 +339,7 @@ export default function AdminDashboard() {
       name: h.name || '',
       location: h.location || '',
       price_per_night: h.price_per_night || 3500,
+      capacity: h.capacity || 15,
       rating: h.rating || 4.6,
       room_type: h.room_type || 'Heritage Deluxe Room',
       amenities: Array.isArray(h.amenities) ? h.amenities.join(', ') : (h.amenities || ''),
@@ -356,6 +359,7 @@ export default function AdminDashboard() {
       experience_years: g.experience_years || 5,
       specialization: g.specialization || 'Heritage & Archaeology',
       price_per_day: g.price_per_day || 1500,
+      capacity: g.capacity || 10,
       rating: g.rating || 4.8,
       contact: g.contact || '+91 98450 12345',
       image_url: g.image_url || ''
@@ -373,6 +377,8 @@ export default function AdminDashboard() {
       departure_time: t.departure_time || '06:30 AM',
       arrival_time: t.arrival_time || '10:00 AM',
       price: t.price || 650,
+      capacity: t.capacity || t.seats_total || 40,
+      seats_total: t.seats_total || t.capacity || 40,
       duration: t.duration || '3h 30m',
       booking_info: t.booking_info || 'AC Chair Car / Express'
     });

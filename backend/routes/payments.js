@@ -443,10 +443,48 @@ router.post('/checkout-and-simulate', authenticateToken, async (req, res) => {
 
     if (!partnerListingBooking) await connection.beginTransaction();
 
-    // 2. Create the booking record
+    // 2. Create the booking record with customer choices & reference
+    const typeCode = (booking_type || 'BK').toUpperCase().slice(0, 3);
+    const bookingReference = `TH-${typeCode}-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    const selectedSeatsList = Array.isArray(req.body.selected_seats)
+      ? req.body.selected_seats
+      : (typeof req.body.selected_seats === 'string' && req.body.selected_seats.trim() ? req.body.selected_seats.split(',').map(s => s.trim()) : []);
+
+    let detailedBookingData = req.body.booking_details;
+    if (typeof detailedBookingData === 'string') {
+      try { detailedBookingData = JSON.parse(detailedBookingData); } catch (e) { detailedBookingData = {}; }
+    }
+    if (!detailedBookingData || typeof detailedBookingData !== 'object') {
+      detailedBookingData = {};
+    }
+
+    // Capture customer selections into booking_details
+    detailedBookingData.service_category = booking_type || 'Package';
+    detailedBookingData.travel_date = effectiveDate;
+    detailedBookingData.people_count = people;
+
+    if (booking_type === 'transport' || transport_id) {
+      detailedBookingData.selected_seats = selectedSeatsList.length > 0 ? selectedSeatsList : (detailedBookingData.selected_seats || []);
+      detailedBookingData.seat_numbers = detailedBookingData.selected_seats.join(', ');
+      detailedBookingData.from_city = req.body.from_city || detailedBookingData.from_city || '';
+      detailedBookingData.to_city = req.body.to_city || detailedBookingData.to_city || '';
+      detailedBookingData.departure_time = req.body.departure_time || detailedBookingData.departure_time || '';
+    } else if (booking_type === 'hotel' || hotel_id) {
+      detailedBookingData.room_type = hotel_room_type || req.body.room_type || detailedBookingData.room_type || 'Standard Room';
+      detailedBookingData.nights = hotelNights || detailedBookingData.nights || 1;
+      detailedBookingData.check_in = check_in || effectiveDate;
+      detailedBookingData.check_out = check_out || return_date;
+    }
+
+    const calculatedCapacityUnits = partnerListingBooking
+      ? listingCapacityUnits
+      : (booking_type === 'transport' ? (selectedSeatsList.length || people) : people);
+
     const bookingFields = [
       'user_id', 'package_id', 'hotel_id', 'transport_id', 'guide_id',
-      'booking_type', 'travel_date', 'return_date', 'people_count', 'total_amount',
+      'booking_type', 'booking_reference', 'capacity_units', 'booking_details',
+      'travel_date', 'return_date', 'people_count', 'total_amount',
       'discount_amount', 'discount_code', 'payment_method', 'payment_status',
       'transaction_id', 'status', 'special_requests'
     ];
@@ -457,6 +495,9 @@ router.post('/checkout-and-simulate', authenticateToken, async (req, res) => {
       transport_id || null,
       guide_id || null,
       booking_type || 'Package',
+      bookingReference,
+      calculatedCapacityUnits,
+      JSON.stringify(detailedBookingData),
       effectiveDate,
       return_date || check_out || null,
       people,
@@ -470,8 +511,8 @@ router.post('/checkout-and-simulate', authenticateToken, async (req, res) => {
       special_requests || null
     ];
     if (partnerListingBooking) {
-      bookingFields.splice(5, 0, 'listing_id', 'capacity_units');
-      bookingValues.splice(5, 0, Number(listing_id), listingCapacityUnits);
+      bookingFields.splice(5, 0, 'listing_id');
+      bookingValues.splice(5, 0, Number(listing_id));
     }
 
     const placeholders = bookingFields.map(() => '?').join(', ');
@@ -481,6 +522,23 @@ router.post('/checkout-and-simulate', authenticateToken, async (req, res) => {
     );
 
     const bookingId = bookingRes.insertId;
+
+    // Lock chosen seats in transport_seat_bookings
+    if (transport_id && selectedSeatsList.length > 0 && bookingStatus === 'Confirmed') {
+      try {
+        for (const seatNum of selectedSeatsList) {
+          await connection.query(`
+            INSERT INTO transport_seat_bookings (
+              transport_id, travel_date, seat_number, deck_tier, coach_class,
+              booking_id, user_id, status, passenger_name, hold_expires_at
+            ) VALUES (?, ?, ?, 'lower', 'standard', ?, ?, 'booked', ?, NULL)
+            ON DUPLICATE KEY UPDATE status = 'booked', booking_id = VALUES(booking_id), user_id = VALUES(user_id)
+          `, [transport_id, effectiveDate, String(seatNum), bookingId, req.user.id, req.user.name || 'Passenger']);
+        }
+      } catch (seatErr) {
+        console.warn('Seat booking insertion notice:', seatErr.message);
+      }
+    }
 
     // Record the demo attempt. This application does not charge real money.
     const [payInsert] = await connection.query(
@@ -518,7 +576,7 @@ router.post('/checkout-and-simulate', authenticateToken, async (req, res) => {
             ? 'Demo payment was declined. Your booking is still pending and you can retry.'
             : 'Demo payment was cancelled. Your booking details are preserved.'),
       booking_id: bookingId,
-      booking_reference: `TH-BK-${bookingId}`,
+      booking_reference: bookingReference,
       transaction: {
         payment_record_id: payInsert.insertId,
         demo_transaction_id: demoTxnId,

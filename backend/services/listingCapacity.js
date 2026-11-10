@@ -11,8 +11,9 @@ function getListingPriceTotal(category, title, priceUnit, price, peopleCount) {
   return Number(price || 0) * (isPassengerPrice ? peopleCount : 1);
 }
 
-function getListingRemainingCapacity(capacity, bookedUnits) {
-  return Math.max(0, Number(capacity || 0) - Number(bookedUnits || 0));
+function getListingRemainingCapacity(capacity, bookedUnits, defaultCapacity = 20) {
+  const cap = Number(capacity) > 0 ? Number(capacity) : defaultCapacity;
+  return Math.max(0, cap - Number(bookedUnits || 0));
 }
 
 module.exports = { getListingCapacityUnits, getListingPriceTotal, getListingRemainingCapacity };

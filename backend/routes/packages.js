@@ -16,7 +16,13 @@ router.get('/', async (req, res) => {
     const { destination_id, max_price, duration } = req.query;
 
     let query = `
-      SELECT pkg.*, p.name as destination_name, p.location as destination_location, s.name as state_name
+      SELECT pkg.*, p.name as destination_name, p.location as destination_location, s.name as state_name,
+             COALESCE(pkg.capacity, 25) AS capacity,
+             COALESCE((
+               SELECT SUM(COALESCE(b.people_count, 1))
+               FROM bookings b
+               WHERE b.package_id = pkg.id AND b.status IN ('Confirmed', 'Completed', 'Paid')
+             ), 0) AS booked_count
       FROM travel_packages pkg
       LEFT JOIN tourist_places p ON pkg.destination_id = p.id
       LEFT JOIN states s ON p.state_id = s.id
@@ -40,10 +46,20 @@ router.get('/', async (req, res) => {
     query += ` ORDER BY pkg.rating DESC, pkg.price ASC`;
 
     const [rows] = await pool.query(query, params);
-    const packages = rows.map(r => ({
-      ...r,
-      activities: safeJson(r.activities)
-    }));
+    const packages = rows.map(r => {
+      const capacity = Number(r.capacity || 25);
+      const bookedCount = Number(r.booked_count || 0);
+      const remainingCapacity = Math.max(0, capacity - bookedCount);
+      return {
+        ...r,
+        activities: safeJson(r.activities),
+        capacity,
+        booked_count: bookedCount,
+        remaining_capacity: remainingCapacity,
+        is_available: remainingCapacity > 0,
+        availability_status: remainingCapacity <= 0 ? 'Fully booked' : 'Available'
+      };
+    });
 
     return res.json({ success: true, count: packages.length, packages });
   } catch (error) {
@@ -56,7 +72,13 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT pkg.*, p.name as destination_name, p.location as destination_location, p.description as destination_desc, s.name as state_name
+      SELECT pkg.*, p.name as destination_name, p.location as destination_location, p.description as destination_desc, s.name as state_name,
+             COALESCE(pkg.capacity, 25) AS capacity,
+             COALESCE((
+               SELECT SUM(COALESCE(b.people_count, 1))
+               FROM bookings b
+               WHERE b.package_id = pkg.id AND b.status IN ('Confirmed', 'Completed', 'Paid')
+             ), 0) AS booked_count
       FROM travel_packages pkg
       LEFT JOIN tourist_places p ON pkg.destination_id = p.id
       LEFT JOIN states s ON p.state_id = s.id
@@ -69,6 +91,14 @@ router.get('/:id', async (req, res) => {
 
     const pkg = rows[0];
     pkg.activities = safeJson(pkg.activities);
+    const capacity = Number(pkg.capacity || 25);
+    const bookedCount = Number(pkg.booked_count || 0);
+    const remainingCapacity = Math.max(0, capacity - bookedCount);
+    pkg.capacity = capacity;
+    pkg.booked_count = bookedCount;
+    pkg.remaining_capacity = remainingCapacity;
+    pkg.is_available = remainingCapacity > 0;
+    pkg.availability_status = remainingCapacity <= 0 ? 'Fully booked' : 'Available';
 
     return res.json({ success: true, package: pkg });
   } catch (error) {
@@ -83,7 +113,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
     const {
       destination_id, title, company_name, duration_days, duration_nights,
       price, transport_type, hotel_type, food_included, guide_included,
-      activities, description, image_url
+      activities, description, image_url, capacity
     } = req.body;
 
     if (!destination_id || !title || !price || !duration_days) {
@@ -94,21 +124,31 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       ? activities
       : (typeof activities === 'string' && activities.trim() ? activities.split(',').map(s => s.trim()) : []);
 
+    const pkgCapacity = capacity && parseInt(capacity, 10) > 0 ? parseInt(capacity, 10) : 25;
+
     const [result] = await pool.query(`
       INSERT INTO travel_packages (
         destination_id, title, company_name, duration_days, duration_nights,
         price, transport_type, hotel_type, food_included, guide_included,
-        activities, description, image_url, rating
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4.9)
+        activities, description, image_url, capacity, rating
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 4.9)
     `, [
       destination_id, title, company_name || 'Incredible Tours',
       duration_days, duration_nights || (duration_days - 1), price,
       transport_type || 'AC Transport', hotel_type || 'Comfort Heritage Hotel',
       food_included !== false, guide_included !== false,
-      JSON.stringify(actsArray), description || '', image_url || ''
+      JSON.stringify(actsArray), description || '', image_url || '',
+      pkgCapacity
     ]);
 
-    return res.status(201).json({ success: true, message: 'Package created successfully.', packageId: result.insertId });
+    return res.status(201).json({
+      success: true,
+      message: 'Package created successfully.',
+      packageId: result.insertId,
+      capacity: pkgCapacity,
+      remaining_capacity: pkgCapacity,
+      availability_status: 'Available'
+    });
   } catch (error) {
     console.error('Create Package Error:', error);
     return res.status(500).json({ success: false, message: 'Failed to create tour package.' });
@@ -121,7 +161,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     const {
       destination_id, title, company_name, duration_days, duration_nights,
       price, transport_type, hotel_type, food_included, guide_included,
-      activities, description, image_url
+      activities, description, image_url, capacity
     } = req.body;
 
     await pool.query(`
@@ -138,7 +178,8 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
         guide_included = COALESCE(?, guide_included),
         activities = COALESCE(?, activities),
         description = COALESCE(?, description),
-        image_url = COALESCE(?, image_url)
+        image_url = COALESCE(?, image_url),
+        capacity = COALESCE(?, capacity)
       WHERE id = ?
     `, [
       destination_id,
@@ -154,6 +195,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       activities ? JSON.stringify(activities) : null,
       description,
       image_url,
+      capacity !== undefined && capacity !== null ? parseInt(capacity, 10) : null,
       req.params.id
     ]);
 
