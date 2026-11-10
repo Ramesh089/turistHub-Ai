@@ -389,6 +389,58 @@ router.get('/:id(\\d+)', async (req, res) => {
   }
 });
 
+// GET /api/listings/:id/seats - Live seat inventory for published transport listings
+router.get('/:id/seats', async (req, res) => {
+  try {
+    const listingId = parseInt(req.params.id, 10);
+    const { travel_date } = req.query;
+    if (isNaN(listingId) || listingId <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid listing ID.' });
+    }
+
+    const [rows] = await pool.query('SELECT id, capacity, category, listing_title FROM partner_service_listings WHERE id = ?', [listingId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Listing not found.' });
+    }
+    const listing = rows[0];
+    const totalSeats = Number(listing.capacity) > 0 ? Number(listing.capacity) : 40;
+    const targetDate = travel_date || new Date().toISOString().split('T')[0];
+
+    const [bookingRows] = await pool.query(`
+      SELECT booking_details, capacity_units, people_count
+      FROM bookings
+      WHERE listing_id = ? AND travel_date = ? AND status IN ('Confirmed', 'Pending')
+    `, [listingId, targetDate]);
+
+    let bookedSeats = [];
+    for (const b of bookingRows) {
+      let details = b.booking_details;
+      if (typeof details === 'string') {
+        try { details = JSON.parse(details); } catch (e) { details = null; }
+      }
+      if (details && Array.isArray(details.selected_seats)) {
+        bookedSeats.push(...details.selected_seats.map(String));
+      } else if (details && details.seat_numbers) {
+        bookedSeats.push(...String(details.seat_numbers).split(/[\s,]+/).filter(Boolean));
+      }
+    }
+
+    const uniqueBooked = Array.from(new Set(bookedSeats));
+    return res.json({
+      success: true,
+      listing_id: listingId,
+      travel_date: targetDate,
+      seats_total: totalSeats,
+      booked_seats: uniqueBooked,
+      held_seats: [],
+      available_count: Math.max(0, totalSeats - uniqueBooked.length)
+    });
+  } catch (error) {
+    console.error('Get Listing Seats Error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to retrieve seats.' });
+  }
+});
+
 // ═══════════════════════════════════════════════════════════════
 // PARTNER ENDPOINTS  (authenticated Business Partner)
 // ═══════════════════════════════════════════════════════════════

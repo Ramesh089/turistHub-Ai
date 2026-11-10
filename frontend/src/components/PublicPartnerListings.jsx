@@ -77,7 +77,7 @@ export default function PublicPartnerListings({ categories, title = 'Verified pa
                 )}
                 {listing.price != null && (
                   <strong style={{ color: '#0369a1', marginTop: 'auto' }}>
-                    ₹{Number(listing.price).toLocaleString('en-IN')} {listing.priceUnit || ''}
+                    ₹{Number(listing.price).toLocaleString('en-IN')} {listing.category === 'Bus Operator' ? 'per person' : (listing.priceUnit || '')}
                   </strong>
                 )}
                 {listing.availability && <small style={{ color: '#64748b' }}>{listing.availability}</small>}
@@ -100,19 +100,26 @@ export default function PublicPartnerListings({ categories, title = 'Verified pa
                       listingTitle: listing.listingTitle,
                       title: listing.listingTitle,
                       name: listing.listingTitle,
+                      provider: listing.listingTitle,
                       price: Number(listing.price || 0),
                       category: listing.category,
-                      priceUnit: listing.priceUnit,
+                      priceUnit: listing.category === 'Bus Operator' ? 'per person' : (listing.priceUnit || 'per person'),
                       capacity: cap,
+                      seats_total: cap,
                       bookedUnits: booked,
                       remainingCapacity: remaining,
                       location: listing.locationOrRoute || listing.city || '',
+                      locationOrRoute: listing.locationOrRoute || listing.city || '',
+                      from_city: listing.city || 'Origin',
+                      to_city: listing.locationOrRoute || listing.state || 'Destination',
+                      departure_time: listing.availability || 'Daily departures 9:00 PM',
+                      transport_type: listing.category === 'Bus Operator' ? 'Luxury AC Bus' : listing.category,
                       destination_name: listing.city || listing.state || 'India',
                       image_url: imageSrc(listing.primaryImage?.imageUrl)
                     });
                   }}
                 >
-                  {isFullyBooked ? 'Fully booked' : 'Book this service'}
+                  {isFullyBooked ? 'Fully booked' : (listing.category === 'Bus Operator' ? 'Select Bus Berths / Seats' : 'Book this service')}
                 </button>
               </div>
             </article>

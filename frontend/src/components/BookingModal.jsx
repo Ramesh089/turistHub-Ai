@@ -117,7 +117,8 @@ function formatCardNumber(value) {
 // Pre-booked seat numbers for transport
 const BOOKED_SEATS = [3, 7, 12, 15, 19, 24, 28];
 
-function SeatMap({ totalSeats = 40, selectedSeats, onToggle }) {
+function SeatMap({ totalSeats = 40, selectedSeats = [], onToggle, bookedSeats = [] }) {
+  const effectiveBooked = Array.isArray(bookedSeats) && bookedSeats.length > 0 ? bookedSeats.map(Number) : BOOKED_SEATS;
   const rows = Math.ceil(totalSeats / 4);
   return (
     <div>
@@ -306,6 +307,14 @@ export default function BookingModal({
 }) {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  const isTransport = bookingType === 'transport'
+    || (bookingType === 'partner_listing' && (
+      item?.category === 'Bus Operator'
+      || (item?.category || '').toLowerCase().includes('bus')
+      || (item?.category || '').toLowerCase().includes('transport')
+    ));
+
   const listingGuestLimit = bookingType === 'partner_listing' && usesPassengerCapacity(item)
     ? Math.min(6, item?.remainingCapacity == null ? 6 : Number(item.remainingCapacity))
     : 6;
@@ -336,14 +345,62 @@ export default function BookingModal({
   const nights = Math.max(0, Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000));
 
   // Transport state
-  const [fromCity, setFromCity] = useState(item?.from_city || 'Bengaluru');
-  const [toCity, setToCity] = useState(item?.to_city || item?.route?.split(' → ')[1] || 'Mysore');
+  const [fromCity, setFromCity] = useState(
+    item?.from_city || (item?.locationOrRoute ? item.locationOrRoute.split(/\s*(?:->|→|to|-)\s*/i)[0] : '') || 'Bengaluru'
+  );
+  const [toCity, setToCity] = useState(
+    item?.to_city || (item?.locationOrRoute ? (item.locationOrRoute.split(/\s*(?:->|→|to|-)\s*/i)[1] || item.locationOrRoute) : '') || 'Mysore'
+  );
   const [travelDate, setTravelDate] = useState(initialPlan?.travel_date || new Date().toISOString().split('T')[0]);
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [liveBookedSeats, setLiveBookedSeats] = useState([]);
+  const [loadingSeats, setLoadingSeats] = useState(false);
+
+  useEffect(() => {
+    if (!isTransport || !item?.id) return;
+    let active = true;
+    setLoadingSeats(true);
+    const dateQuery = travelDate || pkgTravelDate || new Date().toISOString().split('T')[0];
+    const endpoint = bookingType === 'partner_listing'
+      ? `/listings/${item.id}/seats?travel_date=${dateQuery}`
+      : `/transport/${item.id}/seats?travel_date=${dateQuery}`;
+
+    api.get(endpoint)
+      .then(res => {
+        if (!active) return;
+        const booked = res.data?.booked_seats || [];
+        setLiveBookedSeats(booked.map(s => Number(s) || s));
+      })
+      .catch(err => {
+        console.warn('Could not load live seats:', err.message);
+        if (active) setLiveBookedSeats(BOOKED_SEATS);
+      })
+      .finally(() => {
+        if (active) setLoadingSeats(false);
+      });
+
+    return () => { active = false; };
+  }, [isTransport, item?.id, travelDate, pkgTravelDate, bookingType]);
+
   const toggleSeat = useCallback((n) => {
-    setSelectedSeats((prev) =>
-      prev.includes(n) ? prev.filter((s) => s !== n) : prev.length < guests ? [...prev, n] : prev
-    );
+    setSelectedSeats((prev) => {
+      let next;
+      if (prev.includes(n)) {
+        next = prev.filter((s) => s !== n);
+      } else {
+        if (prev.length < guests) {
+          next = [...prev, n];
+        } else {
+          next = [...prev, n];
+          setGuests(next.length);
+          return next;
+        }
+      }
+      if (next.length > 0) {
+        setGuests(next.length);
+      }
+      return next;
+    });
   }, [guests]);
 
   // Package state
@@ -405,16 +462,17 @@ export default function BookingModal({
   // Price calculations
   const baseAmount = (() => {
     if (bookingType === 'hotel') return selectedRoom.price * nights * guests;
-    if (bookingType === 'transport') return (item?.price || 1200) * (selectedSeats.length || guests);
-    if (bookingType === 'guide') return (item?.price_per_day || item?.price || 1000) * guests;
-    if (bookingType === 'car') return (item?.price_per_day || item?.price || 2000) * guests;
+    if (isTransport) return (Number(item?.price) || 1200) * (selectedSeats.length || guests || 1);
+    if (bookingType === 'guide') return (Number(item?.price_per_day || item?.price) || 1000) * (guests || 1);
+    if (bookingType === 'car') return (Number(item?.price_per_day || item?.price) || 2000) * (guests || 1);
     if (bookingType === 'partner_listing') {
-      const perPersonPrice = item?.priceUnit === 'per person'
-        || (item?.priceUnit === 'per trip' && item?.category === 'Bus Operator'
-          && !/\b(car|cab|taxi|van|vehicle|private driver)\b/i.test(item?.listingTitle || item?.name || ''));
-      return (item?.price || 0) * (perPersonPrice ? guests : 1);
+      const isPrivateVehicle = /\b(car|cab|taxi|van|vehicle|private driver|full cab)\b/i.test(item?.listingTitle || item?.name || '');
+      if (isPrivateVehicle) {
+        return Number(item?.price || 0);
+      }
+      return (Number(item?.price) || 0) * (guests || 1);
     }
-    return (item?.price || 9999) * guests; // package
+    return (Number(item?.price) || 9999) * (guests || 1); // package
   })();
   const gst = Math.round((baseAmount - discountAmt) * 0.05);
   const totalAmt = Math.max(baseAmount - discountAmt + gst, 0);
@@ -446,7 +504,7 @@ export default function BookingModal({
   };
 
   const canProceed = () => {
-    if (bookingType === 'transport' && selectedSeats.length === 0) return false;
+    if (isTransport && selectedSeats.length === 0) return false;
     if (bookingType === 'hotel' && nights < 1) return false;
     return true;
   };
@@ -477,12 +535,18 @@ export default function BookingModal({
         transport_id: bookingType === 'transport' ? item?.id : null,
         guide_id: bookingType === 'guide' ? item?.id : null,
         listing_id: bookingType === 'partner_listing' ? item?.id : null,
-        travel_date: bookingType === 'hotel' ? checkIn : bookingType === 'transport' ? travelDate : pkgTravelDate,
+        travel_date: bookingType === 'hotel' ? checkIn : isTransport ? travelDate : pkgTravelDate,
+        people_count: isTransport ? (selectedSeats.length || guests) : guests,
+        capacity_units: isTransport ? (selectedSeats.length || guests) : guests,
+        selected_seats: isTransport && selectedSeats.length > 0 ? selectedSeats : null,
+        seat_numbers: isTransport && selectedSeats.length > 0 ? selectedSeats.sort((a, b) => a - b).join(', ') : null,
+        from_city: isTransport ? fromCity : null,
+        to_city: isTransport ? toCity : null,
+        departure_time: isTransport ? (item?.departure_time || '09:00 PM') : null,
         return_date: checkOut,
         check_in: checkIn,
         check_out: checkOut,
         hotel_room_type: bookingType === 'hotel' ? selectedRoom.id : null,
-        people_count: guests,
         total_amount: totalAmt,
         discount_amount: discountAmt,
         discount_code: appliedPromo?.code || null,
@@ -951,57 +1015,104 @@ Thank you for choosing Tourist Hub AI!
               </div>
             )}
 
-            {/* TRANSPORT DETAILS */}
-            {bookingType === 'transport' && (
+            {/* TRANSPORT & BUS OPERATOR DETAILS */}
+            {isTransport && (
               <div>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 16 }}>
                   <div style={{ background: '#e0f2fe', borderRadius: 10, padding: 10, color: '#0284c7' }}><Bus size={22} /></div>
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>{item?.provider}</div>
-                    <div style={{ fontSize: '0.82rem', color: '#64748b' }}>{item?.transport_type} • {item?.duration}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a' }}>{item?.provider || item?.listingTitle}</span>
+                      {bookingType === 'partner_listing' && (
+                        <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: 12, fontSize: '0.72rem', fontWeight: 700 }}>
+                          Verified Partner Service
+                        </span>
+                      )}
+                    </div>
+                    <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                      {item?.transport_type || 'Luxury AC Bus'} • {item?.duration || item?.availability || 'Daily departures'}
+                    </div>
                   </div>
-                  <span style={{ marginLeft: 'auto', fontWeight: 800, fontSize: '1.15rem', color: '#0284c7' }}>₹{item?.price}/seat</span>
+                  <span style={{ marginLeft: 'auto', fontWeight: 800, fontSize: '1.15rem', color: '#0284c7' }}>
+                    ₹{Number(item?.price || 0).toLocaleString('en-IN')}/seat
+                  </span>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr auto 1fr', gap: 10, alignItems: 'center', marginBottom: 14 }}>
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>From City</label>
-                    <input className="form-control" value={fromCity} onChange={(e) => setFromCity(e.target.value)} placeholder="Bengaluru" />
+                    <input className="form-control" value={fromCity} onChange={(e) => setFromCity(e.target.value)} placeholder="Origin" />
                   </div>
                   <ArrowRight size={20} color="#0284c7" />
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>To City</label>
-                    <input className="form-control" value={toCity} onChange={(e) => setToCity(e.target.value)} placeholder="Mysore" />
+                    <input className="form-control" value={toCity} onChange={(e) => setToCity(e.target.value)} placeholder="Destination" />
                   </div>
                 </div>
 
                 <div className="form-row-2" style={{ marginBottom: 18 }}>
                   <div>
                     <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Travel Date</label>
-                    <input type="date" value={travelDate} min={new Date().toISOString().split('T')[0]} onChange={(e) => setTravelDate(e.target.value)} className="form-control" />
+                    <input
+                      type="date"
+                      value={travelDate}
+                      min={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => {
+                        setTravelDate(e.target.value);
+                        setPkgTravelDate(e.target.value);
+                      }}
+                      className="form-control"
+                    />
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Departure</label>
-                    <input className="form-control" value={item?.departure_time || '06:30 AM'} readOnly style={{ background: '#f8fafc' }} />
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Passengers / Seats</label>
+                    <select
+                      value={guests}
+                      onChange={(e) => {
+                        const newCount = Number(e.target.value);
+                        setGuests(newCount);
+                        if (selectedSeats.length > newCount) {
+                          setSelectedSeats(prev => prev.slice(0, newCount));
+                        }
+                      }}
+                      className="form-control"
+                    >
+                      {[1, 2, 3, 4, 5, 6].map(num => (
+                        <option key={num} value={num}>{num} {num === 1 ? 'Passenger' : 'Passengers'}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
                 <div style={{ background: '#f8fafc', border: '1px solid #bae6fd', borderRadius: 12, padding: 16, marginBottom: 14 }}>
-                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0369a1', marginBottom: 12 }}>
-                    Select Seats ({selectedSeats.length}/{guests} required)
-                    {selectedSeats.length > 0 && (
-                      <span style={{ background: '#0284c7', color: '#fff', borderRadius: 20, padding: '2px 8px', fontSize: '0.7rem', marginLeft: 8 }}>
-                        Seats: {selectedSeats.sort((a, b) => a - b).join(', ')}
-                      </span>
-                    )}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                    <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0369a1' }}>
+                      Select Seats ({selectedSeats.length}/{guests} selected)
+                      {selectedSeats.length > 0 && (
+                        <span style={{ background: '#0284c7', color: '#fff', borderRadius: 20, padding: '2px 8px', fontSize: '0.7rem', marginLeft: 8 }}>
+                          Seats: {selectedSeats.sort((a, b) => a - b).join(', ')}
+                        </span>
+                      )}
+                    </div>
+                    {loadingSeats && <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Checking seats...</span>}
                   </div>
-                  <SeatMap totalSeats={item?.capacity || item?.seats_total || 40} selectedSeats={selectedSeats} bookedSeats={liveBookedSeats} onToggle={toggleSeat} />
+                  <SeatMap
+                    totalSeats={item?.capacity || item?.seats_total || 40}
+                    selectedSeats={selectedSeats}
+                    bookedSeats={liveBookedSeats}
+                    onToggle={toggleSeat}
+                  />
+                  {selectedSeats.length === 0 && (
+                    <div style={{ marginTop: 8, fontSize: '0.76rem', color: '#0284c7', fontWeight: 600 }}>
+                      ℹ️ Click seat berths on the layout above to pick your preferred seats.
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
-            {/* PACKAGE DETAILS */}
-            {bookingType === 'partner_listing' && (
+            {/* PARTNER LISTING (NON-TRANSPORT) */}
+            {bookingType === 'partner_listing' && !isTransport && (
               <div>
                 <div style={{ marginBottom: 14 }}>
                   <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '3px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700 }}>
@@ -1016,10 +1127,10 @@ Thank you for choosing Tourist Hub AI!
                     <input type="date" value={pkgTravelDate} min={new Date().toISOString().split('T')[0]} onChange={event => setPkgTravelDate(event.target.value)} className="form-control" />
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Guests / units</label>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0369a1', display: 'block', marginBottom: 4 }}>Guests / persons</label>
                     <select value={guests} onChange={event => setGuests(Number(event.target.value))} className="form-control">
                       {Array.from({ length: listingGuestLimit }, (_, index) => index + 1)
-                        .map(count => <option key={count} value={count}>{count}</option>)}
+                        .map(count => <option key={count} value={count}>{count} {count === 1 ? 'Person' : 'Persons'}</option>)}
                     </select>
                   </div>
                 </div>
@@ -2236,6 +2347,11 @@ Thank you for choosing Tourist Hub AI!
                       <div style={{ color: '#64748b', fontSize: '0.76rem', marginTop: '2px' }}>
                         📅 {travelDates} • 👥 {guests} Person{guests > 1 ? 's' : ''}
                       </div>
+                      {selectedSeats.length > 0 && (
+                        <div style={{ color: '#0284c7', fontSize: '0.76rem', marginTop: '2px', fontWeight: 700 }}>
+                          💺 Selected Seats: {selectedSeats.sort((a, b) => a - b).join(', ')}
+                        </div>
+                      )}
                     </div>
                   </div>
 

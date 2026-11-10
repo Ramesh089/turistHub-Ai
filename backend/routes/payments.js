@@ -464,7 +464,7 @@ router.post('/checkout-and-simulate', authenticateToken, async (req, res) => {
     detailedBookingData.travel_date = effectiveDate;
     detailedBookingData.people_count = people;
 
-    if (booking_type === 'transport' || transport_id) {
+    if (booking_type === 'transport' || transport_id || (partnerListingBooking && (selectedSeatsList.length > 0 || req.body.selected_seats))) {
       detailedBookingData.selected_seats = selectedSeatsList.length > 0 ? selectedSeatsList : (detailedBookingData.selected_seats || []);
       detailedBookingData.seat_numbers = detailedBookingData.selected_seats.join(', ');
       detailedBookingData.from_city = req.body.from_city || detailedBookingData.from_city || '';
@@ -478,7 +478,7 @@ router.post('/checkout-and-simulate', authenticateToken, async (req, res) => {
     }
 
     const calculatedCapacityUnits = partnerListingBooking
-      ? listingCapacityUnits
+      ? (selectedSeatsList.length > 0 ? selectedSeatsList.length : listingCapacityUnits)
       : (booking_type === 'transport' ? (selectedSeatsList.length || people) : people);
 
     const bookingFields = [

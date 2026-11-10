@@ -976,7 +976,8 @@ const handleUpdateTransport = async (req, res) => {
       arrival_time,
       price,
       duration,
-      seats_total
+      seats_total,
+      capacity
     } = req.body;
 
     let resolvedFromCity = from_city;
