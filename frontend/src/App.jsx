@@ -211,7 +211,7 @@ function AppContent() {
       {!isAuthPage && !isAdminPortal && <Footer />}
 
       {/* Floating Dynamic Weather Forecast Button & Telemetry Modal */}
-      {!isAdminPortal && <FloatingWeatherWidget />}
+      {!isAdminPortal && !isAuthPage && <FloatingWeatherWidget />}
       <WeatherModal />
     </div>
   );

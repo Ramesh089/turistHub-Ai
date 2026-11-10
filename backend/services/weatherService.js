@@ -64,7 +64,18 @@ const CITY_COORDS = {
   'spiti': { lat: 32.2461, lon: 78.0349, name: 'Spiti Valley' },
   'kasol': { lat: 32.0100, lon: 77.3150, name: 'Kasol' },
   'varkala': { lat: 8.7379, lon: 76.7163, name: 'Varkala' },
-  'lucknow': { lat: 26.8467, lon: 80.9462, name: 'Lucknow' }
+  'lucknow': { lat: 26.8467, lon: 80.9462, name: 'Lucknow' },
+  'kodagu': { lat: 12.3375, lon: 75.8069, name: 'Coorg' },
+  'kashi': { lat: 25.3176, lon: 82.9739, name: 'Varanasi' },
+  'yadgir': { lat: 16.7697, lon: 77.1328, name: 'Yadgir' },
+  'vijayanagara': { lat: 15.3350, lon: 76.4600, name: 'Hampi' },
+  'mysore (mysuru)': { lat: 12.2958, lon: 76.6394, name: 'Mysore' },
+  'coorg (kodagu)': { lat: 12.3375, lon: 75.8069, name: 'Coorg' },
+  'alappuzha (alleppey)': { lat: 9.4981, lon: 76.3388, name: 'Alappuzha' },
+  'jaipur (the pink city)': { lat: 26.9124, lon: 75.7873, name: 'Jaipur' },
+  'udaipur (city of lakes)': { lat: 24.5854, lon: 73.7125, name: 'Udaipur' },
+  'goa (panaji & north beaches)': { lat: 15.2993, lon: 74.1240, name: 'Goa' },
+  'varanasi (kashi)': { lat: 25.3176, lon: 82.9739, name: 'Varanasi' }
 };
 
 // ─── Landmark & Tourist Attraction to City Mapping ────────────────────────────
@@ -73,10 +84,14 @@ const LANDMARK_MAP = {
   'agra fort': 'Agra',
   'mysore palace': 'Mysore',
   'chamundi hill': 'Mysore',
+  'chamundi hills': 'Mysore',
+  'mysore zoo': 'Mysore',
+  'brindavan gardens': 'Mysore',
   'baga beach': 'Goa',
   'calangute beach': 'Goa',
   'anjuna beach': 'Goa',
   'old goa': 'Goa',
+  'fort aguada': 'Goa',
   'dudhsagar': 'Goa',
   'dudhsagar falls': 'Goa',
   'dudhsagar waterfalls': 'Goa',
@@ -97,6 +112,7 @@ const LANDMARK_MAP = {
   'talakaveri': 'Coorg',
   'virupaksha temple': 'Hampi',
   'vittala temple': 'Hampi',
+  'vittala temple complex': 'Hampi',
   'doddabetta': 'Ooty',
   'doddabetta peak': 'Ooty',
   'mattupetty dam': 'Munnar',
@@ -134,42 +150,100 @@ class WeatherService {
    * a canonical searchable city name and coordinates.
    */
   resolveDestination(rawInput) {
-    if (!rawInput || typeof rawInput !== 'string') return { queryCity: 'Bengaluru', displayName: 'Bengaluru', coords: null };
+    if (!rawInput || typeof rawInput !== 'string') {
+      return { queryCity: 'Bengaluru', displayName: 'Bengaluru', coords: CITY_COORDS['bengaluru'] };
+    }
 
     const trimmed = rawInput.trim();
+    if (!trimmed) {
+      return { queryCity: 'Bengaluru', displayName: 'Bengaluru', coords: CITY_COORDS['bengaluru'] };
+    }
+
     const lower = trimmed.toLowerCase();
 
-    // 1. Direct landmark match
+    // 1. Direct landmark match on entire string
     if (LANDMARK_MAP[lower]) {
       const city = LANDMARK_MAP[lower];
       return { queryCity: city, displayName: trimmed, coords: CITY_COORDS[city.toLowerCase()] || null };
     }
 
-    // 2. Direct coordinate match
+    // 2. Direct coordinate match on entire string
     if (CITY_COORDS[lower]) {
       return { queryCity: CITY_COORDS[lower].name, displayName: trimmed, coords: CITY_COORDS[lower] };
     }
 
-    // 3. Strip commas e.g. "Agra, Uttar Pradesh" -> check "Agra"
-    if (trimmed.includes(',')) {
-      const parts = trimmed.split(',').map(p => p.trim());
-      const firstPart = parts[0].toLowerCase();
-      if (LANDMARK_MAP[firstPart]) {
-        const city = LANDMARK_MAP[firstPart];
+    // 3. Handle dual names or descriptions in parentheses e.g. "Mysore (Mysuru)", "Coorg (Kodagu)", "Jaipur (The Pink City)"
+    const parenMatch = trimmed.match(/^([^(]+)\s*\(([^)]+)\)/);
+    if (parenMatch) {
+      const outerPart = parenMatch[1].trim();
+      const innerPart = parenMatch[2].trim();
+
+      // Check outer part first
+      const outerLower = outerPart.toLowerCase();
+      if (CITY_COORDS[outerLower]) {
+        return { queryCity: CITY_COORDS[outerLower].name, displayName: trimmed, coords: CITY_COORDS[outerLower] };
+      }
+      if (LANDMARK_MAP[outerLower]) {
+        const city = LANDMARK_MAP[outerLower];
         return { queryCity: city, displayName: trimmed, coords: CITY_COORDS[city.toLowerCase()] || null };
       }
-      if (CITY_COORDS[firstPart]) {
-        return { queryCity: CITY_COORDS[firstPart].name, displayName: trimmed, coords: CITY_COORDS[firstPart] };
+
+      // Check inner part (alias like "Mysuru", "Kodagu", "Alleppey", "Kashi")
+      const innerLower = innerPart.toLowerCase();
+      if (CITY_COORDS[innerLower]) {
+        return { queryCity: CITY_COORDS[innerLower].name, displayName: trimmed, coords: CITY_COORDS[innerLower] };
       }
-      return { queryCity: parts[0], displayName: trimmed, coords: null };
+      if (LANDMARK_MAP[innerLower]) {
+        const city = LANDMARK_MAP[innerLower];
+        return { queryCity: city, displayName: trimmed, coords: CITY_COORDS[city.toLowerCase()] || null };
+      }
+
+      // Check first token of inner part (e.g. "Panaji & North Beaches" -> "panaji")
+      const innerFirstToken = innerPart.split(/[\s,&/]+/)[0].toLowerCase();
+      if (CITY_COORDS[innerFirstToken]) {
+        return { queryCity: CITY_COORDS[innerFirstToken].name, displayName: trimmed, coords: CITY_COORDS[innerFirstToken] };
+      }
+
+      // Fallback: use outer part (without parentheses) for OpenWeather query
+      if (outerPart) {
+        return { queryCity: outerPart, displayName: trimmed, coords: null };
+      }
     }
 
-    // 4. Strip common monument/nature words
+    // 4. Strip commas e.g. "Agra, Uttar Pradesh" or "Mysuru District, Karnataka"
+    if (trimmed.includes(',')) {
+      const parts = trimmed.split(',').map(p => p.trim());
+      for (const part of parts) {
+        const partClean = part.replace(/\s*\([^)]*\)/g, '').trim();
+        const partLower = partClean.toLowerCase();
+        if (LANDMARK_MAP[partLower]) {
+          const city = LANDMARK_MAP[partLower];
+          return { queryCity: city, displayName: trimmed, coords: CITY_COORDS[city.toLowerCase()] || null };
+        }
+        if (CITY_COORDS[partLower]) {
+          return { queryCity: CITY_COORDS[partLower].name, displayName: trimmed, coords: CITY_COORDS[partLower] };
+        }
+        // Try removing administrative words like District, State, City
+        const withoutAdmin = partClean.replace(/\b(District|State|City)\b/gi, '').trim().toLowerCase();
+        if (withoutAdmin && CITY_COORDS[withoutAdmin]) {
+          return { queryCity: CITY_COORDS[withoutAdmin].name, displayName: trimmed, coords: CITY_COORDS[withoutAdmin] };
+        }
+        if (withoutAdmin && LANDMARK_MAP[withoutAdmin]) {
+          const city = LANDMARK_MAP[withoutAdmin];
+          return { queryCity: city, displayName: trimmed, coords: CITY_COORDS[city.toLowerCase()] || null };
+        }
+      }
+      const firstClean = parts[0].replace(/\s*\([^)]*\)/g, '').trim();
+      return { queryCity: firstClean || parts[0], displayName: trimmed, coords: null };
+    }
+
+    // 5. Strip common monument/nature words
     const stripped = trimmed
-      .replace(/\b(Palace|Fort|Beach|Temple|Caves?|Falls|Waterfalls?|Hills?|Lake|Ghats?|Peak|Valley|Dam)\b/gi, '')
+      .replace(/\s*\([^)]*\)/g, '')
+      .replace(/\b(Palace|Fort|Beach|Temple|Caves?|Falls|Waterfalls?|Hills?|Lake|Ghats?|Peak|Valley|Dam|Zoo|Gardens?|Park)\b/gi, '')
       .trim();
 
-    if (stripped && stripped.toLowerCase() !== lower) {
+    if (stripped) {
       const strippedLower = stripped.toLowerCase();
       if (CITY_COORDS[strippedLower]) {
         return { queryCity: CITY_COORDS[strippedLower].name, displayName: trimmed, coords: CITY_COORDS[strippedLower] };
@@ -178,10 +252,14 @@ class WeatherService {
         const city = LANDMARK_MAP[strippedLower];
         return { queryCity: city, displayName: trimmed, coords: CITY_COORDS[city.toLowerCase()] || null };
       }
-      return { queryCity: stripped, displayName: trimmed, coords: null };
+      if (strippedLower !== lower) {
+        return { queryCity: stripped, displayName: trimmed, coords: null };
+      }
     }
 
-    return { queryCity: trimmed, displayName: trimmed, coords: null };
+    // 6. Clean any remaining parentheses or special chars before API query
+    const cleanCity = trimmed.replace(/\s*\([^)]*\)/g, '').trim();
+    return { queryCity: cleanCity || trimmed, displayName: trimmed, coords: null };
   }
 
   /**
